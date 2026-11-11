@@ -54,3 +54,21 @@ def test_pipeline_blocks_adversarial_user_question(pipeline):
     assert len(result.test_explanations) == 0
     assert "doctor" in result.report_summary_en.lower()
     assert "डॉक्टर" in result.report_summary_hi
+
+
+def test_pipeline_answer_question_educational_and_blocked(pipeline):
+    # 1. Blocked question
+    unsafe_q = "What dosage of Atorvastatin should I start with?"
+    ans_blocked = pipeline.answer_question(unsafe_q)
+    assert ans_blocked["blocked"] is True
+    assert "doctor" in ans_blocked["answer_en"].lower()
+    assert len(ans_blocked["source_urls"]) == 0
+
+    # 2. Permitted educational question
+    safe_q = "What is the clinical role of HDL cholesterol in the body?"
+    ans_safe = pipeline.answer_question(safe_q)
+    assert ans_safe["blocked"] is False
+    assert len(ans_safe["answer_en"]) > 20
+    assert len(ans_safe["answer_hi"]) > 10
+    assert len(ans_safe["source_urls"]) > 0
+    assert any(term in ans_safe["disclaimer"].lower() for term in ("doctor", "healthcare provider", "physician"))

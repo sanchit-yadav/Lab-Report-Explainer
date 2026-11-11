@@ -115,3 +115,66 @@ class LabReportPipeline:
             # Step 6: Assemble final report explanation
             final_report = self.generator.explain_report(lab_report, test_explanations)
             return final_report
+
+    def answer_question(
+        self,
+        question: str,
+        patient_context: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Answer an educational user question with RAG, guardrails, and telemetry."""
+        with self.tracer.start_trace("answer_question", question=question) as trace:
+            # 1. Input Guardrail check
+            with self.tracer.span("input_guard", trace) as s_guard:
+                guard_res = self.check_user_input(question)
+                s_guard.set_output(blocked=guard_res.blocked, category=guard_res.violation_category)
+                if guard_res.blocked:
+                    return {
+                        "blocked": True,
+                        "category": guard_res.violation_category,
+                        "answer_en": guard_res.safe_response_en,
+                        "answer_hi": guard_res.safe_response_hi,
+                        "source_urls": [],
+                        "disclaimer": self.config.guardrails.disclaimer.get("en", ""),
+                        "elapsed_ms": trace.elapsed_ms,
+                        "cost_usd": 0.0,
+                    }
+
+            # 2. RAG Retrieval & Re-ranking
+            with self.tracer.span("rag_retrieval", trace) as s_rag:
+                candidates = self.retriever.retrieve(question, top_k=self.config.rag.retrieval.top_k)
+                reranked = self.reranker.rerank(question, candidates, top_n=self.config.rag.reranker.top_n)
+                context_chunks = [c.get("text", "") for c in reranked if c.get("text")]
+                source_urls: List[str] = []
+                for c in reranked:
+                    url = c.get("metadata", {}).get("source_url")
+                    if url and url not in source_urls:
+                        source_urls.append(url)
+                s_rag.set_output(sources_found=len(source_urls))
+
+            # 3. Generation
+            with self.tracer.span("generation_qa", trace) as s_gen:
+                if patient_context:
+                    augmented_q = f"Context: {patient_context}\nQuestion: {question}"
+                else:
+                    augmented_q = question
+                ans_en, ans_hi = self.generator.answer_question(augmented_q, context_chunks, source_urls)
+                in_tok = len(augmented_q.split()) * 4 + 400
+                out_tok = (len(ans_en.split()) + len(ans_hi.split())) * 2
+                trace.add_tokens(self.config.models.explanation_llm, in_tok, out_tok)
+
+            # 4. Output Guardrail sanitization
+            with self.tracer.span("output_guard_qa", trace) as s_outguard:
+                sanitized_en, v_en = self.output_guard.sanitize_text(ans_en, lang="en")
+                sanitized_hi, v_hi = self.output_guard.sanitize_text(ans_hi, lang="hi")
+                s_outguard.set_output(redactions=v_en + v_hi)
+
+            return {
+                "blocked": False,
+                "category": None,
+                "answer_en": sanitized_en,
+                "answer_hi": sanitized_hi,
+                "source_urls": source_urls,
+                "disclaimer": self.config.guardrails.disclaimer.get("en", ""),
+                "elapsed_ms": trace.elapsed_ms,
+                "cost_usd": trace.total_cost_usd,
+            }

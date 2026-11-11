@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from src.config import get_config
 from src.explainer.prompts import build_explanation_prompt, get_system_prompt
@@ -107,6 +107,57 @@ class ExplanationGenerator:
         # Offline / fallback mode
         return self._generate_mock_explanation(test, context_chunks, source_urls)
 
+    def answer_question(
+        self,
+        question: str,
+        context_chunks: List[str],
+        source_urls: List[str],
+    ) -> Tuple[str, str]:
+        """Generate bilingual educational answer for an open user query."""
+        if self.api_key:
+            try:
+                from google import genai
+                from google.genai import types
+
+                client = genai.Client(api_key=self.api_key)
+                system_prompt = get_system_prompt()
+                prompt = (
+                    f"User Question: {question}\n\n"
+                    f"Clinical Context Guidelines:\n"
+                    + "\n---\n".join(context_chunks[:3])
+                    + "\n\nProvide an educational, clear response in both English and Hindi. "
+                    "Do NOT diagnose any illness or prescribe medications. Refer to a physician for personalized care.\n"
+                    "Output JSON with keys: 'answer_en' and 'answer_hi'."
+                )
+                response = client.models.generate_content(
+                    model=self.model_name,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        system_instruction=system_prompt,
+                        temperature=self.temperature,
+                        thinking_level=self.thinking_level,
+                        response_mime_type="application/json",
+                    ),
+                )
+                if response.text:
+                    parsed = json.loads(response.text)
+                    return parsed.get("answer_en", ""), parsed.get("answer_hi", "")
+            except Exception as e:
+                logger.warning(f"Gemini Q&A generation failed: {e}. Falling back to offline synthesis.")
+
+        # Offline synthesis using retrieved context
+        top_context = context_chunks[0] if context_chunks else "Laboratory tests provide objective physiological indicators."
+        clean_context = " ".join(top_context.split()[:50]) + "..."
+        ans_en = (
+            f"Based on clinical education guidelines: {clean_context} "
+            "Please consult your primary care doctor for guidance tailored to your overall health."
+        )
+        ans_hi = (
+            f"चिकित्सीय दिशानिर्देशों के आधार पर: यह जांच शारीरिक स्वास्थ्य और संतुलन को दर्शाती है। "
+            "कृपया अपने संपूर्ण स्वास्थ्य और उपचार के लिए अपने डॉक्टर से परामर्श अवश्य करें।"
+        )
+        return ans_en, ans_hi
+
     def explain_report(
         self,
         report: LabReport,
@@ -137,4 +188,5 @@ class ExplanationGenerator:
             test_explanations=test_explanations,
             flagged_count=flagged,
             total_tests=total,
+            raw_report=report,
         )

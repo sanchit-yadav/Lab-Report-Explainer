@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import List, Optional
 from pydantic import BaseModel, Field
 
-from src.extraction.schema import FlagStatus
+from src.extraction.schema import FlagStatus, LabReport
 
 
 class TestExplanation(BaseModel):
@@ -36,6 +36,7 @@ class ReportExplanation(BaseModel):
     test_explanations: List[TestExplanation] = Field(default_factory=list)
     flagged_count: int = Field(default=0, description="Number of abnormal or out-of-range tests")
     total_tests: int = Field(default=0, description="Total tests processed")
+    raw_report: Optional[LabReport] = Field(default=None, description="Extracted and flagged LabReport data")
     disclaimer: str = Field(
         default="⚠️ This explanation is for educational purposes only and is not a medical diagnosis. Please discuss all results with your doctor.",
         description="Global medical disclaimer",
