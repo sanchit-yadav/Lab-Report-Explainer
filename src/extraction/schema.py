@@ -21,6 +21,7 @@ class FlagStatus(str, Enum):
 
 class TestResult(BaseModel):
     """Structured representation of an individual laboratory analyte test result."""
+    __test__ = False
     test_name: str = Field(description="Name or description of the lab test")
     value: Optional[float] = Field(default=None, description="Numeric result value, or None if non-numeric")
     raw_value: str = Field(default="", description="Original string value extracted from report")
