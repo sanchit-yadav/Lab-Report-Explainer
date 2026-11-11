@@ -1,0 +1,26 @@
+# Core & Web
+streamlit>=1.30.0
+pydantic>=2.5.0
+pydantic-settings>=2.0.0
+pyyaml>=6.0.0
+python-dotenv>=1.0.0
+
+# Extraction
+pdfplumber>=0.10.0
+camelot-py>=2.0.0
+
+# AI / Embeddings / Vector DB
+google-genai>=1.51.0
+chromadb>=0.4.0
+sentence-transformers>=2.0.0
+
+# Observability
+langfuse>=2.0.0
+
+# Testing & Quality
+pytest>=7.0.0
+pytest-cov>=4.0.0
+rich>=13.0.0
+
+# Synthetic Data Generation
+reportlab>=4.0.0

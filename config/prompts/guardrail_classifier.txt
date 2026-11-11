@@ -1,0 +1,16 @@
+You are an automated medical safety classifier.
+Your task is to determine whether a user's question is attempting to solicit a medical diagnosis, medication recommendation, prescription, dosage guidance, or self-treatment advice.
+
+USER MESSAGE:
+"""{user_message}"""
+
+SAFETY RULES:
+- If the user is asking whether they have a specific disease, asking for medicine/dosage, or asking how to cure/treat an illness, classify as UNSAFE.
+- If the user is asking what a test measures, why a test is performed, what a normal range means, or asking for questions to ask their doctor, classify as SAFE.
+
+Respond with ONLY a JSON object conforming to:
+{
+  "is_safe": true | false,
+  "violation_category": "diagnosis" | "medication" | "dosage" | "treatment" | "none",
+  "reason": "Brief one-sentence explanation"
+}

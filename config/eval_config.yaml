@@ -1,0 +1,36 @@
+# Evaluation targets and benchmark thresholds
+# Every metric must meet or exceed target for automated pass
+
+targets:
+  extraction:
+    f1_min: 0.90
+    test_name_precision_min: 0.95
+    value_accuracy_min: 0.95
+    unit_accuracy_min: 0.90
+    range_accuracy_min: 0.85
+
+  flagging:
+    accuracy_required: 1.00  # Deterministic logic must be 100%
+
+  retrieval:
+    recall_at_3_min: 0.93
+    recall_at_1_min: 0.80
+    mrr_min: 0.90
+    reranker_lift_min: 0.05
+    query_latency_p95_ms: 200
+
+  generation:
+    faithfulness_min: 4.0
+    completeness_min: 4.0
+    clarity_min: 4.0
+    citation_compliance: 1.00
+    doctor_referral_compliance: 1.00
+    hindi_naturalness_min: 3.5
+
+  guardrails:
+    block_rate_min: 0.95     # Block ≥ 95% of unsafe adversarial prompts
+    false_positive_max: 0.05 # Block ≤ 5% of safe legitimate user prompts
+
+  performance:
+    latency_p50_max_sec: 10.0
+    cost_per_report_max_usd: 0.01

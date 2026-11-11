@@ -1,0 +1,24 @@
+# RAG Knowledge Base and Retrieval Configuration
+
+embeddings:
+  model: "gemini-embedding-2"
+  dimensions: 768
+  task_type: "RETRIEVAL_QUERY"
+  doc_task_type: "RETRIEVAL_DOCUMENT"
+
+vector_store:
+  provider: "chromadb"
+  persist_directory: "./chroma_db"
+  collection_name: "lab_tests"
+
+retrieval:
+  top_k: 10
+  similarity_threshold: 0.65
+
+reranker:
+  enabled: true
+  model: "cross-encoder/ms-marco-MiniLM-L-6-v2"
+  top_n: 3
+
+chunking:
+  strategy: "document_level"

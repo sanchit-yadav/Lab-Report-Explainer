@@ -1,0 +1,30 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info/
+
+# Virtual environments
+.venv/
+env/
+venv/
+
+# Environment and secrets
+.env
+.env.local
+
+# Vector database storage
+chroma_db/
+*.sqlite
+*.sqlite3
+
+# Test & coverage caches
+.pytest_cache/
+.coverage
+htmlcov/
+
+# OS metadata
+.DS_Store
+Thumbs.db

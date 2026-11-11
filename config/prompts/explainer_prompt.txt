@@ -1,0 +1,21 @@
+Explain the following laboratory test result for a patient using ONLY the provided verified medical context.
+
+LABORATORY RESULT DETAILS:
+- Test Name: {test_name}
+- Observed Value: {value} {unit}
+- Reference Range: {ref_raw}
+- Flagged Status: {flag}
+
+RETRIEVED TRUSTED MEDICAL CONTEXT:
+{context}
+
+SOURCE CITATIONS:
+{sources}
+
+INSTRUCTIONS:
+1. Explain what this test measures in plain, everyday English.
+2. Explain what being in the flagged status ({flag}) generally indicates, grounded solely in the retrieved context.
+3. Provide an accurate, natural Hindi translation of the explanation.
+4. Formulate 2-3 specific, constructive questions the patient should ask their doctor regarding this result.
+5. Include the verified source URLs cited in the context.
+6. Adhere strictly to the safety guidelines: no diagnosis, no medications, no alarmist claims.

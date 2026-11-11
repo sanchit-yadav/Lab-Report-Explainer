@@ -1,0 +1,25 @@
+# App-level configuration
+# All model selections, temperatures, and supported languages
+
+models:
+  explanation_llm: "gemini-3.1-flash-lite"
+  explanation_thinking_level: "low"
+  vision_fallback: "gemini-3.5-flash"
+  vision_media_resolution: "medium"
+  guardrail_classifier: "gemini-3.1-flash-lite"
+  eval_judge: "gemini-3.5-flash"
+  eval_thinking_level: "high"
+
+generation:
+  temperature: 0.2
+  max_output_tokens: 2048
+
+languages:
+  supported:
+    - "en"
+    - "hi"
+  default: "en"
+
+tracing:
+  enabled: true
+  provider: "langfuse"

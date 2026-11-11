@@ -1,0 +1,58 @@
+# Extraction pipeline configuration
+# Controls 3-tier fallback, header patterns, and deterministic flagging rules
+
+tiers:
+  - name: "pdfplumber"
+    enabled: true
+    priority: 1
+  - name: "camelot"
+    enabled: true
+    priority: 2
+    method: "lattice"
+  - name: "vision"
+    enabled: true
+    priority: 3
+    model: "gemini-3.5-flash"
+
+header_patterns:
+  test_name:
+    - "test name"
+    - "investigation"
+    - "test"
+    - "parameter"
+    - "analyte"
+    - "description"
+  value:
+    - "value"
+    - "result"
+    - "observed value"
+    - "your result"
+    - "patient value"
+  unit:
+    - "unit"
+    - "units"
+    - "uom"
+  ref_range:
+    - "reference"
+    - "ref range"
+    - "normal range"
+    - "biological ref"
+    - "ref. interval"
+    - "reference range"
+    - "bio. ref. interval"
+
+flagging:
+  critical_multiplier: 2.0
+  non_numeric_map:
+    "positive": "abnormal"
+    "reactive": "abnormal"
+    "non-reactive": "normal"
+    "negative": "normal"
+    "detected": "abnormal"
+    "not detected": "normal"
+
+report_types:
+  blood_test:
+    extractor: "tabular"
+    flagger: "range_comparison"
+    rag_collection: "lab_tests"

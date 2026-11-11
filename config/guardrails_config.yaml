@@ -1,0 +1,76 @@
+# Triple-Layer Guardrail Configuration
+# Defense-in-depth safety against medical diagnosis, prescription, and dosage
+
+input_guard:
+  enabled: true
+  use_llm_classifier: true
+  classifier_model: "gemini-3.1-flash-lite"
+
+  keyword_blocklist:
+    en:
+      - "prescribe"
+      - "medicine"
+      - "medication"
+      - "dosage"
+      - "dose"
+      - "drug"
+      - "diagnose"
+      - "diagnosis"
+      - "treatment"
+      - "cure"
+      - "remedy"
+      - "supplement"
+      - "pharmacy"
+    hi:
+      - "दवाई"
+      - "दवा"
+      - "इलाज"
+      - "उपचार"
+      - "खुराक"
+      - "बीमारी बताओ"
+      - "रोग बताओ"
+      - "नुस्खा"
+
+  pattern_blocklist:
+    en:
+      - "should i take"
+      - "do i have"
+      - "what disease"
+      - "am i suffering"
+      - "what medicine"
+      - "how much .* should i take"
+      - "mg per day"
+      - "give me a prescription"
+    hi:
+      - "क्या मुझे .* है"
+      - "कौन सी दवा"
+      - "कितनी खुराक"
+      - "क्या मुझे बीमारी है"
+
+  safe_refusal:
+    en: "I can only help explain lab test results. For medical advice, diagnosis, or prescription, please consult your doctor."
+    hi: "मैं केवल लैब रिपोर्ट के परिणामों को समझाने में मदद कर सकता हूँ। किसी भी चिकित्सा सलाह, निदान या दवा के लिए कृपया अपने डॉक्टर से परामर्श करें।"
+
+output_guard:
+  enabled: true
+
+  unsafe_patterns:
+    - "(?i)you have [a-z\\s]+(?:disease|syndrome|disorder|infection|cancer|deficiency)"
+    - "(?i)you suffer from"
+    - "(?i)you are diagnosed with"
+    - "(?i)indicates that you have"
+    - "(?i)take \\d+\\s*(?:mg|ml|tablet|tablets|capsule|capsules)"
+    - "(?i)start taking"
+    - "(?i)stop taking"
+    - "(?i)i recommend (?:taking|using|starting)"
+    - "(?i)prescribe"
+
+  drug_list_file: "config/drug_names.txt"
+
+  replacement_text:
+    en: "Please discuss this specific result with your doctor for personalized medical guidance."
+    hi: "व्यक्तिगत चिकित्सीय मार्गदर्शन के लिए कृपया इस परिणाम पर अपने डॉक्टर से चर्चा करें।"
+
+disclaimer:
+  en: "⚠️ This explanation is for educational purposes only and is not a medical diagnosis. Please discuss all lab findings with your licensed healthcare provider."
+  hi: "⚠️ यह विवरण केवल शैक्षिक उद्देश्यों के लिए है और कोई चिकित्सीय निदान नहीं है। कृपया सभी रिपोर्ट परिणामों पर अपने योग्य डॉक्टर से परामर्श लें।"
