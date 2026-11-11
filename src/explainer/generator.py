@@ -1,0 +1,140 @@
+"""Explanation generator leveraging Gemini 3.1 Flash-Lite with structured output."""
+
+from __future__ import annotations
+
+import json
+import logging
+import os
+from typing import Any, Dict, List, Optional
+
+from src.config import get_config
+from src.explainer.prompts import build_explanation_prompt, get_system_prompt
+from src.explainer.schema import ReportExplanation, TestExplanation
+from src.extraction.schema import FlagStatus, LabReport, TestResult
+
+logger = logging.getLogger("generator")
+
+
+class ExplanationGenerator:
+    """Generates patient-friendly bilingual explanations using Gemini 3.1 Flash-Lite."""
+
+    def __init__(self):
+        self.config = get_config()
+        self.model_name = self.config.models.explanation_llm
+        self.thinking_level = self.config.models.explanation_thinking_level
+        self.temperature = self.config.generation.temperature
+        self.api_key = os.environ.get("GEMINI_API_KEY") or self.config.gemini_api_key
+
+    def _generate_mock_explanation(
+        self,
+        test: TestResult,
+        context_chunks: List[str],
+        source_urls: List[str],
+    ) -> TestExplanation:
+        """Deterministic, grounded explanation generator for offline testing."""
+        flag_str = test.flag.value
+        val_str = f"{test.value} {test.unit}" if test.value is not None else test.raw_value
+
+        summary_en = (
+            f"This test measures {test.test_name}. Your observed level is {val_str}, "
+            f"which is categorized as {flag_str.upper()} based on the reference range {test.ref_raw or 'provided'}. "
+            "In general medical practice, this analyte helps assess organ function and overall physiological balance."
+        )
+        summary_hi = (
+            f"यह जांच {test.test_name} के स्तर को मापती है। आपका परिणाम {val_str} है, "
+            f"जो मानक संदर्भ सीमा के अनुसार {flag_str.upper()} की श्रेणी में आता है। "
+            "चिकित्सीय संदर्भ में यह जांच शारीरिक संतुलन और अंग कार्यप्रणाली को समझने में सहायता करती है।"
+        )
+
+        doctor_q = [
+            f"What might be contributing to my {test.test_name} result being {flag_str}?",
+            f"Are there any follow-up tests or repeat evaluations recommended?",
+            f"Should any dietary or medication adjustments be considered based on this finding?",
+        ]
+
+        return TestExplanation(
+            test_name=test.test_name,
+            flag=test.flag,
+            explanation_en=summary_en,
+            explanation_hi=summary_hi,
+            source_urls=source_urls,
+            doctor_questions=doctor_q,
+            disclaimer="⚠️ This explanation is for educational purposes only. Please discuss with your doctor.",
+        )
+
+    def explain_test(
+        self,
+        test: TestResult,
+        candidates: List[Dict[str, Any]],
+    ) -> TestExplanation:
+        """Generate structured bilingual explanation for a single test analyte."""
+        context_chunks = [c.get("text", "") for c in candidates if c.get("text")]
+        source_urls: List[str] = []
+        for c in candidates:
+            url = c.get("metadata", {}).get("source_url")
+            if url and url not in source_urls:
+                source_urls.append(url)
+
+        # Use Gemini API if configured
+        if self.api_key:
+            try:
+                from google import genai
+                from google.genai import types
+
+                client = genai.Client(api_key=self.api_key)
+                prompt = build_explanation_prompt(test, context_chunks, source_urls)
+                system_prompt = get_system_prompt()
+
+                response = client.models.generate_content(
+                    model=self.model_name,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        system_instruction=system_prompt,
+                        temperature=self.temperature,
+                        thinking_level=self.thinking_level,
+                        response_mime_type="application/json",
+                        response_schema=TestExplanation,
+                    ),
+                )
+
+                if response.text:
+                    parsed = json.loads(response.text)
+                    return TestExplanation(**parsed)
+
+            except Exception as e:
+                logger.warning(f"Gemini API explanation generation failed: {e}. Falling back to offline generator.")
+
+        # Offline / fallback mode
+        return self._generate_mock_explanation(test, context_chunks, source_urls)
+
+    def explain_report(
+        self,
+        report: LabReport,
+        test_explanations: List[TestExplanation],
+    ) -> ReportExplanation:
+        """Assemble an executive report summary aggregating all test explanations."""
+        total = len(report.tests)
+        flagged = sum(
+            1 for t in report.tests if t.flag not in (FlagStatus.NORMAL, FlagStatus.UNKNOWN)
+        )
+
+        summary_en = (
+            f"Laboratory report summary for {report.patient_name or 'the patient'}. "
+            f"A total of {total} test parameter(s) were analyzed, with {flagged} parameter(s) "
+            "outside standard reference intervals requiring clinical review."
+        )
+        summary_hi = (
+            f"{report.patient_name or 'मरीज'} की लैब जांच रिपोर्ट का सारांश। "
+            f"कुल {total} परीक्षणों का विश्लेषण किया गया, जिनमें से {flagged} परिणाम "
+            "मानक संदर्भ सीमा से बाहर पाए गए हैं जिन पर डॉक्टर से परामर्श आवश्यक है।"
+        )
+
+        return ReportExplanation(
+            patient_name=report.patient_name,
+            report_date=report.report_date,
+            report_summary_en=summary_en,
+            report_summary_hi=summary_hi,
+            test_explanations=test_explanations,
+            flagged_count=flagged,
+            total_tests=total,
+        )
