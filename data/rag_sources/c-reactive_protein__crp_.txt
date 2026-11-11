@@ -1,0 +1,12 @@
+What the Test Measures:
+C-reactive protein is an acute-phase reactant synthesized by the liver in response to inflammatory cytokines.
+
+What Elevated / High Values Mean:
+High CRP indicates acute or chronic inflammation. Markedly high levels (>10 mg/L) often point toward severe bacterial infections, major physical trauma, or acute flare-ups of chronic inflammatory conditions.
+
+What Low Values Mean:
+Low or undetectable CRP is normal and indicates an absence of significant systemic inflammation.
+
+Questions to Ask Your Doctor:
+- Does this CRP elevation correlate with recent illness or symptoms?
+- Does this reflect cardiovascular risk or an inflammatory flare?

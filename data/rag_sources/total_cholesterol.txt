@@ -1,0 +1,12 @@
+What the Test Measures:
+Total cholesterol quantifies the cumulative amount of cholesterol in your bloodstream, comprising HDL, LDL, and roughly 20% of triglycerides.
+
+What Elevated / High Values Mean:
+High total cholesterol (>200 mg/dL) is a recognized risk factor for atherosclerosis, coronary artery disease, and cerebrovascular events. Causes include high-saturated-fat diets, sedentary lifestyle, genetic familial hypercholesterolemia, and hypothyroidism.
+
+What Low Values Mean:
+Very low total cholesterol (<120 mg/dL) can occasionally be seen in malabsorption, severe liver disease, malnutrition, or hyperthyroidism.
+
+Questions to Ask Your Doctor:
+- What is my overall 10-year cardiovascular risk score based on this lipid profile?
+- Are dietary and lifestyle changes sufficient, or should we discuss medical risk management?

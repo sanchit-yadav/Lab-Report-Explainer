@@ -1,0 +1,12 @@
+What the Test Measures:
+Serum iron measures circulating iron bound to transferrin, while Ferritin measures the total cellular iron stores in your body.
+
+What Low Values Mean:
+Low iron and ferritin signify depleted iron stores and iron-deficiency anemia, often from menstrual loss, GI bleeding, or low dietary intake.
+
+What Elevated / High Values Mean:
+Elevated iron and ferritin can point toward hemochromatosis (iron overload), repeated blood transfusions, or chronic inflammatory conditions (where ferritin acts as an acute-phase reactant).
+
+Questions to Ask Your Doctor:
+- Do my ferritin and transferrin saturation levels confirm iron deficiency?
+- Should we investigate potential occult gastrointestinal blood loss?

@@ -1,0 +1,12 @@
+What the Test Measures:
+Hematocrit (Hct) represents the proportion of total blood volume that consists of packed red blood cells, expressed as a percentage.
+
+What Elevated / High Values Mean:
+Elevated hematocrit often reflects hemoconcentration due to dehydration, but can also signify chronic hypoxia or polycythemia.
+
+What Low Values Mean:
+A low hematocrit is a primary hallmark of anemia or recent fluid overload.
+
+Questions to Ask Your Doctor:
+- Was my hydration status a factor in this hematocrit reading?
+- How does this compare with previous blood counts?

@@ -1,0 +1,12 @@
+What the Test Measures:
+Bilirubin is an orange-yellow pigment produced by the normal breakdown of hemoglobin in aged red blood cells. The liver processes and excretes bilirubin through bile ducts into the intestines.
+
+What Elevated / High Values Mean:
+Elevated bilirubin causes jaundice (yellowing of eyes and skin). Causes of unconjugated (indirect) hyperbilirubinemia include hemolysis and Gilbert's syndrome. Conjugated (direct) hyperbilirubinemia indicates biliary obstruction (gallstones, strictures) or hepatocellular liver damage (hepatitis, cirrhosis).
+
+What Low Values Mean:
+Low bilirubin is generally of no clinical significance.
+
+Questions to Ask Your Doctor:
+- Is the elevated bilirubin predominantly conjugated (direct) or unconjugated?
+- Could Gilbert's syndrome or a biliary tract issue explain this reading?

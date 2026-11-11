@@ -1,0 +1,12 @@
+What the Test Measures:
+Alkaline phosphatase is an enzyme found particularly in the cells lining bile ducts in the liver and in active bone tissue.
+
+What Elevated / High Values Mean:
+High ALP occurs in biliary obstruction (cholestasis, gallstones), bone disorders (Paget's disease, healing fractures, bone metastases), or during normal pregnancy and childhood growth spurts.
+
+What Low Values Mean:
+Low ALP is uncommon but may occur in severe zinc deficiency, malnutrition, or hypophosphatasia.
+
+Questions to Ask Your Doctor:
+- Does my elevated ALP originate from liver/biliary pathways or bone metabolism?
+- Should we run a GGT test to differentiate between liver and bone origin?

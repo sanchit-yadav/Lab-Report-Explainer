@@ -1,0 +1,12 @@
+What the Test Measures:
+AST is an enzyme found in high concentrations in hepatocytes, cardiac myocytes, and skeletal muscle tissue. It leaks into the bloodstream when these cells sustain cellular injury.
+
+What Elevated / High Values Mean:
+Elevated AST indicates liver inflammation (viral hepatitis, fatty liver, alcoholic liver disease), drug-induced hepatotoxicity, or strenuous physical exertion and muscle damage.
+
+What Low Values Mean:
+Low AST is normal and healthy.
+
+Questions to Ask Your Doctor:
+- How does my AST compare to my ALT level (AST/ALT ratio)?
+- Could any prescription drugs, herbal remedies, or alcohol be contributing?

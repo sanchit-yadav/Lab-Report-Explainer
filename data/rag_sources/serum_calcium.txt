@@ -1,0 +1,12 @@
+What the Test Measures:
+Measures calcium in blood plasma, indispensable for bone structural integrity, cardiac contractility, nerve transmission, and coagulation cascades.
+
+What Elevated / High Values Mean:
+High calcium (hypercalcemia) is most commonly caused by primary hyperparathyroidism or malignancy. Symptoms include nephrolithiasis (kidney stones), bone pain, abdominal pain, and confusion.
+
+What Low Values Mean:
+Low calcium (hypocalcemia) causes neuromuscular excitability, muscle spasms, tetany, and tingling around the mouth. Causes include hypoparathyroidism, severe vitamin D deficiency, renal failure, or low serum albumin.
+
+Questions to Ask Your Doctor:
+- Was my calcium result corrected for my serum albumin level?
+- Should we check my parathyroid hormone (PTH) and vitamin D levels?

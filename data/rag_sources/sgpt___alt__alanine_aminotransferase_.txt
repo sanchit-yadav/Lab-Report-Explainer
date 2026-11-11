@@ -1,0 +1,12 @@
+What the Test Measures:
+ALT is an intracellular enzyme found almost exclusively in liver cells, making it a highly specific biomarker for hepatocellular injury.
+
+What Elevated / High Values Mean:
+Elevated ALT signifies liver cell injury. Prominent causes include non-alcoholic fatty liver disease (NAFLD), viral hepatitis (A, B, C), medications (e.g. statins, acetaminophen), or autoimmune hepatitis.
+
+What Low Values Mean:
+Low ALT is considered normal and indicates no active liver injury.
+
+Questions to Ask Your Doctor:
+- What is the primary suspect for my elevated ALT (fatty liver, medications, viral)?
+- Would a liver ultrasound or viral hepatitis screen be indicated?

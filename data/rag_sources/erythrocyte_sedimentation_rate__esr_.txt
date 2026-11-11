@@ -1,0 +1,12 @@
+What the Test Measures:
+ESR is a general, non-specific test indicating the presence of systemic inflammation in the body. It measures how fast red blood cells settle to the bottom of a test tube over one hour.
+
+What Elevated / High Values Mean:
+An elevated ESR suggests active systemic inflammation, infection, autoimmune disorders (e.g. polymyalgia rheumatica, lupus, rheumatoid arthritis), inflammatory bowel disease, or tissue injury.
+
+What Low Values Mean:
+A very low ESR is typically normal, but can sometimes be observed in polycythemia, extreme leukocytosis, or sickle cell disease.
+
+Questions to Ask Your Doctor:
+- What specific inflammatory or infectious process might be raising my sedimentation rate?
+- Would a C-Reactive Protein (CRP) test provide complementary information?

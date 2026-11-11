@@ -1,0 +1,13 @@
+What the Test Measures:
+White blood cells (leukocytes) are a vital component of your immune system that defend against bacterial, viral, fungal, and parasitic infections, and play a key role in inflammatory responses.
+
+What Elevated / High Values Mean:
+An elevated WBC count (leukocytosis) most commonly indicates an active bacterial or viral infection, tissue damage, severe physical stress, inflammatory conditions (e.g. rheumatoid arthritis), smoking, or, less commonly, bone marrow disorders.
+
+What Low Values Mean:
+A low WBC count (leukopenia) suggests an increased susceptibility to infection. Potential causes include viral infections that suppress bone marrow, autoimmune disorders (like lupus), bone marrow damage, or severe overwhelming infections.
+
+Questions to Ask Your Doctor:
+- Does my elevated or reduced white count suggest an active or resolving infection?
+- Would a differential count (neutrophils, lymphocytes) help identify the cause?
+- Are any of my current medications contributing to this result?

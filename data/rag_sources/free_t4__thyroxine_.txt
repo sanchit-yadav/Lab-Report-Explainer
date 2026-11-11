@@ -1,0 +1,12 @@
+What the Test Measures:
+Free T4 measures the unbound, metabolically active form of thyroxine circulating in your blood, unaffected by changes in carrier protein concentrations.
+
+What Elevated / High Values Mean:
+High Free T4 indicates hyperthyroidism (such as Graves' disease, toxic multinodular goiter, or thyroiditis).
+
+What Low Values Mean:
+Low Free T4 indicates clinical hypothyroidism when accompanied by high TSH, or central hypothyroidism if TSH is normal or low.
+
+Questions to Ask Your Doctor:
+- How does my Free T4 correlate with my TSH level?
+- Does this result explain symptoms like fatigue, heart palpitations, or weight changes?

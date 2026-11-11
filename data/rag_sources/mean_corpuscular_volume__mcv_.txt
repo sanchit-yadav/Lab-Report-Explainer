@@ -1,0 +1,12 @@
+What the Test Measures:
+MCV measures the average physical size of your red blood cells, categorizing anemias into microcytic, normocytic, or macrocytic.
+
+What Elevated / High Values Mean:
+High MCV (macrocytosis) indicates enlarged red blood cells, commonly caused by Vitamin B12 deficiency, folate deficiency, liver dysfunction, excessive alcohol consumption, or thyroid disorders.
+
+What Low Values Mean:
+Low MCV (microcytosis) indicates smaller-than-normal red cells, most typically due to iron deficiency anemia or thalassemia trait.
+
+Questions to Ask Your Doctor:
+- Does my cell size point toward iron deficiency or vitamin B12/folate deficiency?
+- Should we run a ferritin or hemoglobin electrophoresis panel?

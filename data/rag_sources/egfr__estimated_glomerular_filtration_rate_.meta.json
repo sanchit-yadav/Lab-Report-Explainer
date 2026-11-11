@@ -1,0 +1,7 @@
+{
+  "test_name": "eGFR (Estimated Glomerular Filtration Rate)",
+  "category": "Kidney Function",
+  "source_name": "National Kidney Foundation (NKF)",
+  "source_url": "https://www.kidney.org/atoz/content/gfr",
+  "language": "en"
+}

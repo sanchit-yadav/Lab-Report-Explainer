@@ -1,0 +1,12 @@
+What the Test Measures:
+eGFR is the primary mathematical indicator of renal function, calculated from serum creatinine, age, and sex to estimate milliliters of blood filtered by the glomeruli per minute.
+
+What Normal / Adequate Values Mean:
+An eGFR of 60 or higher is generally considered in the normal or adequate range for adults.
+
+What Reduced / Low Values Mean:
+An eGFR below 60 for three months or longer indicates chronic kidney disease. A sudden decrease suggests acute kidney injury.
+
+Questions to Ask Your Doctor:
+- What stage of kidney function does my eGFR correspond to?
+- What blood pressure and glycemic targets should I maintain to protect my kidneys?

@@ -1,0 +1,12 @@
+What the Test Measures:
+BUN measures the amount of nitrogen in your blood that comes from the breakdown of dietary proteins in the liver.
+
+What Elevated / High Values Mean:
+Elevated BUN occurs in kidney disease, severe dehydration, congestive heart failure, gastrointestinal bleeding, or very high protein consumption.
+
+What Low Values Mean:
+Low BUN can be seen in severe liver disease, malnutrition, low-protein diets, or fluid overload.
+
+Questions to Ask Your Doctor:
+- What is my BUN-to-creatinine ratio, and does it suggest dehydration or kidney parenchymal injury?
+- Do I need to modify my fluid or protein intake?

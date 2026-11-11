@@ -1,0 +1,13 @@
+What the Test Measures:
+TSH is produced by the anterior pituitary gland to regulate the thyroid gland's production of thyroxine (T4) and triiodothyronine (T3) through a sensitive negative feedback loop.
+
+What Elevated / High Values Mean:
+An elevated TSH typically indicates primary hypothyroidism (underactive thyroid), where the pituitary releases more TSH to stimulate an underperforming thyroid. Symptoms may include fatigue, weight gain, constipation, and cold sensitivity.
+
+What Low Values Mean:
+A low TSH usually signifies hyperthyroidism (overactive thyroid), where excessive circulating thyroid hormones suppress pituitary TSH secretion. Symptoms may include rapid heart rate, unintended weight loss, and tremors.
+
+Questions to Ask Your Doctor:
+- Does my TSH result suggest an underactive or overactive thyroid state?
+- Should we check Free T4 and anti-TPO thyroid antibodies?
+- Do any supplements (such as biotin) interfere with my TSH assay?

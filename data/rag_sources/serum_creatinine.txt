@@ -1,0 +1,13 @@
+What the Test Measures:
+Creatinine is a chemical metabolic waste product created by normal muscle contraction and breakdown. Healthy kidneys continuously filter almost all creatinine out of the blood into urine.
+
+What Elevated / High Values Mean:
+Elevated creatinine indicates impaired renal filtration capacity. Causes include acute kidney injury (from dehydration, nephrotoxic medications like NSAIDs), chronic kidney disease (hypertension, diabetes), urinary tract obstruction, or very high dietary protein/creatine intake.
+
+What Low Values Mean:
+Low creatinine is seen in individuals with low muscle mass, muscular dystrophy, or severe malnutrition.
+
+Questions to Ask Your Doctor:
+- What does my creatinine level indicate about my overall kidney function?
+- What is my calculated estimated glomerular filtration rate (eGFR)?
+- Are any of my medications affecting my kidneys?
