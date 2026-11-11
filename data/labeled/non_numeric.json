@@ -1,0 +1,66 @@
+{
+  "patient_name": "Anita Desai",
+  "patient_age": "29",
+  "patient_gender": "Female",
+  "report_date": "2026-11-05",
+  "lab_name": "Suburban Diagnostics",
+  "report_type": "blood_test",
+  "tests": [
+    {
+      "test_name": "Urine Protein",
+      "value": null,
+      "raw_value": "Trace",
+      "unit": "",
+      "ref_low": null,
+      "ref_high": null
+    },
+    {
+      "test_name": "Urine Sugar (Glucose)",
+      "value": null,
+      "raw_value": "Negative",
+      "unit": "",
+      "ref_low": null,
+      "ref_high": null
+    },
+    {
+      "test_name": "Urine Ketones",
+      "value": null,
+      "raw_value": "Negative",
+      "unit": "",
+      "ref_low": null,
+      "ref_high": null
+    },
+    {
+      "test_name": "Urine Bilirubin",
+      "value": null,
+      "raw_value": "Negative",
+      "unit": "",
+      "ref_low": null,
+      "ref_high": null
+    },
+    {
+      "test_name": "Hepatitis B Surface Antigen (HBsAg)",
+      "value": null,
+      "raw_value": "Non-Reactive",
+      "unit": "",
+      "ref_low": null,
+      "ref_high": null
+    },
+    {
+      "test_name": "HIV 1 & 2 Antibody Screen",
+      "value": null,
+      "raw_value": "Non-Reactive",
+      "unit": "",
+      "ref_low": null,
+      "ref_high": null
+    },
+    {
+      "test_name": "VDRL / RPR",
+      "value": null,
+      "raw_value": "Non-Reactive",
+      "unit": "",
+      "ref_low": null,
+      "ref_high": null
+    }
+  ]
+}

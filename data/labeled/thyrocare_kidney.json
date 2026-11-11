@@ -1,0 +1,50 @@
+{
+  "patient_name": "Kavita Rao",
+  "patient_age": "58",
+  "patient_gender": "Female",
+  "report_date": "2026-10-27",
+  "lab_name": "Thyrocare Technologies Ltd",
+  "report_type": "blood_test",
+  "tests": [
+    {
+      "test_name": "Blood Urea Nitrogen (BUN)",
+      "value": 24.0,
+      "raw_value": "24.0",
+      "unit": "mg/dL",
+      "ref_low": 7.0,
+      "ref_high": 20.0
+    },
+    {
+      "test_name": "Serum Creatinine",
+      "value": 1.45,
+      "raw_value": "1.45",
+      "unit": "mg/dL",
+      "ref_low": 0.6,
+      "ref_high": 1.2
+    },
+    {
+      "test_name": "Uric Acid",
+      "value": 6.2,
+      "raw_value": "6.2",
+      "unit": "mg/dL",
+      "ref_low": 3.5,
+      "ref_high": 7.2
+    },
+    {
+      "test_name": "eGFR (Estimated)",
+      "value": 60.0,
+      "raw_value": "> 60",
+      "unit": "mL/min/1.73m\u00b2",
+      "ref_low": 60.0,
+      "ref_high": null
+    },
+    {
+      "test_name": "BUN / Creatinine Ratio",
+      "value": 16.5,
+      "raw_value": "16.5",
+      "unit": "Ratio",
+      "ref_low": 10.0,
+      "ref_high": 20.0
+    }
+  ]
+}

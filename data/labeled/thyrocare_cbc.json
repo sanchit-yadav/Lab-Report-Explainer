@@ -1,0 +1,74 @@
+{
+  "patient_name": "Aarav Sharma",
+  "patient_age": "34",
+  "patient_gender": "Male",
+  "report_date": "2026-10-14",
+  "lab_name": "Thyrocare Technologies Ltd",
+  "report_type": "blood_test",
+  "tests": [
+    {
+      "test_name": "Hemoglobin",
+      "value": 14.2,
+      "raw_value": "14.2",
+      "unit": "g/dL",
+      "ref_low": 13.0,
+      "ref_high": 17.0
+    },
+    {
+      "test_name": "WBC Count",
+      "value": 11500.0,
+      "raw_value": "11,500",
+      "unit": "cells/cumm",
+      "ref_low": 4000.0,
+      "ref_high": 11000.0
+    },
+    {
+      "test_name": "RBC Count",
+      "value": 4.8,
+      "raw_value": "4.8",
+      "unit": "x10\u2076/\u00b5L",
+      "ref_low": 4.5,
+      "ref_high": 5.5
+    },
+    {
+      "test_name": "Platelet Count",
+      "value": 240000.0,
+      "raw_value": "240000",
+      "unit": "cells/cumm",
+      "ref_low": 150000.0,
+      "ref_high": 450000.0
+    },
+    {
+      "test_name": "Hematocrit",
+      "value": 42.5,
+      "raw_value": "42.5",
+      "unit": "%",
+      "ref_low": 40.0,
+      "ref_high": 50.0
+    },
+    {
+      "test_name": "MCV",
+      "value": 88.2,
+      "raw_value": "88.2",
+      "unit": "fL",
+      "ref_low": 80.0,
+      "ref_high": 100.0
+    },
+    {
+      "test_name": "MCH",
+      "value": 29.5,
+      "raw_value": "29.5",
+      "unit": "pg",
+      "ref_low": 27.0,
+      "ref_high": 33.0
+    },
+    {
+      "test_name": "MCHC",
+      "value": 33.4,
+      "raw_value": "33.4",
+      "unit": "g/dL",
+      "ref_low": 32.0,
+      "ref_high": 36.0
+    }
+  ]
+}

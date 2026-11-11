@@ -1,0 +1,50 @@
+{
+  "patient_name": "Pooja Patel",
+  "patient_age": "45",
+  "patient_gender": "Female",
+  "report_date": "2026-10-18",
+  "lab_name": "SRL Diagnostics",
+  "report_type": "blood_test",
+  "tests": [
+    {
+      "test_name": "Total Cholesterol",
+      "value": 248.0,
+      "raw_value": "248.0",
+      "unit": "mg/dL",
+      "ref_low": null,
+      "ref_high": 200.0
+    },
+    {
+      "test_name": "Triglycerides",
+      "value": 185.0,
+      "raw_value": "185.0",
+      "unit": "mg/dL",
+      "ref_low": null,
+      "ref_high": 150.0
+    },
+    {
+      "test_name": "HDL Cholesterol",
+      "value": 42.0,
+      "raw_value": "42.0",
+      "unit": "mg/dL",
+      "ref_low": 50.0,
+      "ref_high": null
+    },
+    {
+      "test_name": "LDL Cholesterol",
+      "value": 162.0,
+      "raw_value": "162.0",
+      "unit": "mg/dL",
+      "ref_low": null,
+      "ref_high": 100.0
+    },
+    {
+      "test_name": "VLDL Cholesterol",
+      "value": 37.0,
+      "raw_value": "37.0",
+      "unit": "mg/dL",
+      "ref_low": 10.0,
+      "ref_high": 30.0
+    }
+  ]
+}

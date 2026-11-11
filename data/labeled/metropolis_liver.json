@@ -1,0 +1,66 @@
+{
+  "patient_name": "Vikram Singh",
+  "patient_age": "41",
+  "patient_gender": "Male",
+  "report_date": "2026-10-25",
+  "lab_name": "Metropolis Healthcare Ltd",
+  "report_type": "blood_test",
+  "tests": [
+    {
+      "test_name": "Bilirubin Total",
+      "value": 1.8,
+      "raw_value": "1.8",
+      "unit": "mg/dL",
+      "ref_low": 0.2,
+      "ref_high": 1.2
+    },
+    {
+      "test_name": "Bilirubin Direct",
+      "value": 0.6,
+      "raw_value": "0.6",
+      "unit": "mg/dL",
+      "ref_low": 0.0,
+      "ref_high": 0.3
+    },
+    {
+      "test_name": "SGOT (AST)",
+      "value": 58.0,
+      "raw_value": "58.0",
+      "unit": "U/L",
+      "ref_low": 5.0,
+      "ref_high": 40.0
+    },
+    {
+      "test_name": "SGPT (ALT)",
+      "value": 72.0,
+      "raw_value": "72.0",
+      "unit": "U/L",
+      "ref_low": 7.0,
+      "ref_high": 56.0
+    },
+    {
+      "test_name": "Alkaline Phosphatase (ALP)",
+      "value": 95.0,
+      "raw_value": "95.0",
+      "unit": "U/L",
+      "ref_low": 44.0,
+      "ref_high": 147.0
+    },
+    {
+      "test_name": "Total Protein",
+      "value": 7.1,
+      "raw_value": "7.1",
+      "unit": "g/dL",
+      "ref_low": 6.0,
+      "ref_high": 8.3
+    },
+    {
+      "test_name": "Serum Albumin",
+      "value": 4.2,
+      "raw_value": "4.2",
+      "unit": "g/dL",
+      "ref_low": 3.5,
+      "ref_high": 5.2
+    }
+  ]
+}

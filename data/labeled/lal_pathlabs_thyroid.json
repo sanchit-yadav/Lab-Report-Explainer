@@ -1,0 +1,50 @@
+{
+  "patient_name": "Sunita Verma",
+  "patient_age": "52",
+  "patient_gender": "Female",
+  "report_date": "2026-10-22",
+  "lab_name": "Dr. Lal PathLabs Ltd.",
+  "report_type": "blood_test",
+  "tests": [
+    {
+      "test_name": "TSH - Thyroid Stimulating Hormone",
+      "value": 6.85,
+      "raw_value": "6.85",
+      "unit": "\u00b5IU/mL",
+      "ref_low": 0.45,
+      "ref_high": 4.5
+    },
+    {
+      "test_name": "Total T3",
+      "value": 110.0,
+      "raw_value": "110.0",
+      "unit": "ng/dL",
+      "ref_low": 80.0,
+      "ref_high": 200.0
+    },
+    {
+      "test_name": "Total T4",
+      "value": 7.4,
+      "raw_value": "7.4",
+      "unit": "\u00b5g/dL",
+      "ref_low": 5.0,
+      "ref_high": 12.0
+    },
+    {
+      "test_name": "Free T3",
+      "value": 2.8,
+      "raw_value": "2.8",
+      "unit": "pg/mL",
+      "ref_low": 2.0,
+      "ref_high": 4.4
+    },
+    {
+      "test_name": "Free T4",
+      "value": 1.1,
+      "raw_value": "1.1",
+      "unit": "ng/dL",
+      "ref_low": 0.8,
+      "ref_high": 1.8
+    }
+  ]
+}

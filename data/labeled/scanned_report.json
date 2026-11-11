@@ -1,0 +1,42 @@
+{
+  "patient_name": "Sanjay Mishra",
+  "patient_age": "61",
+  "patient_gender": "Male",
+  "report_date": "2026-11-07",
+  "lab_name": "Community Health Pathology",
+  "report_type": "blood_test",
+  "tests": [
+    {
+      "test_name": "Hemoglobin",
+      "value": 11.2,
+      "raw_value": "11.2",
+      "unit": "g/dL",
+      "ref_low": 13.0,
+      "ref_high": 17.0
+    },
+    {
+      "test_name": "Erythrocyte Sedimentation Rate (ESR)",
+      "value": 35.0,
+      "raw_value": "35.0",
+      "unit": "mm/hr",
+      "ref_low": 0.0,
+      "ref_high": 15.0
+    },
+    {
+      "test_name": "C-Reactive Protein (CRP)",
+      "value": 12.4,
+      "raw_value": "12.4",
+      "unit": "mg/L",
+      "ref_low": null,
+      "ref_high": 5.0
+    },
+    {
+      "test_name": "Serum Creatinine",
+      "value": 1.1,
+      "raw_value": "1.1",
+      "unit": "mg/dL",
+      "ref_low": 0.7,
+      "ref_high": 1.3
+    }
+  ]
+}

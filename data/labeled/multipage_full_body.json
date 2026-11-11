@@ -1,0 +1,114 @@
+{
+  "patient_name": "Meera Iyer",
+  "patient_age": "48",
+  "patient_gender": "Female",
+  "report_date": "2026-11-01",
+  "lab_name": "Apollo Diagnostics Central Lab",
+  "report_type": "blood_test",
+  "tests": [
+    {
+      "test_name": "Hemoglobin",
+      "value": 13.1,
+      "raw_value": "13.1",
+      "unit": "g/dL",
+      "ref_low": 12.0,
+      "ref_high": 15.0
+    },
+    {
+      "test_name": "WBC Count",
+      "value": 7200.0,
+      "raw_value": "7,200",
+      "unit": "cells/cumm",
+      "ref_low": 4000.0,
+      "ref_high": 11000.0
+    },
+    {
+      "test_name": "Platelet Count",
+      "value": 210000.0,
+      "raw_value": "210000",
+      "unit": "cells/cumm",
+      "ref_low": 150000.0,
+      "ref_high": 450000.0
+    },
+    {
+      "test_name": "Total Cholesterol",
+      "value": 212.0,
+      "raw_value": "212.0",
+      "unit": "mg/dL",
+      "ref_low": null,
+      "ref_high": 200.0
+    },
+    {
+      "test_name": "Triglycerides",
+      "value": 142.0,
+      "raw_value": "142.0",
+      "unit": "mg/dL",
+      "ref_low": null,
+      "ref_high": 150.0
+    },
+    {
+      "test_name": "HDL Cholesterol",
+      "value": 56.0,
+      "raw_value": "56.0",
+      "unit": "mg/dL",
+      "ref_low": 50.0,
+      "ref_high": null
+    },
+    {
+      "test_name": "Fasting Glucose",
+      "value": 94.0,
+      "raw_value": "94.0",
+      "unit": "mg/dL",
+      "ref_low": 70.0,
+      "ref_high": 99.0
+    },
+    {
+      "test_name": "Serum Creatinine",
+      "value": 0.85,
+      "raw_value": "0.85",
+      "unit": "mg/dL",
+      "ref_low": 0.6,
+      "ref_high": 1.1
+    },
+    {
+      "test_name": "Blood Urea",
+      "value": 22.0,
+      "raw_value": "22.0",
+      "unit": "mg/dL",
+      "ref_low": 15.0,
+      "ref_high": 40.0
+    },
+    {
+      "test_name": "SGPT (ALT)",
+      "value": 28.0,
+      "raw_value": "28.0",
+      "unit": "U/L",
+      "ref_low": 7.0,
+      "ref_high": 56.0
+    },
+    {
+      "test_name": "TSH",
+      "value": 3.2,
+      "raw_value": "3.20",
+      "unit": "\u00b5IU/mL",
+      "ref_low": 0.45,
+      "ref_high": 4.5
+    },
+    {
+      "test_name": "Vitamin D (25-OH)",
+      "value": 18.5,
+      "raw_value": "18.5",
+      "unit": "ng/mL",
+      "ref_low": 30.0,
+      "ref_high": 100.0
+    },
+    {
+      "test_name": "Vitamin B12",
+      "value": 380.0,
+      "raw_value": "380.0",
+      "unit": "pg/mL",
+      "ref_low": 211.0,
+      "ref_high": 911.0
+    }
+  ]
+}

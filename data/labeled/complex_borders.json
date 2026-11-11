@@ -1,0 +1,58 @@
+{
+  "patient_name": "Deepak Joshi",
+  "patient_age": "39",
+  "patient_gender": "Male",
+  "report_date": "2026-11-03",
+  "lab_name": "Max Healthcare Pathology",
+  "report_type": "blood_test",
+  "tests": [
+    {
+      "test_name": "Serum Calcium",
+      "value": 9.4,
+      "raw_value": "9.4",
+      "unit": "mg/dL",
+      "ref_low": 8.5,
+      "ref_high": 10.5
+    },
+    {
+      "test_name": "Serum Phosphorus",
+      "value": 3.6,
+      "raw_value": "3.6",
+      "unit": "mg/dL",
+      "ref_low": 2.5,
+      "ref_high": 4.5
+    },
+    {
+      "test_name": "Serum Magnesium",
+      "value": 2.1,
+      "raw_value": "2.1",
+      "unit": "mg/dL",
+      "ref_low": 1.7,
+      "ref_high": 2.4
+    },
+    {
+      "test_name": "Serum Iron",
+      "value": 85.0,
+      "raw_value": "85.0",
+      "unit": "\u00b5g/dL",
+      "ref_low": 60.0,
+      "ref_high": 170.0
+    },
+    {
+      "test_name": "Total Iron Binding Capacity (TIBC)",
+      "value": 320.0,
+      "raw_value": "320.0",
+      "unit": "\u00b5g/dL",
+      "ref_low": 240.0,
+      "ref_high": 450.0
+    },
+    {
+      "test_name": "Ferritin",
+      "value": 45.0,
+      "raw_value": "45.0",
+      "unit": "ng/mL",
+      "ref_low": 20.0,
+      "ref_high": 250.0
+    }
+  ]
+}

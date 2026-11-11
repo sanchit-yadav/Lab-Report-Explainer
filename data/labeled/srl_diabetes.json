@@ -1,0 +1,42 @@
+{
+  "patient_name": "Ramesh Gupta",
+  "patient_age": "50",
+  "patient_gender": "Male",
+  "report_date": "2026-10-29",
+  "lab_name": "SRL Diagnostics",
+  "report_type": "blood_test",
+  "tests": [
+    {
+      "test_name": "Fasting Blood Glucose",
+      "value": 138.0,
+      "raw_value": "138.0",
+      "unit": "mg/dL",
+      "ref_low": 70.0,
+      "ref_high": 99.0
+    },
+    {
+      "test_name": "Post Prandial Glucose",
+      "value": 215.0,
+      "raw_value": "215.0",
+      "unit": "mg/dL",
+      "ref_low": 70.0,
+      "ref_high": 140.0
+    },
+    {
+      "test_name": "HbA1c (Glycated Hemoglobin)",
+      "value": 8.2,
+      "raw_value": "8.2",
+      "unit": "%",
+      "ref_low": 4.0,
+      "ref_high": 5.6
+    },
+    {
+      "test_name": "Estimated Average Glucose (eAG)",
+      "value": 189.0,
+      "raw_value": "189.0",
+      "unit": "mg/dL",
+      "ref_low": 70.0,
+      "ref_high": 126.0
+    }
+  ]
+}
