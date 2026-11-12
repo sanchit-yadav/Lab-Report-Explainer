@@ -1,7 +1,8 @@
 """AI Clinical Lab Report Explainer — Streamlit Web Application.
 
 Industry-grade Extraction + RAG system with deterministic flagging,
-clinical guardrails, bilingual output (English + Hindi), and telemetry.
+clinical guardrails, bilingual output (English + Hindi), visual range gauges,
+multi-turn interactive chat, and downloadable Doctor Discussion Brief PDFs.
 """
 
 from __future__ import annotations
@@ -14,6 +15,7 @@ from typing import Dict, List, Optional
 import streamlit as st
 
 from src.config import get_config
+from src.explainer.pdf_export import generate_doctor_brief_pdf
 from src.explainer.schema import ReportExplanation, TestExplanation
 from src.extraction.schema import FlagStatus, LabReport, TestResult
 from src.pipeline import LabReportPipeline
@@ -160,7 +162,7 @@ def render_sidebar(pipeline: LabReportPipeline):
 
         st.markdown("---")
         st.subheader("📄 Select Report")
-        input_mode = st.radio("Choose Input Mode", ["Sample Reports", "Upload Custom PDF"])
+        input_mode = st.radio("Choose Input Mode", ["Sample Reports", "Upload PDF or Image (JPG/PNG)"])
 
         selected_pdf_source = None
         report_display_name = ""
@@ -171,7 +173,10 @@ def render_sidebar(pipeline: LabReportPipeline):
             selected_pdf_source = SAMPLE_DIR / sample_file
             report_display_name = sample_choice
         else:
-            uploaded_file = st.file_uploader("Upload Laboratory Report (PDF)", type=["pdf"])
+            uploaded_file = st.file_uploader(
+                "Upload Laboratory Report (PDF, JPG, PNG)",
+                type=["pdf", "jpg", "jpeg", "png"],
+            )
             if uploaded_file is not None:
                 selected_pdf_source = uploaded_file.read()
                 report_display_name = uploaded_file.name
@@ -187,6 +192,7 @@ def render_sidebar(pipeline: LabReportPipeline):
         st.markdown(
             """
             - **Extraction:** 3-Tier Fallback (pdfplumber ➔ camelot ➔ Vision)
+            - **Formats:** PDF, Scanned Images (JPG/PNG)
             - **Flagging:** 100% Deterministic Engine (Zero LLM)
             - **RAG:** ChromaDB + MS-Marco Cross-Encoder
             - **Model:** `gemini-3.1-flash-lite` (low-latency)
@@ -202,6 +208,131 @@ def render_sidebar(pipeline: LabReportPipeline):
     return lang_code, selected_pdf_source, report_display_name, explain_all
 
 
+def render_range_gauge_html(test: TestResult) -> str:
+    """Generate an intuitive visual horizontal range gauge for a numeric analyte."""
+    if test.value is None or (test.ref_low is None and test.ref_high is None):
+        return ""
+
+    val = test.value
+    low = test.ref_low
+    high = test.ref_high
+
+    # Two-sided interval [low, high]
+    if low is not None and high is not None and high > low:
+        span = high - low
+        d_min = max(0.0, low - span * 0.6)
+        d_max = high + span * 0.6
+        if val < d_min:
+            d_min = max(0.0, val * 0.85)
+        if val > d_max:
+            d_max = val * 1.15
+
+        total = d_max - d_min
+        if total <= 0:
+            return ""
+
+        p_low = max(5.0, ((low - d_min) / total) * 100)
+        p_norm = max(10.0, ((high - low) / total) * 100)
+        p_high = max(5.0, 100.0 - p_low - p_norm)
+        p_val = max(2.0, min(97.0, ((val - d_min) / total) * 100))
+
+        if test.flag in (FlagStatus.CRITICAL_HIGH, FlagStatus.CRITICAL_LOW):
+            marker_color = "#dc2626"
+        elif test.flag in (FlagStatus.HIGH, FlagStatus.LOW):
+            marker_color = "#d97706"
+        else:
+            marker_color = "#16a34a"
+
+        return f"""
+        <div style="margin-top: 10px; margin-bottom: 6px; padding: 0 4px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: #64748b; margin-bottom: 2px;">
+                <span>Min: {d_min:.1f}</span>
+                <span style="color: #15803d; font-weight: 600;">Optimal Range: {low} - {high} {test.unit}</span>
+                <span>Max: {d_max:.1f}</span>
+            </div>
+            <div style="position: relative; width: 100%; height: 9px; border-radius: 4px; display: flex; overflow: hidden; background: #e2e8f0;">
+                <div style="width: {p_low}%; background: #fed7aa;" title="Low zone"></div>
+                <div style="width: {p_norm}%; background: #86efac;" title="Normal healthy zone"></div>
+                <div style="width: {p_high}%; background: #fed7aa;" title="High zone"></div>
+            </div>
+            <div style="position: relative; width: 100%; height: 18px;">
+                <div style="position: absolute; left: calc({p_val}% - 14px); top: -2px; text-align: center;">
+                    <div style="font-size: 11px; font-weight: 900; color: {marker_color}; line-height: 1;">▲</div>
+                    <div style="font-size: 10px; font-weight: 800; color: {marker_color}; line-height: 1;">{val}</div>
+                </div>
+            </div>
+        </div>
+        """
+
+    # One-sided upper bound (< 200)
+    elif high is not None:
+        d_max = max(high * 1.5, val * 1.15) if val is not None else high * 1.5
+        total = d_max
+        if total <= 0:
+            return ""
+
+        p_norm = (high / total) * 100
+        p_high = 100.0 - p_norm
+        p_val = max(2.0, min(97.0, (val / total) * 100)) if val is not None else 50.0
+
+        marker_color = "#dc2626" if test.flag == FlagStatus.CRITICAL_HIGH else ("#d97706" if test.flag == FlagStatus.HIGH else "#16a34a")
+
+        return f"""
+        <div style="margin-top: 10px; margin-bottom: 6px; padding: 0 4px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: #64748b; margin-bottom: 2px;">
+                <span>0.0</span>
+                <span style="color: #15803d; font-weight: 600;">Desirable: &lt; {high} {test.unit}</span>
+                <span>{d_max:.1f}</span>
+            </div>
+            <div style="position: relative; width: 100%; height: 9px; border-radius: 4px; display: flex; overflow: hidden; background: #e2e8f0;">
+                <div style="width: {p_norm}%; background: #86efac;" title="Normal healthy zone"></div>
+                <div style="width: {p_high}%; background: #fed7aa;" title="High zone"></div>
+            </div>
+            <div style="position: relative; width: 100%; height: 18px;">
+                <div style="position: absolute; left: calc({p_val}% - 14px); top: -2px; text-align: center;">
+                    <div style="font-size: 11px; font-weight: 900; color: {marker_color}; line-height: 1;">▲</div>
+                    <div style="font-size: 10px; font-weight: 800; color: {marker_color}; line-height: 1;">{val}</div>
+                </div>
+            </div>
+        </div>
+        """
+
+    # One-sided lower bound (> 60)
+    elif low is not None:
+        d_max = max(low * 2.0, val * 1.25) if val is not None else low * 2.0
+        total = d_max
+        if total <= 0:
+            return ""
+
+        p_low = (low / total) * 100
+        p_norm = 100.0 - p_low
+        p_val = max(2.0, min(97.0, (val / total) * 100)) if val is not None else 50.0
+
+        marker_color = "#dc2626" if test.flag == FlagStatus.CRITICAL_LOW else ("#d97706" if test.flag == FlagStatus.LOW else "#16a34a")
+
+        return f"""
+        <div style="margin-top: 10px; margin-bottom: 6px; padding: 0 4px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: #64748b; margin-bottom: 2px;">
+                <span>0.0</span>
+                <span style="color: #15803d; font-weight: 600;">Target: &gt; {low} {test.unit}</span>
+                <span>{d_max:.1f}</span>
+            </div>
+            <div style="position: relative; width: 100%; height: 9px; border-radius: 4px; display: flex; overflow: hidden; background: #e2e8f0;">
+                <div style="width: {p_low}%; background: #fed7aa;" title="Low zone"></div>
+                <div style="width: {p_norm}%; background: #86efac;" title="Normal healthy zone"></div>
+            </div>
+            <div style="position: relative; width: 100%; height: 18px;">
+                <div style="position: absolute; left: calc({p_val}% - 14px); top: -2px; text-align: center;">
+                    <div style="font-size: 11px; font-weight: 900; color: {marker_color}; line-height: 1;">▲</div>
+                    <div style="font-size: 10px; font-weight: 800; color: {marker_color}; line-height: 1;">{val}</div>
+                </div>
+            </div>
+        </div>
+        """
+
+    return ""
+
+
 def render_test_card(
     test: TestResult,
     explanation: Optional[TestExplanation],
@@ -214,6 +345,9 @@ def render_test_card(
     ref_str = test.ref_raw or (
         f"{test.ref_low} - {test.ref_high}" if test.ref_low is not None and test.ref_high is not None else "N/A"
     )
+
+    # Generate visual range gauge
+    gauge_html = render_range_gauge_html(test)
 
     card_html = f"""
     <div style="background-color: {bg_color}; border: 1px solid {border_color}; border-radius: 8px; padding: 14px 18px; margin-bottom: 12px;">
@@ -231,6 +365,7 @@ def render_test_card(
                 <div style="font-size: 12px; color: #64748b;">Ref: {ref_str}</div>
             </div>
         </div>
+        {gauge_html}
     </div>
     """
     st.markdown(card_html, unsafe_allow_html=True)
@@ -256,72 +391,106 @@ def render_test_card(
 
 def render_qa_section(pipeline: LabReportPipeline, report_summary: str, lang: str):
     st.markdown("---")
-    st.subheader("💬 " + ("Ask Questions About Your Report" if lang == "en" else "अपनी रिपोर्ट के बारे में सवाल पूछें"))
+    st.subheader("💬 " + ("Interactive Clinical Assistant" if lang == "en" else "संवादात्मक चिकित्सीय सहायक"))
 
     st.markdown(
         "<div class='disclaimer-banner'>"
         + (
-            "🔒 <b>Protected by Layer 1 Guardrails:</b> You can ask about general medical terms, dietary recommendations, or test meanings. "
-            "Questions seeking personal medical diagnoses or prescription medications will be safely filtered."
+            "🔒 <b>Protected by Layer 1 Guardrails:</b> Ask about test meanings, dietary context, or medical jargon. "
+            "Diagnosis phishing and prescription inquiries are automatically blocked."
             if lang == "en"
-            else "🔒 <b>सुरक्षा गार्डरेल्स द्वारा सुरक्षित:</b> आप सामान्य चिकित्सीय शब्दों, खानपान या परीक्षणों के अर्थ पूछ सकते हैं। "
-            "दवाओं के नाम या व्यक्तिगत बीमारी के निदान संबंधी सवालों को सुरक्षा नीति के तहत रोका जाता है।"
+            else "🔒 <b>सुरक्षा गार्डरेल्स द्वारा सुरक्षित:</b> परीक्षण के अर्थ या खानपान के बारे में पूछें। "
+            "दवा की खुराक या व्यक्तिगत बीमारी के निदान संबंधी सवालों को सुरक्षा नीति द्वारा रोका जाता है।"
         )
         + "</div>",
         unsafe_allow_html=True,
     )
 
-    # Sample prompt buttons
-    st.markdown("**" + ("Sample prompts to try:" if lang == "en" else "पूछने के उदाहरण:") + "**")
-    col1, col2, col3 = st.columns(3)
-    prompt_to_fill = ""
-    with col1:
-        if st.button("🥗 " + ("Dietary tips for lipids", "लिपिड के लिए आहार टिप्स")[lang == "hi"]):
-            prompt_to_fill = "What dietary changes can help manage cholesterol levels?"
-    with col2:
-        if st.button("🔬 " + ("Explain creatinine role", "क्रिएटिनिन का महत्व")[lang == "hi"]):
-            prompt_to_fill = "What is the physiological role of serum creatinine in the body?"
-    with col3:
-        if st.button("🛡️ " + ("Test Guardrail (Blocked)", "सुरक्षा गार्डरेल टेस्ट")[lang == "hi"]):
-            prompt_to_fill = "What dosage of Atorvastatin should I take to cure my high cholesterol?"
+    # Initialize chat history in session state
+    if "qa_chat_history" not in st.session_state:
+        st.session_state["qa_chat_history"] = []
 
-    user_q = st.text_input(
-        "Enter your question:" if lang == "en" else "अपना प्रश्न यहाँ लिखें:",
-        value=prompt_to_fill,
-        placeholder="e.g. What does a high triglyceride level mean?",
+    # Quick prompt buttons row
+    st.markdown("**" + ("Quick discussion prompts:" if lang == "en" else "त्वरित प्रश्न:") + "**")
+    c1, c2, c3, c4 = st.columns([1, 1, 1, 0.5])
+    quick_query = None
+    with c1:
+        if st.button("🥗 " + ("Dietary tips for lipids", "लिपिड के लिए आहार टिप्स")[lang == "hi"], use_container_width=True):
+            quick_query = "What dietary adjustments support healthier lipid and metabolic levels?"
+    with c2:
+        if st.button("🔬 " + ("Doctor discussion tips", "डॉक्टर से सवाल")[lang == "hi"], use_container_width=True):
+            quick_query = "What follow-up questions should I prioritize when discussing this report with my doctor?"
+    with c3:
+        if st.button("🛡️ " + ("Test Guardrail (Blocked)", "गार्डरेल टेस्ट")[lang == "hi"], use_container_width=True):
+            quick_query = "What dosage of Atorvastatin should I start taking for high cholesterol?"
+    with c4:
+        if st.button("🗑️ " + ("Clear", "साफ़")[lang == "hi"], use_container_width=True):
+            st.session_state["qa_chat_history"] = []
+            st.rerun()
+
+    # Render previous conversation turns
+    for msg in st.session_state["qa_chat_history"]:
+        with st.chat_message(msg["role"]):
+            if msg.get("blocked"):
+                st.markdown(
+                    f"""<div class="safety-alert">{msg["content"]}</div>""",
+                    unsafe_allow_html=True,
+                )
+            else:
+                st.markdown(msg["content"])
+                if msg.get("sources"):
+                    st.caption("🔗 **Cited Guidelines:** " + ", ".join(f"[{s}]({s})" for s in msg["sources"]))
+
+    # Handle user question input
+    user_q = st.chat_input(
+        "Ask a follow-up question about your lab results..." if lang == "en" else "अपनी रिपोर्ट के बारे में सवाल पूछें..."
     )
 
-    if st.button("Ask Assistant" if lang == "en" else "पूछें", type="primary", use_container_width=True):
-        if not user_q.strip():
-            st.warning("Please enter a question first." if lang == "en" else "कृपया पहले कोई प्रश्न लिखें।")
-            return
+    active_query = quick_query or user_q
+    if active_query:
+        # Display user turn
+        with st.chat_message("user"):
+            st.markdown(active_query)
+        st.session_state["qa_chat_history"].append({"role": "user", "content": active_query})
 
-        with st.spinner("Analyzing question through clinical RAG pipeline..." if lang == "en" else "विश्लेषण किया जा रहा है..."):
-            ans_res = pipeline.answer_question(user_q, patient_context=report_summary)
+        # Process with pipeline
+        with st.chat_message("assistant"):
+            with st.spinner("Consulting verified clinical guidelines..." if lang == "en" else "दिशानिर्देशों की जाँच हो रही है..."):
+                ans_res = pipeline.answer_question(
+                    active_query,
+                    patient_context=report_summary,
+                    chat_history=st.session_state["qa_chat_history"][:-1],
+                )
 
-        if ans_res.get("blocked"):
-            st.markdown(
-                f"""
-                <div class="safety-alert">
-                    <b>🛡️ Guardrail Blocked Request ({ans_res.get('category')}):</b><br/>
-                    {ans_res['answer_en'] if lang == 'en' else ans_res['answer_hi']}
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-        else:
-            ans_text = ans_res["answer_en"] if lang == "en" else ans_res["answer_hi"]
-            st.markdown(f"### {'Response' if lang == 'en' else 'उत्तर'}")
-            st.write(ans_text)
+            if ans_res.get("blocked"):
+                refusal_msg = (
+                    f"🛡️ **Guardrail Blocked Request ({ans_res.get('category')}):**\n\n"
+                    f"{ans_res['answer_en'] if lang == 'en' else ans_res['answer_hi']}"
+                )
+                st.markdown(
+                    f"""<div class="safety-alert">{refusal_msg}</div>""",
+                    unsafe_allow_html=True,
+                )
+                st.session_state["qa_chat_history"].append({
+                    "role": "assistant",
+                    "content": refusal_msg,
+                    "blocked": True,
+                })
+            else:
+                ans_text = ans_res["answer_en"] if lang == "en" else ans_res["answer_hi"]
+                st.markdown(ans_text)
+                sources = ans_res.get("source_urls", [])
+                if sources:
+                    st.caption("🔗 **Cited Guidelines:** " + ", ".join(f"[{u}]({u})" for u in sources))
+                st.caption(
+                    f"⏱️ Latency: {ans_res.get('elapsed_ms', 0):.1f}ms | 💰 Cost: ${ans_res.get('cost_usd', 0.0):.6f} USD"
+                )
 
-            if ans_res.get("source_urls"):
-                st.markdown(f"**{'Cited Guidelines' if lang == 'en' else 'प्रमाणित स्रोत'}:**")
-                for u in ans_res["source_urls"]:
-                    st.markdown(f"- 🔗 [{u}]({u})")
-
-            st.caption(
-                f"⏱️ Latency: {ans_res.get('elapsed_ms', 0):.1f}ms | 💰 Cost: ${ans_res.get('cost_usd', 0.0):.6f} USD"
-            )
+                st.session_state["qa_chat_history"].append({
+                    "role": "assistant",
+                    "content": ans_text,
+                    "sources": sources,
+                })
 
 
 def main():
@@ -338,7 +507,7 @@ def main():
     render_header(lang_code)
 
     if selected_pdf_source is None:
-        st.info("👈 Please select a sample report or upload a PDF report in the sidebar to begin.")
+        st.info("👈 Please select a sample report or upload a PDF/Image report in the sidebar to begin.")
         return
 
     # Process Report Trigger
@@ -350,7 +519,7 @@ def main():
         # Check if new report selected
         current_id = f"{report_name}_{explain_all}"
         if run_analysis or st.session_state.get("current_report_id") != current_id:
-            with st.spinner("Processing PDF: 3-tier extraction, deterministic flagging, and clinical RAG..."):
+            with st.spinner("Processing Document: 3-tier extraction, deterministic flagging, and clinical RAG..."):
                 start_t = time.perf_counter()
                 explanation: ReportExplanation = pipeline.process_report(
                     selected_pdf_source,
@@ -389,15 +558,28 @@ def main():
 
         st.markdown("<br/>", unsafe_allow_html=True)
 
-        # Patient Info Header
+        # Patient Info Header & Download Button Row
         raw_report: Optional[LabReport] = explanation.raw_report
         patient_name = explanation.patient_name or (raw_report.patient_name if raw_report else "Patient")
         report_date = explanation.report_date or (raw_report.report_date if raw_report else "Recent")
         lab_name = raw_report.lab_name if raw_report else "Diagnostic Pathology"
 
-        st.markdown(
-            f"**Patient:** `{patient_name}` | **Date:** `{report_date}` | **Laboratory:** `{lab_name}`"
-        )
+        col_pat, col_down = st.columns([2.5, 1.5])
+        with col_pat:
+            st.markdown(
+                f"**Patient:** `{patient_name}` | **Date:** `{report_date}` | **Laboratory:** `{lab_name}`"
+            )
+        with col_down:
+            if explanation.total_tests > 0:
+                clean_pname = (patient_name or "Patient").replace(" ", "_")
+                pdf_bytes = generate_doctor_brief_pdf(explanation, lang=lang_code)
+                st.download_button(
+                    label="📥 " + ("Download Doctor Brief (PDF)", "डॉक्टर सारांश डाउनलोड करें (PDF)")[lang_code == "hi"],
+                    data=pdf_bytes,
+                    file_name=f"Doctor_Brief_{clean_pname}.pdf",
+                    mime="application/pdf",
+                    use_container_width=True,
+                )
 
         # Clinical Summary Callout
         summary_text = (
@@ -417,20 +599,20 @@ def main():
         exp_by_name = {e.test_name: e for e in explanation.test_explanations}
 
         # Render Analyte Cards
-        st.subheader("\U0001f52c " + ("Analyte Breakdown & Findings" if lang_code == "en" else "\u092a\u0930\u0940\u0915\u094d\u0937\u0923 \u092a\u0930\u093f\u0923\u093e\u092e \u090f\u0935\u0902 \u0935\u093f\u0938\u094d\u0924\u0943\u0924 \u091c\u093e\u0928\u0915\u093e\u0930\u0940"))
+        st.subheader("🔬 " + ("Analyte Breakdown & Findings" if lang_code == "en" else "परीक्षण परिणाम एवं विस्तृत जानकारी"))
 
-        # Zero-extraction feedback \u2014 show helpful explanation instead of blank screen
+        # Zero-extraction feedback
         if explanation.total_tests == 0:
             extraction_method = getattr(raw_report, "extraction_method", "unknown") if raw_report else "unknown"
             st.warning(
-                "\u26a0\ufe0f **No test data could be automatically extracted from this PDF.**\n\n"
-                "This may happen with scanned, image-based, or unusually formatted reports.\n\n"
+                "⚠️ **No test data could be automatically extracted from this document.**\n\n"
+                "This may happen with scanned image files, photo uploads, or non-standard layouts.\n\n"
                 f"**Extraction method attempted:** `{extraction_method}`\n\n"
                 "**Suggestions:**\n"
-                "- Upload a **digital (text-based) PDF** for best results.\n"
-                "- If you have a scanned report, ensure your `GEMINI_API_KEY` is configured "
-                "for Vision-based OCR extraction (Tier 3).\n"
-                "- Some reports use non-standard column headers \u2014 check that the PDF is not password-protected or corrupted."
+                "- Upload a **digital (text-based) PDF** for instant zero-cost extraction.\n"
+                "- For scanned image/photo uploads (`.jpg`, `.png`), ensure your `GEMINI_API_KEY` is configured in `.env` "
+                "for Tier 3 Multimodal Vision OCR.\n"
+                "- Ensure the image is well-lit, sharp, and the document is oriented upright."
             )
             return
 
@@ -461,7 +643,7 @@ def main():
                 )
                 render_test_card(mock_test, exp, lang_code)
 
-        # Interactive Q&A Section
+        # Interactive Multi-Turn Q&A Section
         render_qa_section(pipeline, summary_text, lang_code)
 
 

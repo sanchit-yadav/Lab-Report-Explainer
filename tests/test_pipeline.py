@@ -72,3 +72,17 @@ def test_pipeline_answer_question_educational_and_blocked(pipeline):
     assert len(ans_safe["answer_hi"]) > 10
     assert len(ans_safe["source_urls"]) > 0
     assert any(term in ans_safe["disclaimer"].lower() for term in ("doctor", "healthcare provider", "physician"))
+
+
+def test_pipeline_answer_question_with_chat_history(pipeline):
+    history = [
+        {"role": "user", "content": "What is HDL?"},
+        {"role": "assistant", "content": "HDL stands for High-Density Lipoprotein."},
+    ]
+    ans = pipeline.answer_question(
+        "Why is it called good cholesterol?",
+        patient_context="Lipid profile showing HDL 45 mg/dL",
+        chat_history=history,
+    )
+    assert ans["blocked"] is False
+    assert len(ans["answer_en"]) > 20

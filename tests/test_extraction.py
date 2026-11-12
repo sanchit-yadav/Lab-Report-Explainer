@@ -61,3 +61,24 @@ def test_router_non_numeric_report():
     assert protein is not None
     assert protein.value is None
     assert protein.raw_value.lower() == "trace"
+
+
+def test_router_handles_raw_image_bytes():
+    """Verify that image inputs are detected and routed directly to Tier 3 without crashing."""
+    from src.extraction.vision_parser import is_image_bytes, detect_mime_type
+
+    # 1. JPEG mock bytes
+    fake_jpeg = b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00"
+    assert is_image_bytes(fake_jpeg)
+    assert detect_mime_type(fake_jpeg) == "image/jpeg"
+
+    # 2. PNG mock bytes
+    fake_png = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR"
+    assert is_image_bytes(fake_png)
+    assert detect_mime_type(fake_png) == "image/png"
+
+    # 3. Router gracefully handles image input
+    router = ExtractionRouter()
+    report = router.extract(fake_jpeg)
+    assert isinstance(report, LabReport)
+    assert report.extraction_method in ("vision", "vision_image_failed")

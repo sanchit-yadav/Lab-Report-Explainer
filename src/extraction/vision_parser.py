@@ -43,45 +43,76 @@ Also extract patient_name, patient_age, patient_gender, report_date, and lab_nam
 """
 
 
+def is_image_bytes(data: bytes) -> bool:
+    """Check if byte sequence starts with known image file signatures."""
+    if len(data) < 4:
+        return False
+    return (
+        data.startswith(b"\xff\xd8\xff")  # JPEG
+        or data.startswith(b"\x89PNG")    # PNG
+        or (data.startswith(b"RIFF") and len(data) > 12 and data[8:12] == b"WEBP")  # WebP
+    )
+
+
+def detect_mime_type(data: bytes) -> str:
+    """Identify image MIME type based on header magic bytes."""
+    if data.startswith(b"\x89PNG"):
+        return "image/png"
+    if data.startswith(b"RIFF") and len(data) > 12 and data[8:12] == b"WEBP":
+        return "image/webp"
+    return "image/jpeg"
+
+
 class VisionExtractor:
-    """Extracts lab reports from image/scanned PDFs using Gemini 3.5 Flash."""
+    """Extracts lab reports from image files or scanned PDFs using Gemini 3.5 Flash."""
 
     def __init__(self):
         self.tier_id = 3
         self.config = get_config()
 
-    def extract(self, pdf_source: Union[str, Path, bytes, BinaryIO]) -> LabReport:
-        """Render PDF pages to image and extract structured data with Gemini Vision."""
+    def extract(self, source: Union[str, Path, bytes, BinaryIO]) -> LabReport:
+        """Extract structured data from image files or rendered PDF pages."""
         api_key = self.config.gemini_api_key or os.environ.get("GEMINI_API_KEY")
         if not api_key:
             raise ValueError(
                 "GEMINI_API_KEY is not configured. Tier 3 Vision fallback requires a valid Gemini API key."
             )
 
-        # 1. Render PDF page(s) to image bytes using pypdfium2
-        if isinstance(pdf_source, (str, Path)):
-            pdf = pdfium.PdfDocument(str(pdf_source))
-        elif isinstance(pdf_source, bytes):
-            pdf = pdfium.PdfDocument(pdf_source)
+        # 1. Resolve raw bytes
+        raw_bytes: bytes
+        if isinstance(source, (str, Path)):
+            with open(source, "rb") as f:
+                raw_bytes = f.read()
+        elif isinstance(source, bytes):
+            raw_bytes = source
         else:
-            pdf = pdfium.PdfDocument(pdf_source.read())
+            raw_bytes = source.read()
 
-        images_bytes: List[bytes] = []
-        for page_idx in range(len(pdf)):
-            page = pdf[page_idx]
-            pil_image = page.render(scale=2.0).to_pil()
-            img_byte_arr = io.BytesIO()
-            pil_image.save(img_byte_arr, format="JPEG", quality=90)
-            images_bytes.append(img_byte_arr.getvalue())
+        images_data: List[tuple[bytes, str]] = []
+        is_direct_image = is_image_bytes(raw_bytes)
+
+        if is_direct_image:
+            # Directly provided image (JPEG, PNG, WebP)
+            mime = detect_mime_type(raw_bytes)
+            images_data.append((raw_bytes, mime))
+        else:
+            # Render PDF page(s) to image bytes using pypdfium2
+            pdf = pdfium.PdfDocument(raw_bytes)
+            for page_idx in range(len(pdf)):
+                page = pdf[page_idx]
+                pil_image = page.render(scale=2.0).to_pil()
+                img_byte_arr = io.BytesIO()
+                pil_image.save(img_byte_arr, format="JPEG", quality=90)
+                images_data.append((img_byte_arr.getvalue(), "image/jpeg"))
 
         client = genai.Client(api_key=api_key)
         all_tests: List[TestResult] = []
         patient_name = None
         lab_name = None
 
-        # Process each page with Gemini 3.5 Flash
-        for img_bytes in images_bytes:
-            content_part = types.Part.from_bytes(data=img_bytes, mime_type="image/jpeg")
+        # Process each image page with Gemini 3.5 Flash
+        for img_bytes, mime_type in images_data:
+            content_part = types.Part.from_bytes(data=img_bytes, mime_type=mime_type)
 
             response = client.models.generate_content(
                 model=self.config.models.vision_fallback,

@@ -120,6 +120,7 @@ class LabReportPipeline:
         self,
         question: str,
         patient_context: Optional[str] = None,
+        chat_history: Optional[List[Dict[str, str]]] = None,
     ) -> Dict[str, Any]:
         """Answer an educational user question with RAG, guardrails, and telemetry."""
         with self.tracer.start_trace("answer_question", question=question) as trace:
@@ -151,12 +152,27 @@ class LabReportPipeline:
                         source_urls.append(url)
                 s_rag.set_output(sources_found=len(source_urls))
 
-            # 3. Generation
+            # 3. Generation with Conversational History
             with self.tracer.span("generation_qa", trace) as s_gen:
+                history_text = ""
+                if chat_history:
+                    recent_turns = []
+                    for turn in chat_history[-4:]:
+                        role = "User" if turn.get("role") == "user" else "Assistant"
+                        content = turn.get("content", "").strip()
+                        if content:
+                            recent_turns.append(f"{role}: {content}")
+                    if recent_turns:
+                        history_text = "Recent Conversation:\n" + "\n".join(recent_turns) + "\n\n"
+
+                augmented_parts = []
+                if history_text:
+                    augmented_parts.append(history_text)
                 if patient_context:
-                    augmented_q = f"Context: {patient_context}\nQuestion: {question}"
-                else:
-                    augmented_q = question
+                    augmented_parts.append(f"Report Context:\n{patient_context}")
+                augmented_parts.append(f"Current Question: {question}")
+                augmented_q = "\n\n".join(augmented_parts)
+
                 ans_en, ans_hi = self.generator.answer_question(augmented_q, context_chunks, source_urls)
                 in_tok = len(augmented_q.split()) * 4 + 400
                 out_tok = (len(ans_en.split()) + len(ans_hi.split())) * 2

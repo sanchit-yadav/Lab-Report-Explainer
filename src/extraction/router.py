@@ -14,7 +14,7 @@ from src.config import get_config
 from src.extraction.camelot_parser import CamelotExtractor
 from src.extraction.pdf_parser import PDFPlumberExtractor
 from src.extraction.schema import LabReport
-from src.extraction.vision_parser import VisionExtractor
+from src.extraction.vision_parser import VisionExtractor, is_image_bytes
 
 logger = logging.getLogger("extraction_router")
 
@@ -41,6 +41,23 @@ class ExtractionRouter:
             pdf_bytes = pdf_source
         else:
             pdf_bytes = pdf_source.read()
+
+        # Direct fast-path for image files (JPG, PNG, WebP)
+        if is_image_bytes(pdf_bytes):
+            logger.info("Detected raw image format (JPEG/PNG/WebP). Routing directly to Tier 3 Vision OCR.")
+            try:
+                report = self.tier3.extract(pdf_bytes)
+                if len(report.tests) > 0:
+                    logger.info(f"Tier 3 (vision) extracted {len(report.tests)} tests from image.")
+                    return report
+                logger.warning("Tier 3 (vision) yielded 0 tests from image.")
+            except Exception as e:
+                logger.warning(f"Tier 3 vision failed on image with error: {e}")
+            return LabReport(
+                report_type="blood_test",
+                tests=[],
+                extraction_method="vision_image_failed",
+            )
 
         for tier in tiers:
             if not tier.enabled:
