@@ -9,8 +9,10 @@ from __future__ import annotations
 
 import io
 import json
+import logging
 import os
 from pathlib import Path
+import re
 from typing import BinaryIO, List, Optional, Union
 
 import pypdfium2 as pdfium
@@ -19,6 +21,8 @@ from google.genai import types
 
 from src.config import get_config
 from src.extraction.schema import LabReport, TestResult
+
+logger = logging.getLogger("vision_parser")
 
 
 VISION_EXTRACTION_PROMPT = """
@@ -90,7 +94,16 @@ class VisionExtractor:
             )
 
             if response.text:
-                parsed_dict = json.loads(response.text)
+                clean_text = response.text.strip()
+                if clean_text.startswith("```"):
+                    clean_text = re.sub(r"^```(?:json)?\s*", "", clean_text)
+                    clean_text = re.sub(r"\s*```$", "", clean_text)
+                try:
+                    parsed_dict = json.loads(clean_text)
+                except Exception as e:
+                    logger.warning(f"Failed to parse vision response JSON on a page: {e}")
+                    continue
+
                 if not patient_name and parsed_dict.get("patient_name"):
                     patient_name = parsed_dict.get("patient_name")
                 if not lab_name and parsed_dict.get("lab_name"):

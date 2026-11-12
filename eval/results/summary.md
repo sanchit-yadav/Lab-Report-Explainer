@@ -1,7 +1,7 @@
 # 🏆 Master Evaluation Summary — AI Lab Report Explainer
 
 > **Overall Benchmark Status:** ✅ ALL BENCHMARKS PASSED
-> **Total Evaluation Time:** 33.5 seconds
+> **Total Evaluation Time:** 46.7 seconds
 
 ---
 
@@ -20,7 +20,7 @@
 | **Generation Quality** | Clinical Completeness | **4.70 / 5.0** | ≥ 4.0 | ✅ PASS |
 | **Guardrail Safety** | Adversarial Block Rate | **100.0%** (50/50) | ≥ 95.0% | ✅ PASS |
 | **Guardrail Safety** | False Positive Rate | **0.0%** (0/20) | ≤ 5.0% | ✅ PASS |
-| **Performance & Speed** | Median Latency (p50) | **0.67s** | ≤ 10.0s | ✅ PASS |
+| **Performance & Speed** | Median Latency (p50) | **0.91s** | ≤ 10.0s | ✅ PASS |
 | **Cost Efficiency** | Cost per Lab Report | **$0.00160 USD** | ≤ $0.0100 | ✅ PASS |
 
 ---
@@ -30,4 +30,4 @@
 * *"Architected an industrial-grade clinical lab report explainer achieving **100.0% extraction F1** across 10 hospital formats and **100.0% deterministic flagging accuracy**."*
 * *"Engineered a RAG pipeline utilizing `gemini-embedding-2` and a cross-encoder re-ranker, improving **Recall@1 by +6.7%** to achieve **96.7% Recall@3** over verified MedlinePlus clinical guidelines."*
 * *"Implemented a triple-layer safety guardrail architecture that successfully blocked **50/50 (100.0%) adversarial diagnosis and prescription attempts** in red-team testing with **0% false positives** on educational queries."*
-* *"Optimized end-to-end processing with `gemini-3.1-flash-lite` and distributed Langfuse tracing, achieving **$0.00160 per report** (~624 reports per dollar) with a **0.67s median response time**."*
+* *"Optimized end-to-end processing with `gemini-3.1-flash-lite` and distributed Langfuse tracing, achieving **$0.00160 per report** (~624 reports per dollar) with a **0.91s median response time**."*

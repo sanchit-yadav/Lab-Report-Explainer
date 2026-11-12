@@ -188,11 +188,13 @@ class PDFPlumberExtractor:
                             )
                         )
 
+            used_text_fallback = False
             # Tier 1.5 fallback: text-line extraction if table parse yielded nothing
             if not tests:
                 text_tests = self._extract_from_text_lines(all_text_lines)
                 if len(text_tests) >= 3:
                     tests = text_tests
+                    used_text_fallback = True
 
         return LabReport(
             patient_name=patient_name,
@@ -202,7 +204,7 @@ class PDFPlumberExtractor:
             lab_name=lab_name,
             report_type="blood_test",
             tests=tests,
-            extraction_method="pdfplumber" if tests else "pdfplumber_text_fallback",
+            extraction_method="pdfplumber_text_fallback" if used_text_fallback else "pdfplumber",
         )
 
     def _extract_from_text_lines(self, lines: List[str]) -> List[TestResult]:

@@ -85,16 +85,26 @@ class ExplanationGenerator:
                 prompt = build_explanation_prompt(test, context_chunks, source_urls)
                 system_prompt = get_system_prompt()
 
+                thinking_config = None
+                if self.thinking_level:
+                    try:
+                        thinking_config = types.ThinkingConfig(thinking_level=self.thinking_level.upper())
+                    except Exception:
+                        pass
+
+                config_kwargs = dict(
+                    system_instruction=system_prompt,
+                    temperature=self.temperature,
+                    response_mime_type="application/json",
+                    response_schema=TestExplanation,
+                )
+                if thinking_config is not None:
+                    config_kwargs["thinking_config"] = thinking_config
+
                 response = client.models.generate_content(
                     model=self.model_name,
                     contents=prompt,
-                    config=types.GenerateContentConfig(
-                        system_instruction=system_prompt,
-                        temperature=self.temperature,
-                        thinking_level=self.thinking_level,
-                        response_mime_type="application/json",
-                        response_schema=TestExplanation,
-                    ),
+                    config=types.GenerateContentConfig(**config_kwargs),
                 )
 
                 if response.text:
@@ -129,15 +139,25 @@ class ExplanationGenerator:
                     "Do NOT diagnose any illness or prescribe medications. Refer to a physician for personalized care.\n"
                     "Output JSON with keys: 'answer_en' and 'answer_hi'."
                 )
+                thinking_config = None
+                if self.thinking_level:
+                    try:
+                        thinking_config = types.ThinkingConfig(thinking_level=self.thinking_level.upper())
+                    except Exception:
+                        pass
+
+                qa_config_kwargs = dict(
+                    system_instruction=system_prompt,
+                    temperature=self.temperature,
+                    response_mime_type="application/json",
+                )
+                if thinking_config is not None:
+                    qa_config_kwargs["thinking_config"] = thinking_config
+
                 response = client.models.generate_content(
                     model=self.model_name,
                     contents=prompt,
-                    config=types.GenerateContentConfig(
-                        system_instruction=system_prompt,
-                        temperature=self.temperature,
-                        thinking_level=self.thinking_level,
-                        response_mime_type="application/json",
-                    ),
+                    config=types.GenerateContentConfig(**qa_config_kwargs),
                 )
                 if response.text:
                     parsed = json.loads(response.text)
