@@ -2,6 +2,9 @@
 
 Extracts tables and patient metadata from digital vector PDF lab reports.
 High speed, zero API cost, and high determinism.
+
+Tier 1.5 fallback: when table extraction yields 0 results, attempts to parse
+test data from raw text lines using regex heuristics.
 """
 
 from __future__ import annotations
@@ -24,12 +27,34 @@ from src.extraction.schema import LabReport, TestResult
 
 
 RE_PATIENT_NAME = re.compile(
-    r"Patient Name:\s*([^|\n\r]+?)(?:\s+(?:Age\s*/\s*Gender|Age|Gender|Referred|Sample|ID|Status|Date)\s*:|$)",
+    r"(?:Patient\s*Name|Patient|Name|Mr\.|Mrs\.|Ms\.)\s*[:.]?\s*([^\n\r|]+?)"
+    r"(?:\s+(?:Age\s*/\s*Gender|Age|Gender|DOB|Sex|Referred|Sample|ID|Status|Date|Lab|Ref)\s*[:.]|$)",
     re.IGNORECASE,
 )
-RE_AGE_GENDER = re.compile(r"Age\s*(?:/\s*Gender)?:\s*([^|\n\r]+?)(?:\s+(?:Referred|Sample|ID|Status|Date):|$)", re.IGNORECASE)
-RE_COLLECTION_DATE = re.compile(r"(?:Collection Date|Date):\s*([^|\n\r]+?)(?:\s+(?:Referred|Sample|ID|Status):|$)", re.IGNORECASE)
-RE_LAB_NAME = re.compile(r"^(.*?)(?:Technologies|Diagnostics|PathLabs|Healthcare|Lab|Pathology)", re.IGNORECASE)
+RE_AGE_GENDER = re.compile(
+    r"Age\s*(?:/\s*Gender)?:\s*([^\|\n\r]+?)(?:\s+(?:Referred|Sample|ID|Status|Date):|$)",
+    re.IGNORECASE,
+)
+RE_COLLECTION_DATE = re.compile(
+    r"(?:Collection\s*Date|Report\s*Date|Reported\s*On|Sample\s*Date|Date\s*of\s*Collection|Date)\s*:\s*([^\|\n\r]+?)"
+    r"(?:\s+(?:Referred|Sample|ID|Status):|$)",
+    re.IGNORECASE,
+)
+RE_LAB_NAME = re.compile(
+    r"^(.*?)(?:Technologies|Diagnostics|PathLabs|Healthcare|Lab|Pathology)",
+    re.IGNORECASE,
+)
+
+# Tier 1.5: text-line extraction pattern
+# Matches: <test name (5-50 chars)> <whitespace 2+> <optional inequality> <number> <optional unit> <optional range>
+RE_TEXT_LINE_TEST = re.compile(
+    r"^(.{5,50}?)\s{2,}([<>\u2264\u2265]?\s*\d+(?:[.,]\d+)?)\s{0,3}([a-zA-Z/%\u00b5\u03bc][a-zA-Z0-9/%\u00b5\u03bc.^]*)?(?:\s{2,}([\d.,\s\-\u2013\u2014<>\u2264\u2265]+))?$"
+)
+# Skip lines that look like table headers
+RE_HEADER_LINE = re.compile(
+    r"test\s*name|investigation|parameter|analyte|result|value|reference|normal\s*range|unit",
+    re.IGNORECASE,
+)
 
 
 class PDFPlumberExtractor:
@@ -62,7 +87,7 @@ class PDFPlumberExtractor:
                 all_text_lines.extend(page_text.splitlines())
 
             full_text = "\n".join(all_text_lines)
-            
+
             # Patient Name
             m_name = RE_PATIENT_NAME.search(full_text)
             if m_name:
@@ -84,10 +109,13 @@ class PDFPlumberExtractor:
             if m_date:
                 report_date = clean_text(m_date.group(1))
 
-            # Lab Name (first non-empty line usually has the lab name)
+            # Lab Name
             for line in all_text_lines:
                 cl = clean_text(line)
-                if cl and any(k in cl.lower() for k in ["ltd", "diagnostics", "pathlabs", "healthcare", "lab"]):
+                if cl and any(
+                    k in cl.lower()
+                    for k in ["ltd", "diagnostics", "pathlabs", "healthcare", "lab"]
+                ):
                     lab_name = cl
                     break
 
@@ -104,8 +132,8 @@ class PDFPlumberExtractor:
                     header_idx = -1
                     col_map = {}
 
-                    # Locate the header row
-                    for r_idx, row in enumerate(table[:3]):
+                    # Locate the header row — scan first 6 rows (was 3)
+                    for r_idx, row in enumerate(table[:6]):
                         candidate_map = identify_columns(row)
                         if "test_name" in candidate_map and "value" in candidate_map:
                             header_idx = r_idx
@@ -160,6 +188,12 @@ class PDFPlumberExtractor:
                             )
                         )
 
+            # Tier 1.5 fallback: text-line extraction if table parse yielded nothing
+            if not tests:
+                text_tests = self._extract_from_text_lines(all_text_lines)
+                if len(text_tests) >= 3:
+                    tests = text_tests
+
         return LabReport(
             patient_name=patient_name,
             patient_age=patient_age,
@@ -168,5 +202,50 @@ class PDFPlumberExtractor:
             lab_name=lab_name,
             report_type="blood_test",
             tests=tests,
-            extraction_method="pdfplumber",
+            extraction_method="pdfplumber" if tests else "pdfplumber_text_fallback",
         )
+
+    def _extract_from_text_lines(self, lines: List[str]) -> List[TestResult]:
+        """Tier 1.5: Extract test data from raw text lines when no table structure found.
+
+        Looks for lines matching: <test name>  <value>  [unit]  [ref range]
+        Returns results only when at least 3 matches are found.
+        """
+        results: List[TestResult] = []
+        for raw_line in lines:
+            line = raw_line.strip()
+            if not line:
+                continue
+            # Skip header-like lines
+            if RE_HEADER_LINE.search(line):
+                continue
+
+            m = RE_TEXT_LINE_TEST.match(line)
+            if not m:
+                continue
+
+            raw_test_name = clean_text(m.group(1))
+            raw_val = clean_text(m.group(2)) if m.group(2) else ""
+            raw_unit = clean_text(m.group(3)) if m.group(3) else ""
+            raw_range = clean_text(m.group(4)) if m.group(4) else ""
+
+            if not raw_test_name or not raw_val:
+                continue
+
+            numeric_val = parse_numeric_value(raw_val)
+            norm_unit = normalize_unit(raw_unit)
+            ref_low, ref_high = parse_reference_range(raw_range)
+
+            results.append(
+                TestResult(
+                    test_name=raw_test_name,
+                    value=numeric_val,
+                    raw_value=raw_val,
+                    unit=norm_unit,
+                    ref_low=ref_low,
+                    ref_high=ref_high,
+                    ref_raw=raw_range,
+                    extraction_tier=self.tier_id,
+                )
+            )
+        return results

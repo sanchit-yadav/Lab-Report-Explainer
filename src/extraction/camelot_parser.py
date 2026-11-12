@@ -61,7 +61,7 @@ class CamelotExtractor:
                 header_idx = -1
                 col_map = {}
 
-                for r_idx, row in enumerate(raw_rows[:3]):
+                for r_idx, row in enumerate(raw_rows[:6]):
                     candidate_map = identify_columns([str(c) for c in row])
                     if "test_name" in candidate_map and "value" in candidate_map:
                         header_idx = r_idx

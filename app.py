@@ -417,7 +417,22 @@ def main():
         exp_by_name = {e.test_name: e for e in explanation.test_explanations}
 
         # Render Analyte Cards
-        st.subheader("🔬 " + ("Analyte Breakdown & Findings" if lang_code == "en" else "परीक्षण परिणाम एवं विस्तृत जानकारी"))
+        st.subheader("\U0001f52c " + ("Analyte Breakdown & Findings" if lang_code == "en" else "\u092a\u0930\u0940\u0915\u094d\u0937\u0923 \u092a\u0930\u093f\u0923\u093e\u092e \u090f\u0935\u0902 \u0935\u093f\u0938\u094d\u0924\u0943\u0924 \u091c\u093e\u0928\u0915\u093e\u0930\u0940"))
+
+        # Zero-extraction feedback \u2014 show helpful explanation instead of blank screen
+        if explanation.total_tests == 0:
+            extraction_method = getattr(raw_report, "extraction_method", "unknown") if raw_report else "unknown"
+            st.warning(
+                "\u26a0\ufe0f **No test data could be automatically extracted from this PDF.**\n\n"
+                "This may happen with scanned, image-based, or unusually formatted reports.\n\n"
+                f"**Extraction method attempted:** `{extraction_method}`\n\n"
+                "**Suggestions:**\n"
+                "- Upload a **digital (text-based) PDF** for best results.\n"
+                "- If you have a scanned report, ensure your `GEMINI_API_KEY` is configured "
+                "for Vision-based OCR extraction (Tier 3).\n"
+                "- Some reports use non-standard column headers \u2014 check that the PDF is not password-protected or corrupted."
+            )
+            return
 
         # If raw_report exists, show all tests in categorized fashion
         if raw_report and raw_report.tests:
