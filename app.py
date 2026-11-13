@@ -138,14 +138,13 @@ def render_header(lang: str):
         if lang == "en"
         else "मरीजों के लिए सरल लैब रिपोर्ट व्याख्याता — मेडिकल संदर्भ, सुरक्षा दिशानिर्देश और हिंदी अनुवाद के साथ।"
     )
-    st.markdown(
+    render_html_safely(
         f"""
         <div class="report-header">
             <h1 style="margin: 0; font-size: 28px; color: #ffffff;">{title}</h1>
             <p style="margin: 8px 0 0 0; color: #94a3b8; font-size: 15px;">{subtitle}</p>
         </div>
-        """,
-        unsafe_allow_html=True,
+        """
     )
 
 
@@ -208,6 +207,24 @@ def render_sidebar(pipeline: LabReportPipeline):
     return lang_code, selected_pdf_source, report_display_name, explain_all
 
 
+def _clean_html_str(html_text: str) -> str:
+    """Strip all leading/trailing whitespace per line so Markdown never treats indented lines as code blocks."""
+    if not html_text:
+        return ""
+    return "\n".join(line.strip() for line in html_text.strip().splitlines() if line.strip())
+
+
+def render_html_safely(html_text: str):
+    """Render HTML cleanly without Markdown parser treating indented lines as pre/code blocks."""
+    cleaned = _clean_html_str(html_text)
+    if not cleaned:
+        return
+    if hasattr(st, "html"):
+        st.html(cleaned)
+    else:
+        st.markdown(cleaned, unsafe_allow_html=True)
+
+
 def render_range_gauge_html(test: TestResult) -> str:
     """Generate an intuitive visual horizontal range gauge for a numeric analyte."""
     if test.value is None or (test.ref_low is None and test.ref_high is None):
@@ -243,7 +260,7 @@ def render_range_gauge_html(test: TestResult) -> str:
         else:
             marker_color = "#16a34a"
 
-        return f"""
+        return _clean_html_str(f"""
         <div style="margin-top: 10px; margin-bottom: 6px; padding: 0 4px;">
             <div style="display: flex; justify-content: space-between; font-size: 11px; color: #64748b; margin-bottom: 2px;">
                 <span>Min: {d_min:.1f}</span>
@@ -262,7 +279,7 @@ def render_range_gauge_html(test: TestResult) -> str:
                 </div>
             </div>
         </div>
-        """
+        """)
 
     # One-sided upper bound (< 200)
     elif high is not None:
@@ -277,7 +294,7 @@ def render_range_gauge_html(test: TestResult) -> str:
 
         marker_color = "#dc2626" if test.flag == FlagStatus.CRITICAL_HIGH else ("#d97706" if test.flag == FlagStatus.HIGH else "#16a34a")
 
-        return f"""
+        return _clean_html_str(f"""
         <div style="margin-top: 10px; margin-bottom: 6px; padding: 0 4px;">
             <div style="display: flex; justify-content: space-between; font-size: 11px; color: #64748b; margin-bottom: 2px;">
                 <span>0.0</span>
@@ -295,7 +312,7 @@ def render_range_gauge_html(test: TestResult) -> str:
                 </div>
             </div>
         </div>
-        """
+        """)
 
     # One-sided lower bound (> 60)
     elif low is not None:
@@ -310,7 +327,7 @@ def render_range_gauge_html(test: TestResult) -> str:
 
         marker_color = "#dc2626" if test.flag == FlagStatus.CRITICAL_LOW else ("#d97706" if test.flag == FlagStatus.LOW else "#16a34a")
 
-        return f"""
+        return _clean_html_str(f"""
         <div style="margin-top: 10px; margin-bottom: 6px; padding: 0 4px;">
             <div style="display: flex; justify-content: space-between; font-size: 11px; color: #64748b; margin-bottom: 2px;">
                 <span>0.0</span>
@@ -328,7 +345,7 @@ def render_range_gauge_html(test: TestResult) -> str:
                 </div>
             </div>
         </div>
-        """
+        """)
 
     return ""
 
@@ -368,7 +385,7 @@ def render_test_card(
         {gauge_html}
     </div>
     """
-    st.markdown(card_html, unsafe_allow_html=True)
+    render_html_safely(card_html)
 
     if explanation:
         with st.expander(
@@ -585,14 +602,13 @@ def main():
         summary_text = (
             explanation.report_summary_en if lang_code == "en" else explanation.report_summary_hi
         )
-        st.markdown(
+        render_html_safely(
             f"""
             <div style="background-color: #f1f5f9; border-radius: 8px; padding: 18px; margin: 16px 0; border: 1px solid #cbd5e1;">
                 <h4 style="margin: 0 0 8px 0; color: #1e293b;">📋 {'Executive Summary' if lang_code == 'en' else 'रिपोर्ट का मुख्य सारांश'}</h4>
                 <p style="margin: 0; color: #334155; line-height: 1.6;">{summary_text}</p>
             </div>
-            """,
-            unsafe_allow_html=True,
+            """
         )
 
         # Explanations map

@@ -40,6 +40,8 @@ def test_render_range_gauge_html():
     assert "Optimal Range: 12.0 - 15.0 g/dL" in html1
     assert "11.2" in html1
     assert "width:" in html1
+    # Verify no line has leading whitespace that could trigger Markdown code blocks
+    assert not any(line.startswith("    ") for line in html1.splitlines())
 
     # One-sided upper bound (Total Cholesterol)
     t_upper = TestResult(
@@ -52,6 +54,7 @@ def test_render_range_gauge_html():
     html2 = render_range_gauge_html(t_upper)
     assert "Desirable: &lt; 200.0 mg/dL" in html2
     assert "248.0" in html2
+    assert not any(line.startswith("    ") for line in html2.splitlines())
 
     # Non-numeric result (no range bar)
     t_non_numeric = TestResult(
