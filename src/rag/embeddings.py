@@ -17,6 +17,21 @@ from src.config import EmbeddingsConfig, get_config
 logger = logging.getLogger("embeddings")
 
 
+def _extract_embedding_vector(res: Any) -> Optional[List[float]]:
+    """Safely extract vector values from google-genai EmbedContentResponse."""
+    if hasattr(res, "embeddings") and res.embeddings:
+        first = res.embeddings[0]
+        if hasattr(first, "values") and first.values is not None:
+            return list(first.values)
+    if hasattr(res, "embedding"):
+        emb = res.embedding
+        if hasattr(emb, "values") and emb.values is not None:
+            return list(emb.values)
+        if isinstance(emb, list):
+            return list(emb)
+    return None
+
+
 class EmbeddingManager:
     """Produces 768-dimensional dense vectors for documents and queries."""
 
@@ -76,9 +91,10 @@ class EmbeddingManager:
                             output_dimensionality=self.dimensions,
                         ),
                     )
-                    # Extract values
-                    if res.embedding and res.embedding.values:
-                        embeddings.append(res.embedding.values)
+                    # Extract values safely across google-genai versions
+                    vec = _extract_embedding_vector(res)
+                    if vec:
+                        embeddings.append(vec)
                     else:
                         embeddings.append(self._fallback_embed(text))
 
@@ -104,8 +120,9 @@ class EmbeddingManager:
                         output_dimensionality=self.dimensions,
                     ),
                 )
-                if res.embedding and res.embedding.values:
-                    return res.embedding.values
+                vec = _extract_embedding_vector(res)
+                if vec:
+                    return vec
             except Exception as e:
                 logger.warning(f"Gemini API query embedding failed ({e}); using offline fallback embedder.")
 

@@ -18,6 +18,8 @@ from src.config import get_config
 from src.explainer.pdf_export import generate_doctor_brief_pdf
 from src.explainer.schema import ReportExplanation, TestExplanation
 from src.extraction.schema import FlagStatus, LabReport, TestResult
+from src.flagging.correlations import ClinicalCorrelation, CorrelationSeverity
+from src.history.tracker import HistoryTracker, TrendDirection
 from src.pipeline import LabReportPipeline
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -167,18 +169,35 @@ def render_sidebar(pipeline: LabReportPipeline):
         report_display_name = ""
 
         if input_mode == "Sample Reports":
-            sample_choice = st.selectbox("Select a benchmark sample:", list(SAMPLE_OPTIONS.keys()))
-            sample_file = SAMPLE_OPTIONS[sample_choice]
-            selected_pdf_source = SAMPLE_DIR / sample_file
-            report_display_name = sample_choice
-        else:
-            uploaded_file = st.file_uploader(
-                "Upload Laboratory Report (PDF, JPG, PNG)",
-                type=["pdf", "jpg", "jpeg", "png"],
+            sample_choices = st.multiselect(
+                "Select one or more benchmark samples:",
+                options=list(SAMPLE_OPTIONS.keys()),
+                default=[list(SAMPLE_OPTIONS.keys())[0]],
+                help="Select multiple reports to test multi-document consolidation and historical trend tracking.",
             )
-            if uploaded_file is not None:
-                selected_pdf_source = uploaded_file.read()
-                report_display_name = uploaded_file.name
+            if len(sample_choices) == 1:
+                selected_pdf_source = SAMPLE_DIR / SAMPLE_OPTIONS[sample_choices[0]]
+                report_display_name = sample_choices[0]
+            elif len(sample_choices) > 1:
+                selected_pdf_source = [SAMPLE_DIR / SAMPLE_OPTIONS[s] for s in sample_choices]
+                report_display_name = f"Batch Analysis ({len(sample_choices)} Reports)"
+            else:
+                selected_pdf_source = None
+                report_display_name = ""
+        else:
+            uploaded_files = st.file_uploader(
+                "Upload Laboratory Report(s) (PDF, JPG, PNG, WebP)",
+                type=["pdf", "jpg", "jpeg", "png", "webp"],
+                accept_multiple_files=True,
+                help="Upload one or more PDF/image reports. Multiple reports will be merged with cross-panel correlations.",
+            )
+            if uploaded_files:
+                if len(uploaded_files) == 1:
+                    selected_pdf_source = uploaded_files[0].read()
+                    report_display_name = uploaded_files[0].name
+                else:
+                    selected_pdf_source = [f.read() for f in uploaded_files]
+                    report_display_name = f"Batch Upload ({len(uploaded_files)} Documents)"
 
         explain_all = st.checkbox(
             "Explain All Tests (including Normal)",
@@ -510,6 +529,267 @@ def render_qa_section(pipeline: LabReportPipeline, report_summary: str, lang: st
                 })
 
 
+def render_correlations_section(correlations: List[ClinicalCorrelation], lang: str):
+    """Render deterministic cross-analyte ratios and multi-marker clinical patterns."""
+    if not correlations:
+        return
+
+    st.markdown("---")
+    st.subheader("🧠 " + ("Clinical Panel Insights & Ratios" if lang == "en" else "नैदानिक अनुपात एवं समग्र पैनल निष्कर्ष"))
+    st.caption(
+        "Interconnected biomarker analysis calculated deterministically using AACC, ADA, and EASL clinical guidelines."
+        if lang == "en"
+        else "नैदानिक दिशानिर्देशों के आधार पर विभिन्न बायोमार्करों के पारस्परिक अनुपातों का स्वतः परिकलन।"
+    )
+
+    sev_colors = {
+        CorrelationSeverity.NORMAL: ("#f0fdf4", "#15803d", "#86efac", "🟢 NORMAL"),
+        CorrelationSeverity.BORDERLINE: ("#fffbeb", "#b45309", "#fcd34d", "🟡 BORDERLINE"),
+        CorrelationSeverity.ELEVATED: ("#fff7ed", "#c2410c", "#fdba74", "🟠 ELEVATED"),
+        CorrelationSeverity.HIGH: ("#fef2f2", "#b91c1c", "#fca5a5", "🔴 HIGH RISK"),
+    }
+
+    for corr in correlations:
+        bg, text_c, border_c, badge_txt = sev_colors.get(corr.severity, sev_colors[CorrelationSeverity.NORMAL])
+        val_txt = f"{corr.value} {corr.unit}".strip() if corr.value is not None else ""
+        finding = corr.finding_en if lang == "en" else corr.finding_hi
+
+        card_html = f"""
+        <div style="background-color: {bg}; border: 1px solid {border_c}; border-radius: 8px; padding: 14px 18px; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span style="font-size: 16px; font-weight: 700; color: #1e293b;">{corr.title}</span>
+                    <span style="font-size: 11px; color: #64748b; margin-left: 8px;">({corr.panel_name})</span>
+                    <span class="badge" style="background-color: {border_c}; color: {text_c}; font-weight: 700;">
+                        {badge_txt}
+                    </span>
+                </div>
+                <div style="text-align: right;">
+                    <span style="font-size: 18px; font-weight: 800; color: {text_c};">{val_txt}</span>
+                    <div style="font-size: 11px; color: #64748b;">Target: {corr.optimal_range}</div>
+                </div>
+            </div>
+            <div style="margin-top: 8px; font-size: 13px; color: #334155; line-height: 1.5;">
+                {finding}
+            </div>
+        </div>
+        """
+        render_html_safely(card_html)
+
+        if corr.doctor_questions:
+            with st.expander(
+                f"💬 {'Questions for your doctor regarding this ratio' if lang == 'en' else 'इस अनुपात के संबंध में डॉक्टर से प्रश्न'}",
+                expanded=(corr.severity in (CorrelationSeverity.ELEVATED, CorrelationSeverity.HIGH)),
+            ):
+                for q in corr.doctor_questions:
+                    st.markdown(f"- 🩺 {q}")
+
+
+def render_history_section(
+    history_tracker: HistoryTracker,
+    lang: str,
+    patient_name: Optional[str] = None,
+    key_suffix: str = "",
+):
+    """Render longitudinal biomarker history, progression metrics, and trend charts."""
+    trends = history_tracker.get_analyte_trends(patient_name=patient_name)
+    multi_point_trends = {k: v for k, v in trends.items() if len(v.data_points) >= 2}
+
+    if not multi_point_trends:
+        return
+
+    st.markdown("---")
+    st.subheader("📈 " + ("Longitudinal Analyte Trends & Progression" if lang == "en" else "दीर्घकालिक परीक्षण रुझान एवं सुधार ग्राफ"))
+    st.caption(
+        "Historical biomarker tracking across your sequential reports, showing deltas and clinical trajectories."
+        if lang == "en"
+        else "आपकी पिछली और हालिया रिपोर्टों के बीच बायोमार्कर स्तरों में आए बदलाव और रुझान का विश्लेषण।"
+    )
+
+    dir_badges = {
+        TrendDirection.IMPROVING: ("#f0fdf4", "#15803d", "🟢 " + ("IMPROVING", "सुधार")[lang == "hi"]),
+        TrendDirection.WORSENING: ("#fef2f2", "#b91c1c", "🔴 " + ("WORSENING", "प्रतिकूल")[lang == "hi"]),
+        TrendDirection.STABLE: ("#f8fafc", "#475569", "⚪ " + ("STABLE", "स्थिर")[lang == "hi"]),
+        TrendDirection.FLUCTUATING: ("#fffbeb", "#b45309", "🟡 " + ("FLUCTUATING", "उतार-चढ़ाव")[lang == "hi"]),
+    }
+
+    t_names = list(multi_point_trends.keys())
+    select_key = f"trend_select_{key_suffix}" if key_suffix else "trend_select_default"
+    selected_trend_name = st.selectbox(
+        "Select Analyte to View Trend Graph:" if lang == "en" else "ग्राफ देखने के लिए जांच चुनें:",
+        t_names,
+        key=select_key,
+    )
+
+    if selected_trend_name:
+        trend = multi_point_trends[selected_trend_name]
+        bg, text_c, badge_label = dir_badges.get(trend.direction, dir_badges[TrendDirection.STABLE])
+        narrative = trend.narrative_en if lang == "en" else trend.narrative_hi
+
+        c_delta1, c_delta2, c_badge = st.columns([1, 1, 1.5])
+        with c_delta1:
+            st.metric(
+                label=f"{trend.test_name} Delta",
+                value=f"{trend.data_points[-1].value} {trend.unit}",
+                delta=f"{trend.delta_absolute} ({trend.delta_percent}%)",
+                delta_color="inverse" if trend.direction == TrendDirection.WORSENING else "normal",
+            )
+        with c_delta2:
+            st.metric(
+                label="Baseline Reading",
+                value=f"{trend.data_points[0].value} {trend.unit}",
+                help=f"Recorded on {trend.data_points[0].date_str}",
+            )
+        with c_badge:
+            st.markdown(
+                f"""
+                <div style="background-color: {bg}; border: 1px solid {text_c}40; border-radius: 8px; padding: 12px; margin-top: 4px;">
+                    <span style="font-weight: 700; color: {text_c};">{badge_label}</span>
+                    <div style="font-size: 12px; color: #334155; margin-top: 4px;">{narrative}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+        # Chronological interactive line chart
+        chart_data = {
+            dp.date_str or f"Reading {i+1}": dp.value
+            for i, dp in enumerate(trend.data_points)
+        }
+        st.line_chart(chart_data)
+
+
+def render_patient_report_view(
+    explanation: ReportExplanation,
+    pipeline: LabReportPipeline,
+    lang_code: str,
+    elapsed_s: float,
+    patient_label: Optional[str] = None,
+    key_suffix: str = "",
+):
+    """Render the full clinical interpretation view for an individual patient profile."""
+    # Overview Metrics Row
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        st.markdown(
+            f"""<div class="metric-card"><div class="value">{explanation.total_tests}</div><div class="label">Total Tests</div></div>""",
+            unsafe_allow_html=True,
+        )
+    with c2:
+        st.markdown(
+            f"""<div class="metric-card"><div class="value" style="color: {'#dc2626' if explanation.flagged_count > 0 else '#16a34a'};">{explanation.flagged_count}</div><div class="label">Out of Range</div></div>""",
+            unsafe_allow_html=True,
+        )
+    with c3:
+        st.markdown(
+            f"""<div class="metric-card"><div class="value">{elapsed_s:.2f}s</div><div class="label">Processing Time</div></div>""",
+            unsafe_allow_html=True,
+        )
+    with c4:
+        st.markdown(
+            f"""<div class="metric-card"><div class="value">$0.0016</div><div class="label">Est. Cost (USD)</div></div>""",
+            unsafe_allow_html=True,
+        )
+
+    st.markdown("<br/>", unsafe_allow_html=True)
+
+    # Patient Info Header & Download Button Row
+    raw_report: Optional[LabReport] = explanation.raw_report
+    patient_name = explanation.patient_name or (raw_report.patient_name if raw_report else (patient_label or "Patient"))
+    report_date = explanation.report_date or (raw_report.report_date if raw_report else "Recent")
+    lab_name = raw_report.lab_name if raw_report else "Diagnostic Pathology"
+
+    col_pat, col_down = st.columns([2.5, 1.5])
+    with col_pat:
+        st.markdown(
+            f"**Patient:** `{patient_name}` | **Date:** `{report_date}` | **Laboratory:** `{lab_name}`"
+        )
+    with col_down:
+        if explanation.total_tests > 0:
+            clean_pname = (patient_name or "Patient").replace(" ", "_")
+            pdf_bytes = generate_doctor_brief_pdf(explanation, lang=lang_code)
+            dl_key = f"dl_pdf_{key_suffix or clean_pname}"
+            st.download_button(
+                label="📥 " + ("Download Doctor Brief (PDF)", "डॉक्टर सारांश डाउनलोड करें (PDF)")[lang_code == "hi"],
+                data=pdf_bytes,
+                file_name=f"Doctor_Brief_{clean_pname}.pdf",
+                mime="application/pdf",
+                key=dl_key,
+                use_container_width=True,
+            )
+
+    # Clinical Summary Callout
+    summary_text = (
+        explanation.report_summary_en if lang_code == "en" else explanation.report_summary_hi
+    )
+    render_html_safely(
+        f"""
+        <div style="background-color: #f1f5f9; border-radius: 8px; padding: 18px; margin: 16px 0; border: 1px solid #cbd5e1;">
+            <h4 style="margin: 0 0 8px 0; color: #1e293b;">📋 {'Executive Summary' if lang_code == 'en' else 'रिपोर्ट का मुख्य सारांश'}</h4>
+            <p style="margin: 0; color: #334155; line-height: 1.6;">{summary_text}</p>
+        </div>
+        """
+    )
+
+    # Zero-extraction feedback
+    if explanation.total_tests == 0:
+        extraction_method = getattr(raw_report, "extraction_method", "unknown") if raw_report else "unknown"
+        st.warning(
+            "⚠️ **No test data could be automatically extracted from this document.**\n\n"
+            "This may happen with scanned image files, photo uploads, or non-standard layouts.\n\n"
+            f"**Extraction method attempted:** `{extraction_method}`\n\n"
+            "**Suggestions:**\n"
+            "- Upload a **digital (text-based) PDF** for instant zero-cost extraction.\n"
+            "- For scanned image/photo uploads (`.jpg`, `.png`), ensure your `GEMINI_API_KEY` is configured in `.env` "
+            "for Tier 3 Multimodal Vision OCR.\n"
+            "- Ensure the image is well-lit, sharp, and the document is oriented upright."
+        )
+        return
+
+    # Explanations map
+    exp_by_name = {e.test_name: e for e in explanation.test_explanations}
+
+    # Render Analyte Cards
+    st.subheader("🔬 " + ("Analyte Breakdown & Findings" if lang_code == "en" else "परीक्षण परिणाम एवं विस्तृत जानकारी"))
+
+    # If raw_report exists, show all tests in categorized fashion
+    if raw_report and raw_report.tests:
+        flag_order = {
+            FlagStatus.CRITICAL_HIGH: 0,
+            FlagStatus.CRITICAL_LOW: 0,
+            FlagStatus.HIGH: 1,
+            FlagStatus.LOW: 1,
+            FlagStatus.ABNORMAL: 2,
+            FlagStatus.UNKNOWN: 3,
+            FlagStatus.NORMAL: 4,
+        }
+        sorted_tests = sorted(raw_report.tests, key=lambda t: flag_order.get(t.flag, 5))
+
+        for test in sorted_tests:
+            test_exp = exp_by_name.get(test.test_name)
+            render_test_card(test, test_exp, lang_code)
+    else:
+        for exp in explanation.test_explanations:
+            mock_test = TestResult(
+                test_name=exp.test_name,
+                value=0.0,
+                flag=exp.flag,
+            )
+            render_test_card(mock_test, exp, lang_code)
+
+    # Clinical Panel Correlations & Multi-Analyte Ratios (Phase 2)
+    if getattr(explanation, "correlations", None):
+        render_correlations_section(explanation.correlations, lang_code)
+
+    # Longitudinal History & Biomarker Trend Analysis (Phase 2)
+    render_history_section(
+        pipeline.history_tracker,
+        lang_code,
+        patient_name=patient_name,
+        key_suffix=key_suffix,
+    )
+
+
 def main():
     st.set_page_config(
         page_title="AI Clinical Lab Report Explainer",
@@ -536,12 +816,19 @@ def main():
         # Check if new report selected
         current_id = f"{report_name}_{explain_all}"
         if run_analysis or st.session_state.get("current_report_id") != current_id:
-            with st.spinner("Processing Document: 3-tier extraction, deterministic flagging, and clinical RAG..."):
+            with st.spinner("Processing Document(s): 3-tier extraction, deterministic flagging, and clinical RAG..."):
                 start_t = time.perf_counter()
-                explanation: ReportExplanation = pipeline.process_report(
-                    selected_pdf_source,
-                    explain_all_tests=explain_all,
-                )
+                if isinstance(selected_pdf_source, list) and len(selected_pdf_source) > 1:
+                    explanation: ReportExplanation = pipeline.process_multiple_reports(
+                        selected_pdf_source,
+                        explain_all_tests=explain_all,
+                    )
+                else:
+                    src = selected_pdf_source[0] if isinstance(selected_pdf_source, list) else selected_pdf_source
+                    explanation: ReportExplanation = pipeline.process_report(
+                        src,
+                        explain_all_tests=explain_all,
+                    )
                 elapsed_s = time.perf_counter() - start_t
                 st.session_state["last_report_result"] = explanation
                 st.session_state["last_report_elapsed"] = elapsed_s
@@ -550,117 +837,39 @@ def main():
         explanation: ReportExplanation = st.session_state["last_report_result"]
         elapsed_s: float = st.session_state.get("last_report_elapsed", 0.0)
 
-        # Overview Metrics Row
-        c1, c2, c3, c4 = st.columns(4)
-        with c1:
-            st.markdown(
-                f"""<div class="metric-card"><div class="value">{explanation.total_tests}</div><div class="label">Total Tests</div></div>""",
-                unsafe_allow_html=True,
-            )
-        with c2:
-            st.markdown(
-                f"""<div class="metric-card"><div class="value" style="color: {'#dc2626' if explanation.flagged_count > 0 else '#16a34a'};">{explanation.flagged_count}</div><div class="label">Out of Range</div></div>""",
-                unsafe_allow_html=True,
-            )
-        with c3:
-            st.markdown(
-                f"""<div class="metric-card"><div class="value">{elapsed_s:.2f}s</div><div class="label">Processing Time</div></div>""",
-                unsafe_allow_html=True,
-            )
-        with c4:
-            st.markdown(
-                f"""<div class="metric-card"><div class="value">$0.0016</div><div class="label">Est. Cost (USD)</div></div>""",
-                unsafe_allow_html=True,
-            )
-
-        st.markdown("<br/>", unsafe_allow_html=True)
-
-        # Patient Info Header & Download Button Row
-        raw_report: Optional[LabReport] = explanation.raw_report
-        patient_name = explanation.patient_name or (raw_report.patient_name if raw_report else "Patient")
-        report_date = explanation.report_date or (raw_report.report_date if raw_report else "Recent")
-        lab_name = raw_report.lab_name if raw_report else "Diagnostic Pathology"
-
-        col_pat, col_down = st.columns([2.5, 1.5])
-        with col_pat:
-            st.markdown(
-                f"**Patient:** `{patient_name}` | **Date:** `{report_date}` | **Laboratory:** `{lab_name}`"
-            )
-        with col_down:
-            if explanation.total_tests > 0:
-                clean_pname = (patient_name or "Patient").replace(" ", "_")
-                pdf_bytes = generate_doctor_brief_pdf(explanation, lang=lang_code)
-                st.download_button(
-                    label="📥 " + ("Download Doctor Brief (PDF)", "डॉक्टर सारांश डाउनलोड करें (PDF)")[lang_code == "hi"],
-                    data=pdf_bytes,
-                    file_name=f"Doctor_Brief_{clean_pname}.pdf",
-                    mime="application/pdf",
-                    use_container_width=True,
-                )
-
-        # Clinical Summary Callout
-        summary_text = (
-            explanation.report_summary_en if lang_code == "en" else explanation.report_summary_hi
-        )
-        render_html_safely(
-            f"""
-            <div style="background-color: #f1f5f9; border-radius: 8px; padding: 18px; margin: 16px 0; border: 1px solid #cbd5e1;">
-                <h4 style="margin: 0 0 8px 0; color: #1e293b;">📋 {'Executive Summary' if lang_code == 'en' else 'रिपोर्ट का मुख्य सारांश'}</h4>
-                <p style="margin: 0; color: #334155; line-height: 1.6;">{summary_text}</p>
-            </div>
-            """
-        )
-
-        # Explanations map
-        exp_by_name = {e.test_name: e for e in explanation.test_explanations}
-
-        # Render Analyte Cards
-        st.subheader("🔬 " + ("Analyte Breakdown & Findings" if lang_code == "en" else "परीक्षण परिणाम एवं विस्तृत जानकारी"))
-
-        # Zero-extraction feedback
-        if explanation.total_tests == 0:
-            extraction_method = getattr(raw_report, "extraction_method", "unknown") if raw_report else "unknown"
+        # Multi-Patient Routing vs Single-Patient Routing
+        if getattr(explanation, "is_multi_patient", False) and explanation.patient_profiles:
             st.warning(
-                "⚠️ **No test data could be automatically extracted from this document.**\n\n"
-                "This may happen with scanned image files, photo uploads, or non-standard layouts.\n\n"
-                f"**Extraction method attempted:** `{extraction_method}`\n\n"
-                "**Suggestions:**\n"
-                "- Upload a **digital (text-based) PDF** for instant zero-cost extraction.\n"
-                "- For scanned image/photo uploads (`.jpg`, `.png`), ensure your `GEMINI_API_KEY` is configured in `.env` "
-                "for Tier 3 Multimodal Vision OCR.\n"
-                "- Ensure the image is well-lit, sharp, and the document is oriented upright."
+                f"🛡️ **Patient Cross-Contamination Guard Active:**\n\n"
+                f"{explanation.patient_warning if lang_code == 'en' else explanation.report_summary_hi}\n\n"
+                "**Clinical Safety Protocol:** Different patient profiles have been safely partitioned into isolated tabs below to prevent cross-contamination of diagnostic reference intervals and historical trend data."
             )
-            return
-
-        # If raw_report exists, show all tests in categorized fashion
-        if raw_report and raw_report.tests:
-            # Sort: Critical first, then High/Low, then Normal
-            flag_order = {
-                FlagStatus.CRITICAL_HIGH: 0,
-                FlagStatus.CRITICAL_LOW: 0,
-                FlagStatus.HIGH: 1,
-                FlagStatus.LOW: 1,
-                FlagStatus.ABNORMAL: 2,
-                FlagStatus.UNKNOWN: 3,
-                FlagStatus.NORMAL: 4,
-            }
-            sorted_tests = sorted(raw_report.tests, key=lambda t: flag_order.get(t.flag, 5))
-
-            for test in sorted_tests:
-                test_exp = exp_by_name.get(test.test_name)
-                render_test_card(test, test_exp, lang_code)
+            patient_tab_labels = [f"👤 {p_name}" for p_name in explanation.patient_profiles.keys()]
+            patient_tabs = st.tabs(patient_tab_labels)
+            for idx, (p_name, p_exp) in enumerate(explanation.patient_profiles.items()):
+                with patient_tabs[idx]:
+                    render_patient_report_view(
+                        explanation=p_exp,
+                        pipeline=pipeline,
+                        lang_code=lang_code,
+                        elapsed_s=elapsed_s,
+                        patient_label=p_name,
+                        key_suffix=f"pat_{idx}",
+                    )
         else:
-            # Fallback to test_explanations
-            for exp in explanation.test_explanations:
-                mock_test = TestResult(
-                    test_name=exp.test_name,
-                    value=0.0,
-                    flag=exp.flag,
-                )
-                render_test_card(mock_test, exp, lang_code)
+            render_patient_report_view(
+                explanation=explanation,
+                pipeline=pipeline,
+                lang_code=lang_code,
+                elapsed_s=elapsed_s,
+                key_suffix="single",
+            )
 
         # Interactive Multi-Turn Q&A Section
-        render_qa_section(pipeline, summary_text, lang_code)
+        summary_for_qa = (
+            explanation.report_summary_en if lang_code == "en" else explanation.report_summary_hi
+        )
+        render_qa_section(pipeline, summary_for_qa, lang_code)
 
 
 if __name__ == "__main__":

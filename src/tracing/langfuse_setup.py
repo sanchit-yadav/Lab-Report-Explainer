@@ -104,29 +104,52 @@ class Tracer:
         trace.start_time = start
 
         # If Langfuse is connected, start cloud trace
-        lf_trace = None
+        lf_cm = None
+        lf_obs = None
         if self.langfuse_client:
             try:
-                lf_trace = self.langfuse_client.trace(name=name, metadata=metadata)
-            except Exception:
-                pass
+                if hasattr(self.langfuse_client, "start_as_current_observation"):
+                    lf_cm = self.langfuse_client.start_as_current_observation(
+                        name=name,
+                        metadata=metadata,
+                        as_type="chain",
+                    )
+                    lf_obs = lf_cm.__enter__()
+                elif hasattr(self.langfuse_client, "trace"):
+                    lf_obs = self.langfuse_client.trace(name=name, metadata=metadata)
+            except Exception as e:
+                logger.debug(f"Langfuse start_trace error: {e}")
 
+        exc_info = (None, None, None)
         try:
             yield trace
+        except Exception as e:
+            exc_info = (type(e), e, e.__traceback__)
+            raise
         finally:
             elapsed = (time.perf_counter() - start) * 1000.0
             trace.elapsed_ms = elapsed
-            if lf_trace:
+            if lf_obs:
                 try:
-                    lf_trace.update(
-                        metadata={
-                            **trace.metadata,
-                            "elapsed_ms": elapsed,
-                            "total_cost_usd": trace.total_cost_usd,
-                            "input_tokens": trace.total_input_tokens,
-                            "output_tokens": trace.total_output_tokens,
-                        }
-                    )
+                    summary_meta = {
+                        **trace.metadata,
+                        "elapsed_ms": elapsed,
+                        "total_cost_usd": trace.total_cost_usd,
+                        "input_tokens": trace.total_input_tokens,
+                        "output_tokens": trace.total_output_tokens,
+                    }
+                    if hasattr(lf_obs, "update"):
+                        lf_obs.update(metadata=summary_meta)
+                except Exception as e:
+                    logger.debug(f"Langfuse trace update error: {e}")
+            if lf_cm:
+                try:
+                    lf_cm.__exit__(*exc_info)
+                except Exception:
+                    pass
+            if self.langfuse_client and hasattr(self.langfuse_client, "flush"):
+                try:
+                    self.langfuse_client.flush()
                 except Exception:
                     pass
 
@@ -138,16 +161,58 @@ class Tracer:
         start = time.perf_counter()
         span_obj.start_time = start
 
+        # Map to Langfuse observation type
+        as_type = "span"
+        name_lower = name.lower()
+        if "guard" in name_lower:
+            as_type = "guardrail"
+        elif "rag" in name_lower or "retriev" in name_lower:
+            as_type = "retriever"
+        elif "generation" in name_lower or "llm" in name_lower:
+            as_type = "generation"
+
+        lf_cm = None
+        lf_obs = None
+        if self.langfuse_client and hasattr(self.langfuse_client, "start_as_current_observation"):
+            try:
+                lf_cm = self.langfuse_client.start_as_current_observation(
+                    name=name,
+                    as_type=as_type,
+                    metadata=metadata,
+                )
+                lf_obs = lf_cm.__enter__()
+            except Exception as e:
+                logger.debug(f"Langfuse child span enter error: {e}")
+
+        exc_info = (None, None, None)
         try:
             yield span_obj
         except Exception as e:
             span_obj.error = str(e)
+            exc_info = (type(e), e, e.__traceback__)
             raise
         finally:
             elapsed = (time.perf_counter() - start) * 1000.0
             span_obj.elapsed_ms = elapsed
             if parent_trace:
                 parent_trace.add_span(span_obj)
+            if lf_obs:
+                try:
+                    if hasattr(lf_obs, "update"):
+                        lf_obs.update(
+                            input=span_obj.inputs or None,
+                            output=span_obj.outputs or None,
+                            metadata={**span_obj.metadata, "elapsed_ms": elapsed},
+                            level="ERROR" if span_obj.error else "DEFAULT",
+                            status_message=span_obj.error,
+                        )
+                except Exception:
+                    pass
+            if lf_cm:
+                try:
+                    lf_cm.__exit__(*exc_info)
+                except Exception:
+                    pass
 
 
 _GLOBAL_TRACER: Optional[Tracer] = None

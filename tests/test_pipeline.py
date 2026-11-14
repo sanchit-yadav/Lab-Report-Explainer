@@ -86,3 +86,20 @@ def test_pipeline_answer_question_with_chat_history(pipeline):
     )
     assert ans["blocked"] is False
     assert len(ans["answer_en"]) > 20
+
+
+def test_pipeline_process_multiple_reports(pipeline, tmp_path):
+    # Test batch processing of multiple reports belonging to different patients
+    p1 = SAMPLE_DIR / "srl_lipid_panel.pdf"       # Pooja Patel (Female)
+    p2 = SAMPLE_DIR / "metropolis_liver.pdf"       # Vikram Singh (Male)
+    if p1.exists() and p2.exists():
+        res = pipeline.process_multiple_reports([p1, p2])
+        assert isinstance(res, ReportExplanation)
+        # Should detect different patients and safely isolate them into separate profiles
+        assert res.is_multi_patient is True
+        assert len(res.patient_profiles) == 2
+        assert any("Pooja" in k for k in res.patient_profiles)
+        assert any("Vikram" in k for k in res.patient_profiles)
+        assert res.patient_warning is not None
+        assert "mismatch" in res.patient_warning.lower() or "different" in res.patient_warning.lower()
+

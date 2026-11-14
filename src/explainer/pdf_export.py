@@ -297,6 +297,39 @@ def generate_doctor_brief_pdf(
     story.append(analyte_table)
     story.append(Spacer(1, 14))
 
+    # 4B. Clinical Panel Correlations & Multi-Analyte Ratios
+    if getattr(explanation, "correlations", None):
+        corr_heading = "Clinical Panel Insights & Ratios" if lang == "en" else "नैदानिक अनुपात एवं निष्कर्ष"
+        story.append(Paragraph(f"<b>{corr_heading}</b>", section_heading))
+        corr_rows = [
+            [
+                Paragraph("<b>Panel & Indicator</b>", body_style),
+                Paragraph("<b>Value</b>", body_style),
+                Paragraph("<b>Target Benchmark</b>", body_style),
+                Paragraph("<b>Clinical Meaning</b>", body_style),
+            ]
+        ]
+        for c in explanation.correlations:
+            val_txt = f"{c.value} {c.unit}" if c.value is not None else "-"
+            f_txt = c.finding_en if lang == "en" else c.finding_hi
+            corr_rows.append([
+                Paragraph(f"<b>{c.title}</b><br/><font size='8' color='#64748b'>{c.panel_name}</font>", body_style),
+                Paragraph(f"<b>{val_txt}</b>", body_style),
+                Paragraph(c.optimal_range or "-", body_style),
+                Paragraph(f_txt, body_style),
+            ])
+        corr_table = Table(corr_rows, colWidths=[2.0 * inch, 1.0 * inch, 1.4 * inch, 2.6 * inch])
+        corr_table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f8fafc")),
+            ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
+            ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#e2e8f0")),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("TOPPADDING", (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ]))
+        story.append(corr_table)
+        story.append(Spacer(1, 14))
+
     # 5. Targeted Findings & Questions for the Doctor
     if explanation.test_explanations:
         q_heading = (

@@ -135,7 +135,14 @@ class InputGuard:
                     ),
                 )
                 if response.text:
-                    parsed = json.loads(response.text)
+                    raw_resp = response.text.strip()
+                    if raw_resp.startswith("```"):
+                        raw_resp = re.sub(r"^```(?:json)?\s*", "", raw_resp)
+                        raw_resp = re.sub(r"\s*```$", "", raw_resp)
+                    match = re.search(r"\{[\s\S]*\}", raw_resp)
+                    if match:
+                        raw_resp = match.group(0)
+                    parsed = json.loads(raw_resp)
                     if not parsed.get("is_safe", True):
                         return GuardrailResult(
                             blocked=True,

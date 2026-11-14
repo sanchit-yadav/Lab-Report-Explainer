@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
 
 from src.extraction.schema import FlagStatus, LabReport
+from src.flagging.correlations import ClinicalCorrelation
 
 
 class TestExplanation(BaseModel):
@@ -37,6 +38,14 @@ class ReportExplanation(BaseModel):
     flagged_count: int = Field(default=0, description="Number of abnormal or out-of-range tests")
     total_tests: int = Field(default=0, description="Total tests processed")
     raw_report: Optional[LabReport] = Field(default=None, description="Extracted and flagged LabReport data")
+    correlations: List[ClinicalCorrelation] = Field(
+        default_factory=list, description="Computed multi-analyte clinical correlations and ratios"
+    )
+    is_multi_patient: bool = Field(default=False, description="Whether multiple distinct patients were detected")
+    patient_warning: Optional[str] = Field(default=None, description="Clinical safety alert when multiple patients are detected")
+    patient_profiles: Dict[str, ReportExplanation] = Field(
+        default_factory=dict, description="Separated patient reports when multi-patient documents are uploaded"
+    )
     disclaimer: str = Field(
         default="⚠️ This explanation is for educational purposes only and is not a medical diagnosis. Please discuss all results with your doctor.",
         description="Global medical disclaimer",

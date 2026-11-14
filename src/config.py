@@ -43,13 +43,16 @@ def _load_text_file(file_path: Path) -> str:
 # ==============================================================================
 
 class ModelsConfig(BaseModel):
-    explanation_llm: str = Field(default="gemini-3.1-flash-lite")
+    explanation_llm: str = Field(default="gemini-3.5-flash-lite")
     explanation_thinking_level: str = Field(default="low")
     vision_fallback: str = Field(default="gemini-3.5-flash")
     vision_media_resolution: str = Field(default="medium")
     guardrail_classifier: str = Field(default="gemini-3.1-flash-lite")
     eval_judge: str = Field(default="gemini-3.5-flash")
     eval_thinking_level: str = Field(default="high")
+    fallback_models: List[str] = Field(
+        default_factory=lambda: ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]
+    )
 
 
 class GenerationConfig(BaseModel):
@@ -151,7 +154,7 @@ class RAGConfig(BaseModel):
 class InputGuardConfig(BaseModel):
     enabled: bool = True
     use_llm_classifier: bool = True
-    classifier_model: str = "gemini-3.1-flash-lite"
+    classifier_model: str = "gemini-3.5-flash-lite"
     keyword_blocklist: Dict[str, List[str]] = Field(default_factory=dict)
     pattern_blocklist: Dict[str, List[str]] = Field(default_factory=dict)
     safe_refusal: Dict[str, str] = Field(default_factory=dict)

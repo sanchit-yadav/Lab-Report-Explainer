@@ -59,3 +59,37 @@ def test_generate_doctor_brief_pdf_valid_bytes():
     assert isinstance(pdf_bytes, bytes)
     assert len(pdf_bytes) > 1000
     assert pdf_bytes.startswith(b"%PDF-")  # Valid PDF header
+
+
+def test_generate_doctor_brief_pdf_with_correlations():
+    """Verify that Doctor Brief PDF embeds clinical correlation tables and findings."""
+    from src.flagging.correlations import ClinicalCorrelation, CorrelationSeverity
+
+    corr = ClinicalCorrelation(
+        panel_name="Lipid Profile",
+        title="Total Cholesterol / HDL Ratio",
+        value=5.4,
+        unit="ratio",
+        optimal_range="< 3.5",
+        severity=CorrelationSeverity.ELEVATED,
+        finding_en="Total cholesterol to HDL ratio is elevated at 5.4.",
+        finding_hi="कुल कोलेस्ट्रॉल / एचडीएल अनुपात 5.4 पर बढ़ा हुआ है।",
+        doctor_questions=["How does this ratio impact my cardiovascular risk?"],
+    )
+
+    explanation = ReportExplanation(
+        patient_name="Anil Verma",
+        report_date="2026-10-18",
+        report_summary_en="Lipid evaluation shows elevated cardiovascular ratio.",
+        report_summary_hi="लिपिड जांच में बढ़ा हुआ हृदय जोखिम अनुपात देखा गया।",
+        test_explanations=[],
+        correlations=[corr],
+        flagged_count=1,
+        total_tests=2,
+    )
+
+    pdf_bytes = generate_doctor_brief_pdf(explanation, lang="en")
+    assert isinstance(pdf_bytes, bytes)
+    assert len(pdf_bytes) > 1000
+    assert pdf_bytes.startswith(b"%PDF-")
+

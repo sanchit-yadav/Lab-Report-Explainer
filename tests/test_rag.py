@@ -63,3 +63,29 @@ def test_reranker_reorders_candidates(reranker):
     assert len(reranked) == 3
     assert reranked[0]["id"] == "serum_creatinine"
     assert reranked[0]["rerank_score"] > reranked[1]["rerank_score"]
+
+
+def test_extract_embedding_vector():
+    """Verify safe extraction of embedding vectors from google-genai response objects."""
+    from src.rag.embeddings import _extract_embedding_vector
+
+    # Modern google-genai format: res.embeddings[0].values
+    class MockContentEmbedding:
+        def __init__(self, values):
+            self.values = values
+
+    class MockEmbedResponsePlural:
+        def __init__(self, values):
+            self.embeddings = [MockContentEmbedding(values)]
+
+    mock_resp = MockEmbedResponsePlural([0.1, 0.2, 0.3])
+    vec = _extract_embedding_vector(mock_resp)
+    assert vec == [0.1, 0.2, 0.3]
+
+    # Legacy format: res.embedding.values
+    class MockEmbedResponseSingular:
+        def __init__(self, values):
+            self.embedding = MockContentEmbedding(values)
+
+    mock_resp_sing = MockEmbedResponseSingular([0.4, 0.5])
+    assert _extract_embedding_vector(mock_resp_sing) == [0.4, 0.5]

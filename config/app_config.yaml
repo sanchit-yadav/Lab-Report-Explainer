@@ -4,6 +4,10 @@
 models:
   explanation_llm: "gemini-3.1-flash-lite"
   explanation_thinking_level: "low"
+  fallback_models:
+    - "gemini-2.5-flash"
+    - "gemini-2.0-flash"
+    - "gemini-1.5-flash"
   vision_fallback: "gemini-3.5-flash"
   vision_media_resolution: "medium"
   guardrail_classifier: "gemini-3.1-flash-lite"

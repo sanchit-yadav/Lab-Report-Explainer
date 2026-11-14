@@ -5,12 +5,15 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
+import time
 from typing import Any, Dict, List, Optional, Tuple
 
 from src.config import get_config
 from src.explainer.prompts import build_explanation_prompt, get_system_prompt
 from src.explainer.schema import ReportExplanation, TestExplanation
 from src.extraction.schema import FlagStatus, LabReport, TestResult
+from src.flagging.correlations import ClinicalCorrelation
 
 logger = logging.getLogger("generator")
 
@@ -85,31 +88,57 @@ class ExplanationGenerator:
                 prompt = build_explanation_prompt(test, context_chunks, source_urls)
                 system_prompt = get_system_prompt()
 
-                thinking_config = None
-                if self.thinking_level:
+                models_to_try = [self.model_name]
+                for fb in getattr(self.config.models, "fallback_models", ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]):
+                    if fb not in models_to_try:
+                        models_to_try.append(fb)
+
+                for cand_model in models_to_try:
                     try:
-                        thinking_config = types.ThinkingConfig(thinking_level=self.thinking_level.upper())
-                    except Exception:
-                        pass
+                        thinking_config = None
+                        if self.thinking_level and ("flash-lite" in cand_model.lower() or "gemini-3" in cand_model.lower() or "2.5" in cand_model.lower()):
+                            try:
+                                thinking_config = types.ThinkingConfig(thinking_level=self.thinking_level.upper())
+                            except Exception:
+                                pass
 
-                config_kwargs = dict(
-                    system_instruction=system_prompt,
-                    temperature=self.temperature,
-                    response_mime_type="application/json",
-                    response_schema=TestExplanation,
-                )
-                if thinking_config is not None:
-                    config_kwargs["thinking_config"] = thinking_config
+                        config_kwargs = dict(
+                            system_instruction=system_prompt,
+                            temperature=self.temperature,
+                            response_mime_type="application/json",
+                            response_schema=TestExplanation,
+                        )
+                        if thinking_config is not None:
+                            config_kwargs["thinking_config"] = thinking_config
 
-                response = client.models.generate_content(
-                    model=self.model_name,
-                    contents=prompt,
-                    config=types.GenerateContentConfig(**config_kwargs),
-                )
+                        response = client.models.generate_content(
+                            model=cand_model,
+                            contents=prompt,
+                            config=types.GenerateContentConfig(**config_kwargs),
+                        )
 
-                if response.text:
-                    parsed = json.loads(response.text)
-                    return TestExplanation(**parsed)
+                        if response.text:
+                            clean_text = response.text.strip()
+                            if clean_text.startswith("```"):
+                                clean_text = re.sub(r"^```(?:json)?\s*", "", clean_text)
+                                clean_text = re.sub(r"\s*```$", "", clean_text)
+                            match = re.search(r"\{[\s\S]*\}", clean_text)
+                            if match:
+                                clean_text = match.group(0)
+                            parsed = json.loads(clean_text)
+                            return TestExplanation(**parsed)
+
+                    except Exception as model_err:
+                        err_str = str(model_err)
+                        if any(c in err_str for c in ("503", "UNAVAILABLE", "high demand", "429")):
+                            logger.warning(
+                                f"Gemini model '{cand_model}' temporarily unavailable (503 / high demand). Trying next candidate..."
+                            )
+                            time.sleep(0.5)
+                            continue
+                        else:
+                            logger.warning(f"Gemini API model '{cand_model}' call error: {model_err}")
+                            break
 
             except Exception as e:
                 logger.warning(f"Gemini API explanation generation failed: {e}. Falling back to offline generator.")
@@ -139,29 +168,57 @@ class ExplanationGenerator:
                     "Do NOT diagnose any illness or prescribe medications. Refer to a physician for personalized care.\n"
                     "Output JSON with keys: 'answer_en' and 'answer_hi'."
                 )
-                thinking_config = None
-                if self.thinking_level:
+
+                models_to_try = [self.model_name]
+                for fb in getattr(self.config.models, "fallback_models", ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]):
+                    if fb not in models_to_try:
+                        models_to_try.append(fb)
+
+                for cand_model in models_to_try:
                     try:
-                        thinking_config = types.ThinkingConfig(thinking_level=self.thinking_level.upper())
-                    except Exception:
-                        pass
+                        thinking_config = None
+                        if self.thinking_level and ("flash-lite" in cand_model.lower() or "gemini-3" in cand_model.lower() or "2.5" in cand_model.lower()):
+                            try:
+                                thinking_config = types.ThinkingConfig(thinking_level=self.thinking_level.upper())
+                            except Exception:
+                                pass
 
-                qa_config_kwargs = dict(
-                    system_instruction=system_prompt,
-                    temperature=self.temperature,
-                    response_mime_type="application/json",
-                )
-                if thinking_config is not None:
-                    qa_config_kwargs["thinking_config"] = thinking_config
+                        qa_config_kwargs = dict(
+                            system_instruction=system_prompt,
+                            temperature=self.temperature,
+                            response_mime_type="application/json",
+                        )
+                        if thinking_config is not None:
+                            qa_config_kwargs["thinking_config"] = thinking_config
 
-                response = client.models.generate_content(
-                    model=self.model_name,
-                    contents=prompt,
-                    config=types.GenerateContentConfig(**qa_config_kwargs),
-                )
-                if response.text:
-                    parsed = json.loads(response.text)
-                    return parsed.get("answer_en", ""), parsed.get("answer_hi", "")
+                        response = client.models.generate_content(
+                            model=cand_model,
+                            contents=prompt,
+                            config=types.GenerateContentConfig(**qa_config_kwargs),
+                        )
+                        if response.text:
+                            clean_text = response.text.strip()
+                            if clean_text.startswith("```"):
+                                clean_text = re.sub(r"^```(?:json)?\s*", "", clean_text)
+                                clean_text = re.sub(r"\s*```$", "", clean_text)
+                            match = re.search(r"\{[\s\S]*\}", clean_text)
+                            if match:
+                                clean_text = match.group(0)
+                            parsed = json.loads(clean_text)
+                            return parsed.get("answer_en", ""), parsed.get("answer_hi", "")
+
+                    except Exception as model_err:
+                        err_str = str(model_err)
+                        if any(c in err_str for c in ("503", "UNAVAILABLE", "high demand", "429")):
+                            logger.warning(
+                                f"Gemini Q&A model '{cand_model}' temporarily unavailable. Trying next candidate..."
+                            )
+                            time.sleep(0.5)
+                            continue
+                        else:
+                            logger.warning(f"Gemini Q&A generation failed with '{cand_model}': {model_err}")
+                            break
+
             except Exception as e:
                 logger.warning(f"Gemini Q&A generation failed: {e}. Falling back to offline synthesis.")
 
@@ -182,22 +239,28 @@ class ExplanationGenerator:
         self,
         report: LabReport,
         test_explanations: List[TestExplanation],
+        correlations: Optional[List[ClinicalCorrelation]] = None,
     ) -> ReportExplanation:
-        """Assemble an executive report summary aggregating all test explanations."""
+        """Assemble an executive report summary aggregating all test explanations and clinical correlations."""
         total = len(report.tests)
         flagged = sum(
             1 for t in report.tests if t.flag not in (FlagStatus.NORMAL, FlagStatus.UNKNOWN)
         )
 
+        corr_list = correlations or []
+        elevated_corrs = sum(1 for c in corr_list if c.severity != "normal")
+        corr_note_en = f" Additionally, {len(corr_list)} clinical ratio pattern(s) were analyzed ({elevated_corrs} flagged for discussion)." if corr_list else ""
+        corr_note_hi = f" इसके अलावा, {len(corr_list)} नैदानिक अनुपातों का विश्लेषण किया गया है।" if corr_list else ""
+
         summary_en = (
             f"Laboratory report summary for {report.patient_name or 'the patient'}. "
             f"A total of {total} test parameter(s) were analyzed, with {flagged} parameter(s) "
-            "outside standard reference intervals requiring clinical review."
+            f"outside standard reference intervals requiring clinical review.{corr_note_en}"
         )
         summary_hi = (
             f"{report.patient_name or 'मरीज'} की लैब जांच रिपोर्ट का सारांश। "
             f"कुल {total} परीक्षणों का विश्लेषण किया गया, जिनमें से {flagged} परिणाम "
-            "मानक संदर्भ सीमा से बाहर पाए गए हैं जिन पर डॉक्टर से परामर्श आवश्यक है।"
+            f"मानक संदर्भ सीमा से बाहर पाए गए हैं जिन पर डॉक्टर से परामर्श आवश्यक है।{corr_note_hi}"
         )
 
         return ReportExplanation(
@@ -209,4 +272,5 @@ class ExplanationGenerator:
             flagged_count=flagged,
             total_tests=total,
             raw_report=report,
+            correlations=corr_list,
         )
