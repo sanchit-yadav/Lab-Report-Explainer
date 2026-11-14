@@ -14,6 +14,9 @@ from src.explainer.prompts import build_explanation_prompt, get_system_prompt
 from src.explainer.schema import ReportExplanation, TestExplanation
 from src.extraction.schema import FlagStatus, LabReport, TestResult
 from src.flagging.correlations import ClinicalCorrelation
+from src.flagging.interferences import DrugLabInterference
+from src.flagging.lifestyle import LifestyleGuidance
+from src.flagging.panic_values import PanicAlert
 
 logger = logging.getLogger("generator")
 
@@ -240,8 +243,11 @@ class ExplanationGenerator:
         report: LabReport,
         test_explanations: List[TestExplanation],
         correlations: Optional[List[ClinicalCorrelation]] = None,
+        panic_alerts: Optional[List[PanicAlert]] = None,
+        interferences: Optional[List[DrugLabInterference]] = None,
+        lifestyle_guidance: Optional[List[LifestyleGuidance]] = None,
     ) -> ReportExplanation:
-        """Assemble an executive report summary aggregating all test explanations and clinical correlations."""
+        """Assemble an executive report summary aggregating all test explanations, clinical correlations, and panic alerts."""
         total = len(report.tests)
         flagged = sum(
             1 for t in report.tests if t.flag not in (FlagStatus.NORMAL, FlagStatus.UNKNOWN)
@@ -252,13 +258,17 @@ class ExplanationGenerator:
         corr_note_en = f" Additionally, {len(corr_list)} clinical ratio pattern(s) were analyzed ({elevated_corrs} flagged for discussion)." if corr_list else ""
         corr_note_hi = f" इसके अलावा, {len(corr_list)} नैदानिक अनुपातों का विश्लेषण किया गया है।" if corr_list else ""
 
+        panic_list = panic_alerts or []
+        panic_prefix_en = f"🚨 URGENT: {len(panic_list)} parameter(s) crossed critical medical panic thresholds requiring prompt clinician consultation. " if panic_list else ""
+        panic_prefix_hi = f"🚨 तत्काल ध्यान: {len(panic_list)} परीक्षण परिणाम गंभीर आपातकालीन सीमा पार कर चुके हैं। " if panic_list else ""
+
         summary_en = (
-            f"Laboratory report summary for {report.patient_name or 'the patient'}. "
+            f"{panic_prefix_en}Laboratory report summary for {report.patient_name or 'the patient'}. "
             f"A total of {total} test parameter(s) were analyzed, with {flagged} parameter(s) "
             f"outside standard reference intervals requiring clinical review.{corr_note_en}"
         )
         summary_hi = (
-            f"{report.patient_name or 'मरीज'} की लैब जांच रिपोर्ट का सारांश। "
+            f"{panic_prefix_hi}{report.patient_name or 'मरीज'} की लैब जांच रिपोर्ट का सारांश। "
             f"कुल {total} परीक्षणों का विश्लेषण किया गया, जिनमें से {flagged} परिणाम "
             f"मानक संदर्भ सीमा से बाहर पाए गए हैं जिन पर डॉक्टर से परामर्श आवश्यक है।{corr_note_hi}"
         )
@@ -273,4 +283,7 @@ class ExplanationGenerator:
             total_tests=total,
             raw_report=report,
             correlations=corr_list,
+            panic_alerts=panic_list,
+            interferences=interferences or [],
+            lifestyle_guidance=lifestyle_guidance or [],
         )

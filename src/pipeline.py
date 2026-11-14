@@ -13,6 +13,9 @@ from src.extraction.router import ExtractionRouter
 from src.extraction.schema import FlagStatus, LabReport
 from src.flagging.correlations import CorrelationEngine
 from src.flagging.flagger import Flagger
+from src.flagging.interferences import DrugInterferenceEngine
+from src.flagging.lifestyle import LifestyleEngine
+from src.flagging.panic_values import PanicValueEngine
 from src.guardrails.input_guard import GuardrailResult, InputGuard
 from src.guardrails.output_guard import OutputGuard
 from src.history.tracker import HistoryTracker
@@ -38,6 +41,9 @@ class LabReportPipeline:
         self.output_guard = OutputGuard()
         self.correlation_engine = CorrelationEngine()
         self.history_tracker = HistoryTracker()
+        self.panic_engine = PanicValueEngine()
+        self.interference_engine = DrugInterferenceEngine()
+        self.lifestyle_engine = LifestyleEngine()
 
     def check_user_input(self, user_question: str) -> GuardrailResult:
         """Evaluate a user question against Layer 1 Input Guardrails."""
@@ -109,6 +115,11 @@ class LabReportPipeline:
         else:
             correlations = self.correlation_engine.evaluate(lab_report.tests)
 
+        # Step 2C: Panic Alerts, Drug Interferences, and Lifestyle Guidance
+        panic_alerts = self.panic_engine.evaluate(lab_report.tests)
+        interferences = self.interference_engine.evaluate(lab_report.tests)
+        lifestyle_guidance = self.lifestyle_engine.evaluate(lab_report.tests)
+
         # Record in longitudinal history tracker
         self.history_tracker.add_report(lab_report)
 
@@ -157,9 +168,14 @@ class LabReportPipeline:
 
             test_explanations.append(explanation)
 
-        # Step 6: Assemble final report explanation with clinical correlations
+        # Step 6: Assemble final report explanation with clinical correlations, panic alerts, and interferences
         final_report = self.generator.explain_report(
-            lab_report, test_explanations, correlations=correlations
+            lab_report,
+            test_explanations,
+            correlations=correlations,
+            panic_alerts=panic_alerts,
+            interferences=interferences,
+            lifestyle_guidance=lifestyle_guidance,
         )
         return final_report
 

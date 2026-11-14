@@ -222,7 +222,36 @@ def generate_doctor_brief_pdf(
         ])
     )
     story.append(summary_table)
-    story.append(Spacer(1, 12))
+    story.append(Spacer(1, 10))
+
+    # 3B. Critical Panic Alerts Box (if present)
+    panic_alerts = getattr(explanation, "panic_alerts", [])
+    if panic_alerts:
+        panic_heading = "🚨 IMMEDIATE MEDICAL PANIC ALERT — CRITICAL VALUE(S)" if lang == "en" else "🚨 अति-गंभीर आपातकालीन चेतावनी (Panic Alerts)"
+        panic_rows = [[Paragraph(f"<b>{panic_heading}</b>", ParagraphStyle("PanicHead", parent=body_style, fontName=bold_font, fontSize=10, textColor=colors.HexColor("#b91c1c")))]]
+        for alert in panic_alerts:
+            risk_desc = alert.clinical_risk_hi if (lang == "hi" and use_hindi_font) else alert.clinical_risk_en
+            proto_desc = alert.action_protocol_hi if (lang == "hi" and use_hindi_font) else alert.action_protocol_en
+            panic_rows.append([
+                Paragraph(
+                    f"• <b>{alert.test_name} ({alert.observed_value} {alert.unit}):</b> {risk_desc}<br/>"
+                    f"&nbsp;&nbsp;<b>Action:</b> <font color='#b91c1c'><b>{proto_desc}</b></font>",
+                    body_style,
+                )
+            ])
+        panic_table = Table(panic_rows, colWidths=[7.0 * inch])
+        panic_table.setStyle(
+            TableStyle([
+                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#fef2f2")),
+                ("BOX", (0, 0), (-1, -1), 1.5, colors.HexColor("#ef4444")),
+                ("TOPPADDING", (0, 0), (-1, -1), 6),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+            ])
+        )
+        story.append(panic_table)
+        story.append(Spacer(1, 10))
 
     # 4. Analyte Results Table
     story.append(Paragraph("<b>Complete Analyte Summary</b>", section_heading))
@@ -328,6 +357,42 @@ def generate_doctor_brief_pdf(
             ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
         ]))
         story.append(corr_table)
+        story.append(Spacer(1, 14))
+
+    # 4C. Medication & Supplement Interferences (if any)
+    interferences = getattr(explanation, "interferences", [])
+    if interferences:
+        med_heading = (
+            "Medication & Supplement Pre-Analytical Considerations"
+            if lang == "en"
+            else "दवा एवं सप्लीमेंट संबंधित सावधानियां (Interferences)"
+        )
+        story.append(Paragraph(f"<b>{med_heading}</b>", section_heading))
+        med_rows = [[
+            Paragraph("<b>Analyte</b>", body_style),
+            Paragraph("<b>Known Substance</b>", body_style),
+            Paragraph("<b>Category</b>", body_style),
+            Paragraph("<b>Clinical Interaction & Guidance</b>", body_style),
+        ]]
+        for med in interferences:
+            mech_text = med.clinical_mechanism_hi if (lang == "hi" and use_hindi_font) else med.clinical_mechanism_en
+            guide_text = med.guidance_hi if (lang == "hi" and use_hindi_font) else med.guidance_en
+            med_rows.append([
+                Paragraph(f"<b>{med.analyte_name}</b>", body_style),
+                Paragraph(f"<b>{med.substance_name}</b>", body_style),
+                Paragraph(med.category, body_style),
+                Paragraph(f"{mech_text}<br/><b>Guidance:</b> {guide_text}", body_style),
+            ])
+        med_table = Table(med_rows, colWidths=[1.6 * inch, 1.8 * inch, 1.2 * inch, 2.4 * inch])
+        med_table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#fffbeb")),
+            ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#fde68a")),
+            ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#fef3c7")),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("TOPPADDING", (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ]))
+        story.append(med_table)
         story.append(Spacer(1, 14))
 
     # 5. Targeted Findings & Questions for the Doctor

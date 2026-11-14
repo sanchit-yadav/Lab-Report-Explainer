@@ -7,6 +7,9 @@ from pydantic import BaseModel, Field
 
 from src.extraction.schema import FlagStatus, LabReport
 from src.flagging.correlations import ClinicalCorrelation
+from src.flagging.interferences import DrugLabInterference
+from src.flagging.lifestyle import LifestyleGuidance
+from src.flagging.panic_values import PanicAlert
 
 
 class TestExplanation(BaseModel):
@@ -40,6 +43,15 @@ class ReportExplanation(BaseModel):
     raw_report: Optional[LabReport] = Field(default=None, description="Extracted and flagged LabReport data")
     correlations: List[ClinicalCorrelation] = Field(
         default_factory=list, description="Computed multi-analyte clinical correlations and ratios"
+    )
+    panic_alerts: List[PanicAlert] = Field(
+        default_factory=list, description="Life-threatening critical panic alerts requiring emergency care"
+    )
+    interferences: List[DrugLabInterference] = Field(
+        default_factory=list, description="Known drug and supplement pre-analytical assay interferences"
+    )
+    lifestyle_guidance: List[LifestyleGuidance] = Field(
+        default_factory=list, description="Guideline-grounded dietary and lifestyle recommendations"
     )
     is_multi_patient: bool = Field(default=False, description="Whether multiple distinct patients were detected")
     patient_warning: Optional[str] = Field(default=None, description="Clinical safety alert when multiple patients are detected")

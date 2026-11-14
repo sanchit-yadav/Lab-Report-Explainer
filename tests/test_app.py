@@ -64,3 +64,16 @@ def test_render_range_gauge_html():
         flag=FlagStatus.NORMAL,
     )
     assert render_range_gauge_html(t_non_numeric) == ""
+
+
+def test_generate_audio_summary():
+    """Verify that generate_audio_summary produces valid MP3 audio bytes when network is available, or gracefully handles offline mode."""
+    from app import generate_audio_summary
+
+    audio_en = generate_audio_summary("Lab report summary: all parameters normal.", lang="en")
+    if audio_en is not None:
+        assert len(audio_en) > 1000  # MP3 audio bytes
+
+    audio_hi = generate_audio_summary("लैब रिपोर्ट सारांश: सभी परीक्षण सामान्य हैं।", lang="hi")
+    if audio_hi is not None:
+        assert len(audio_hi) > 1000

@@ -8,17 +8,22 @@ multi-turn interactive chat, and downloadable Doctor Discussion Brief PDFs.
 from __future__ import annotations
 
 import io
+import json
 from pathlib import Path
 import time
 from typing import Dict, List, Optional
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 from src.config import get_config
 from src.explainer.pdf_export import generate_doctor_brief_pdf
 from src.explainer.schema import ReportExplanation, TestExplanation
 from src.extraction.schema import FlagStatus, LabReport, TestResult
 from src.flagging.correlations import ClinicalCorrelation, CorrelationSeverity
+from src.flagging.interferences import DrugLabInterference
+from src.flagging.lifestyle import LifestyleGuidance
+from src.flagging.panic_values import PanicAlert, PanicSeverity
 from src.history.tracker import HistoryTracker, TrendDirection
 from src.pipeline import LabReportPipeline
 
@@ -585,6 +590,132 @@ def render_correlations_section(correlations: List[ClinicalCorrelation], lang: s
                     st.markdown(f"- 🩺 {q}")
 
 
+def render_panic_alerts(panic_alerts: List[PanicAlert], lang: str):
+    """Render high-priority emergency red alert banner for critical panic values."""
+    if not panic_alerts:
+        return
+
+    heading = (
+        "🚨 CRITICAL MEDICAL PANIC ALERT — IMMEDIATE ATTENTION REQUIRED"
+        if lang == "en"
+        else "🚨 अति-गंभीर आपातकालीन चेतावनी — तत्काल डॉक्टर से संपर्क करें"
+    )
+
+    banner_html = f"""
+    <div style="background: linear-gradient(135deg, #991b1b 0%, #7f1d1d 100%); color: #ffffff; padding: 18px 22px; border-radius: 10px; margin-bottom: 16px; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35); border-left: 6px solid #f87171;">
+        <h3 style="margin: 0; font-size: 19px; color: #ffffff; display: flex; align-items: center; gap: 8px;">
+            {heading}
+        </h3>
+        <p style="margin: 8px 0 0 0; font-size: 13.5px; color: #fecaca; line-height: 1.5;">
+            {'One or more tested biomarkers cross life-threatening physiological thresholds. Do not wait for routine appointments — contact your physician or visit the nearest emergency department.' if lang == 'en' else 'एक या अधिक जांच परिणाम ऐसे स्तर पर हैं जिनके लिए तत्काल आपातकालीन डॉक्टर की सलाह आवश्यक है। सामान्य परामर्श का इंतजार न करें।'}
+        </p>
+    </div>
+    """
+    render_html_safely(banner_html)
+
+    for alert in panic_alerts:
+        risk = alert.clinical_risk_en if lang == "en" else alert.clinical_risk_hi
+        action = alert.action_protocol_en if lang == "en" else alert.action_protocol_hi
+        card_html = f"""
+        <div style="background-color: #fef2f2; border: 1.5px solid #dc2626; border-radius: 8px; padding: 14px 18px; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 17px; font-weight: 800; color: #991b1b;">
+                    ⚠️ {alert.test_name}: {alert.observed_value} {alert.unit}
+                </span>
+                <span class="badge" style="background-color: #dc2626; color: #ffffff; font-weight: 800;">
+                    🚨 EMERGENCY VALUE
+                </span>
+            </div>
+            <p style="margin: 8px 0 4px 0; font-size: 13px; color: #7f1d1d; line-height: 1.5;">
+                <b>Clinical Implication:</b> {risk}
+            </p>
+            <p style="margin: 4px 0 0 0; font-size: 13px; font-weight: 700; color: #991b1b;">
+                👉 <b>Action Protocol:</b> {action}
+            </p>
+        </div>
+        """
+        render_html_safely(card_html)
+
+
+def render_interferences_section(interferences: List[DrugLabInterference], lang: str):
+    """Render known medication and supplement pre-analytical interactions."""
+    if not interferences:
+        return
+
+    st.markdown("---")
+    st.subheader("💊 " + ("Medication & Supplement Interference Checker" if lang == "en" else "दवा एवं सप्लीमेंट संबंधित प्रभाव (Pre-Analytical Checker)"))
+    st.caption(
+        "Identifies common over-the-counter vitamins, fitness supplements, and prescription medications that can artificially distort test numbers."
+        if lang == "en"
+        else "विटामिन, सप्लीमेंट्स या दवाओं के कारण लैब परिणामों में आने वाले कृत्रिम बदलावों की जानकारी।"
+    )
+
+    for med in interferences:
+        mech = med.clinical_mechanism_en if lang == "en" else med.clinical_mechanism_hi
+        guide = med.guidance_en if lang == "en" else med.guidance_hi
+
+        card_html = f"""
+        <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 14px 18px; margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span style="font-size: 15px; font-weight: 700; color: #92400e;">🧪 {med.analyte_name} ➔ {med.substance_name}</span>
+                    <span style="font-size: 11px; color: #78350f; margin-left: 8px;">({med.category})</span>
+                </div>
+                <span class="badge" style="background-color: #fef3c7; color: #b45309; border: 1px solid #fcd34d;">
+                    ⚠️ {med.direction_of_skew}
+                </span>
+            </div>
+            <p style="margin: 8px 0 4px 0; font-size: 13px; color: #78350f; line-height: 1.5;">
+                <b>Mechanism:</b> {mech}
+            </p>
+            <p style="margin: 4px 0 0 0; font-size: 12px; color: #92400e; font-weight: 600;">
+                💡 <b>Clinical Guidance:</b> {guide}
+            </p>
+        </div>
+        """
+        render_html_safely(card_html)
+
+
+def render_lifestyle_section(lifestyle_guidance: List[LifestyleGuidance], lang: str):
+    """Render guideline-grounded dietary and lifestyle recommendations."""
+    if not lifestyle_guidance:
+        return
+
+    st.markdown("---")
+    st.subheader("🥗 " + ("Evidence-Based Nutrition & Lifestyle Protocol" if lang == "en" else "प्रमाण-आधारित आहार एवं जीवनशैली निर्देश"))
+    st.caption(
+        "Dietary and physical activity strategies grounded in AHA, ADA, and EASL clinical guidelines tailored to your results."
+        if lang == "en"
+        else "नैदानिक दिशानिर्देशों (AHA, ADA, EASL) पर आधारित खान-पान और दिनचर्या सुधार योजना।"
+    )
+
+    for guide in lifestyle_guidance:
+        title = guide.nutrition_title_en if lang == "en" else guide.nutrition_title_hi
+        recs = guide.key_recommendations_en if lang == "en" else guide.key_recommendations_hi
+        favor = guide.foods_to_favor_en if lang == "en" else guide.foods_to_favor_hi
+        limit = guide.foods_to_limit_en if lang == "en" else guide.foods_to_limit_hi
+
+        with st.expander(f"📋 {title} ({guide.panel_name})", expanded=True):
+            st.markdown(f"**{'Target Analytes' if lang == 'en' else 'संबंधित परीक्षण'}:** `{', '.join(guide.target_analytes)}`")
+
+            st.markdown(f"**{'Key Recommendations' if lang == 'en' else 'मुख्य निर्देश'}:**")
+            for r in recs:
+                st.markdown(f"- 🌿 {r}")
+
+            col_f, col_l = st.columns(2)
+            with col_f:
+                st.markdown(f"**✅ {'Foods to Favor' if lang == 'en' else 'लाभकारी आहार'}:**")
+                for f in favor:
+                    st.markdown(f"- 🟢 {f}")
+            with col_l:
+                st.markdown(f"**⚠️ {'Foods to Limit' if lang == 'en' else 'सीमित करने योग्य आहार'}:**")
+                for l in limit:
+                    st.markdown(f"- 🔴 {l}")
+
+            st.caption(f"📚 **{'Source Guideline' if lang == 'en' else 'चिकित्सीय संदर्भ'}:** {guide.clinical_evidence_source}")
+
+
+
 def render_history_section(
     history_tracker: HistoryTracker,
     lang: str,
@@ -659,6 +790,53 @@ def render_history_section(
         st.line_chart(chart_data)
 
 
+@st.cache_data(show_spinner=False)
+def generate_audio_summary(text: str, lang: str) -> Optional[bytes]:
+    """Generate high-quality MP3 audio bytes for text summary using gTTS."""
+    try:
+        from gtts import gTTS
+        buf = io.BytesIO()
+        tts = gTTS(text=text, lang="hi" if lang == "hi" else "en", slow=False)
+        tts.write_to_fp(buf)
+        return buf.getvalue()
+    except Exception:
+        return None
+
+
+def render_browser_speech_fallback(text: str, lang: str):
+    """Render client-side Web Speech API buttons executing inside iframe DOM."""
+    safe_text = json.dumps(text)
+    lang_tag = "hi-IN" if lang == "hi" else "en-US"
+    play_label = "🔊 Play Browser Voice" if lang == "en" else "🔊 ब्राउज़र आवाज़ में सुनें"
+    stop_label = "⏹️ Stop" if lang == "en" else "⏹️ रोकें"
+    html_code = f"""
+    <div style="display: flex; gap: 8px; margin-top: 4px; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+        <button id="tts_btn" style="background: #0284c7; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+            {play_label}
+        </button>
+        <button id="tts_stop" style="background: #64748b; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer;">
+            {stop_label}
+        </button>
+    </div>
+    <script>
+        const btn = document.getElementById('tts_btn');
+        const stopBtn = document.getElementById('tts_stop');
+        const text = {safe_text};
+        btn.addEventListener('click', () => {{
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = '{lang_tag}';
+            u.rate = 1.0;
+            window.speechSynthesis.speak(u);
+        }});
+        stopBtn.addEventListener('click', () => {{
+            window.speechSynthesis.cancel();
+        }});
+    </script>
+    """
+    components.html(html_code, height=45)
+
+
 def render_patient_report_view(
     explanation: ReportExplanation,
     pipeline: LabReportPipeline,
@@ -668,6 +846,9 @@ def render_patient_report_view(
     key_suffix: str = "",
 ):
     """Render the full clinical interpretation view for an individual patient profile."""
+    # Critical Panic Alerts Emergency Callout (Phase 3)
+    render_panic_alerts(getattr(explanation, "panic_alerts", []), lang_code)
+
     # Overview Metrics Row
     c1, c2, c3, c4 = st.columns(4)
     with c1:
@@ -718,18 +899,41 @@ def render_patient_report_view(
                 use_container_width=True,
             )
 
-    # Clinical Summary Callout
+    # Clinical Summary Callout with Accessibility Voice Narration
     summary_text = (
         explanation.report_summary_en if lang_code == "en" else explanation.report_summary_hi
     )
+
     render_html_safely(
         f"""
-        <div style="background-color: #f1f5f9; border-radius: 8px; padding: 18px; margin: 16px 0; border: 1px solid #cbd5e1;">
+        <div style="background-color: #f1f5f9; border-radius: 8px; padding: 18px; margin: 16px 0 8px 0; border: 1px solid #cbd5e1;">
             <h4 style="margin: 0 0 8px 0; color: #1e293b;">📋 {'Executive Summary' if lang_code == 'en' else 'रिपोर्ट का मुख्य सारांश'}</h4>
             <p style="margin: 0; color: #334155; line-height: 1.6;">{summary_text}</p>
         </div>
         """
     )
+
+    # Dual Audio Narration Controls (Studio MP3 + Instant Browser Voice)
+    audio_state_key = f"audio_bytes_{key_suffix}"
+    col_a1, col_a2 = st.columns([1.6, 2.4])
+    with col_a1:
+        gen_audio = st.button(
+            "🎙️ " + ("Generate Studio Audio Brief (MP3)", "ऑडियो सारांश बनाएं (MP3)")[lang_code == "hi"],
+            key=f"gen_audio_{key_suffix}",
+            help="Generates high-definition MP3 audio narration with playback scrubber and speed controls.",
+        )
+        if gen_audio:
+            with st.spinner("Generating studio audio stream..." if lang_code == "en" else "ऑडियो तैयार हो रहा है..."):
+                audio_bytes = generate_audio_summary(summary_text, lang_code)
+                if audio_bytes:
+                    st.session_state[audio_state_key] = audio_bytes
+
+    with col_a2:
+        if st.session_state.get(audio_state_key):
+            st.audio(st.session_state[audio_state_key], format="audio/mp3", autoplay=True)
+        else:
+            # Client-side native browser speech synthesis in iframe DOM
+            render_browser_speech_fallback(summary_text, lang_code)
 
     # Zero-extraction feedback
     if explanation.total_tests == 0:
@@ -780,6 +984,14 @@ def render_patient_report_view(
     # Clinical Panel Correlations & Multi-Analyte Ratios (Phase 2)
     if getattr(explanation, "correlations", None):
         render_correlations_section(explanation.correlations, lang_code)
+
+    # Medication & Supplement Pre-Analytical Interference Checker (Phase 3)
+    if getattr(explanation, "interferences", None):
+        render_interferences_section(explanation.interferences, lang_code)
+
+    # Evidence-Based Lifestyle & Nutrition Roadmap (Phase 3)
+    if getattr(explanation, "lifestyle_guidance", None):
+        render_lifestyle_section(explanation.lifestyle_guidance, lang_code)
 
     # Longitudinal History & Biomarker Trend Analysis (Phase 2)
     render_history_section(
