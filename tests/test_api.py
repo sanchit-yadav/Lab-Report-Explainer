@@ -240,3 +240,26 @@ def test_list_recent_jobs_endpoint(client, tmp_path):
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 2
+
+
+def test_upload_rejects_embedded_exploit(client):
+    """Uploading a PDF with embedded JavaScript or Launch actions returns 400 Bad Request."""
+    malicious_pdf = b"%PDF-1.4\n1 0 obj\n<< /Type /Action /S /JavaScript /JS (alert('hack')) >>\nendobj"
+    files = {"file": ("report_exploit.pdf", malicious_pdf, "application/pdf")}
+    response = client.post("/api/v1/reports/upload", files=files)
+    assert response.status_code == 400
+    assert "Security check failed" in response.json()["detail"]
+
+
+def test_audit_verify_and_logs_endpoints(client):
+    """Audit verification and log inspection endpoints return valid Merkle status."""
+    verify_resp = client.get("/api/v1/audit/verify")
+    assert verify_resp.status_code == 200
+    verify_data = verify_resp.json()
+    assert "valid" in verify_data
+    assert "latest_hash" in verify_data
+
+    logs_resp = client.get("/api/v1/audit/logs?limit=20")
+    assert logs_resp.status_code == 200
+    logs_data = logs_resp.json()
+    assert isinstance(logs_data, list)

@@ -31,3 +31,4 @@ Thumbs.db
 
 # User data & staging uploads
 data/uploads/
+data/*.jsonl

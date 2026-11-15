@@ -19,8 +19,10 @@ from src.flagging.panic_values import PanicValueEngine
 from src.guardrails.input_guard import GuardrailResult, InputGuard
 from src.guardrails.output_guard import OutputGuard
 from src.history.tracker import HistoryTracker
+from src.privacy.deidentifier import PHIDeidentifier
 from src.rag.reranker import CrossEncoderReranker
 from src.rag.retriever import ChromaRetriever
+from src.security.audit import SecurityAuditLogger
 from src.tracing.langfuse_setup import get_tracer
 
 logger = logging.getLogger("pipeline")
@@ -44,6 +46,8 @@ class LabReportPipeline:
         self.panic_engine = PanicValueEngine()
         self.interference_engine = DrugInterferenceEngine()
         self.lifestyle_engine = LifestyleEngine()
+        self.deidentifier = PHIDeidentifier()
+        self.audit_logger = SecurityAuditLogger.get_instance()
 
     def check_user_input(self, user_question: str) -> GuardrailResult:
         """Evaluate a user question against Layer 1 Input Guardrails."""
@@ -168,15 +172,34 @@ class LabReportPipeline:
 
             test_explanations.append(explanation)
 
-        # Step 6: Assemble final report explanation with clinical correlations, panic alerts, and interferences
+        # Step 6: HIPAA PHI de-identification before assembling final report
+        anonymized_report, phi_mapping = self.deidentifier.anonymize_lab_report(lab_report)
+        if phi_mapping:
+            self.audit_logger.log_event(
+                event_type="PHI_DEIDENTIFIED",
+                actor_id="system_pipeline",
+                resource_id=lab_report.patient_name or "anonymous_report",
+                details={"redacted_tokens": list(phi_mapping.keys())},
+            )
+
         final_report = self.generator.explain_report(
-            lab_report,
+            anonymized_report,
             test_explanations,
             correlations=correlations,
             panic_alerts=panic_alerts,
             interferences=interferences,
             lifestyle_guidance=lifestyle_guidance,
         )
+
+        # Step 7: Local re-hydration of surrogate tokens for patient presentation
+        if phi_mapping:
+            final_report.patient_name = self.deidentifier.de_anonymize_text(final_report.patient_name or "", phi_mapping)
+            final_report.report_summary_en, final_report.report_summary_hi = self.deidentifier.de_anonymize_explanation(
+                final_report.report_summary_en,
+                final_report.report_summary_hi,
+                phi_mapping,
+            )
+
         return final_report
 
     def _merge_reports_for_single_patient(self, reports: List[LabReport]) -> LabReport:
@@ -329,12 +352,24 @@ class LabReportPipeline:
                     if recent_turns:
                         history_text = "Recent Conversation:\n" + "\n".join(recent_turns) + "\n\n"
 
+                # De-identify patient context and user question before LLM prompt assembly
+                anon_q_res = self.deidentifier.anonymize_text(question)
+                anon_ctx_res = self.deidentifier.anonymize_text(patient_context or "")
+                qa_phi_mapping = {**anon_q_res.entity_mapping, **anon_ctx_res.entity_mapping}
+                if qa_phi_mapping:
+                    self.audit_logger.log_event(
+                        event_type="PHI_DEIDENTIFIED",
+                        actor_id="qa_user",
+                        resource_id="conversational_qa",
+                        details={"redacted_tokens": list(qa_phi_mapping.keys())},
+                    )
+
                 augmented_parts = []
                 if history_text:
                     augmented_parts.append(history_text)
-                if patient_context:
-                    augmented_parts.append(f"Report Context:\n{patient_context}")
-                augmented_parts.append(f"Current Question: {question}")
+                if anon_ctx_res.sanitized_text:
+                    augmented_parts.append(f"Report Context:\n{anon_ctx_res.sanitized_text}")
+                augmented_parts.append(f"Current Question: {anon_q_res.sanitized_text}")
                 augmented_q = "\n\n".join(augmented_parts)
 
                 ans_en, ans_hi = self.generator.answer_question(augmented_q, context_chunks, source_urls)
@@ -347,6 +382,11 @@ class LabReportPipeline:
                 sanitized_en, v_en = self.output_guard.sanitize_text(ans_en, lang="en")
                 sanitized_hi, v_hi = self.output_guard.sanitize_text(ans_hi, lang="hi")
                 s_outguard.set_output(redactions=v_en + v_hi)
+
+            # 5. Local re-hydration of surrogate tokens
+            if qa_phi_mapping:
+                sanitized_en = self.deidentifier.de_anonymize_text(sanitized_en, qa_phi_mapping)
+                sanitized_hi = self.deidentifier.de_anonymize_text(sanitized_hi, qa_phi_mapping)
 
             return {
                 "blocked": False,

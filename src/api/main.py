@@ -34,6 +34,8 @@ from src.api.models import (
     UploadResponse,
 )
 from src.health import run_health_check
+from src.security.audit import SecurityAuditLogger
+from src.security.scanner import FileSecurityScanner
 from src.workers.job_manager import JobManager, JobRecord
 
 logger = logging.getLogger("api")
@@ -139,6 +141,30 @@ async def upload_report(
         )
 
     file_hash = hashlib.sha256(content).hexdigest()
+
+    # Pre-analytical security, malware, and exploit scan
+    scanner = FileSecurityScanner(max_file_size_bytes=MAX_FILE_SIZE_BYTES)
+    scan_res = scanner.scan_bytes(content, filename=filename)
+    audit = SecurityAuditLogger.get_instance()
+
+    if not scan_res.is_safe:
+        audit.log_event(
+            event_type="MALWARE_SCAN_FAILED",
+            actor_id="client_upload",
+            resource_id=file_hash,
+            details={"threat_type": scan_res.threat_type, "details": scan_res.details, "risk_score": scan_res.risk_score},
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Security check failed: {scan_res.details}",
+        )
+
+    audit.log_event(
+        event_type="DOCUMENT_UPLOADED",
+        actor_id="client_upload",
+        resource_id=file_hash,
+        details={"filename": filename, "file_size_bytes": file_size},
+    )
 
     # Save to staging directory using hash for deduplication
     staged_path = UPLOAD_DIR / f"{file_hash}{file_ext}"
@@ -271,6 +297,13 @@ async def ask_question_for_job(job_id: str, qa_req: QARequest) -> QAResponse:
         chat_history=qa_req.chat_history,
     )
 
+    SecurityAuditLogger.get_instance().log_event(
+        event_type="QA_QUERY_PROCESSED",
+        actor_id="client_qa",
+        resource_id=job_id,
+        details={"question_len": len(qa_req.question), "blocked": res.get("blocked", False)},
+    )
+
     return QAResponse(
         job_id=job_id,
         blocked=res.get("blocked", False),
@@ -306,6 +339,12 @@ async def download_doctor_brief_pdf(job_id: str) -> Response:
         )
 
     clean_filename = f"doctor_brief_{record.job_id[:8]}.pdf"
+    SecurityAuditLogger.get_instance().log_event(
+        event_type="PDF_DOWNLOADED",
+        actor_id="client_download",
+        resource_id=record.job_id,
+        details={"filename": clean_filename, "file_hash": record.file_hash},
+    )
     return Response(
         content=record.pdf_bytes,
         media_type="application/pdf",
@@ -345,3 +384,33 @@ async def list_recent_jobs(limit: int = Query(50, ge=1, le=200)) -> List[JobStat
         )
         for r in records
     ]
+
+
+@app.get(
+    "/api/v1/audit/verify",
+    tags=["Security & Compliance"],
+    summary="Verify Audit Trail Cryptographic Integrity",
+)
+async def verify_audit_trail() -> Dict[str, Any]:
+    """Verify cryptographic SHA-256 hash chaining of all HIPAA audit trail entries."""
+    audit = SecurityAuditLogger.get_instance()
+    is_valid, err = audit.verify_integrity()
+    return {
+        "valid": is_valid,
+        "latest_hash": audit.latest_hash,
+        "error": err,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+@app.get(
+    "/api/v1/audit/logs",
+    tags=["Security & Compliance"],
+    summary="Inspect Audit Trail Records",
+)
+async def get_audit_logs(limit: int = Query(50, ge=1, le=200)) -> List[Dict[str, Any]]:
+    """Query recent immutable audit trail records for HIPAA compliance inspection."""
+    from dataclasses import asdict
+    audit = SecurityAuditLogger.get_instance()
+    records = audit.get_records(limit=limit)
+    return [asdict(r) for r in records]
