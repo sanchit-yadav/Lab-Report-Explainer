@@ -25,7 +25,12 @@ COPY pyproject.toml .
 RUN uv venv /opt/venv
 ENV VIRTUAL_ENV=/opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
+ENV UV_HTTP_TIMEOUT=180
 
+# Pre-install lightweight CPU-only PyTorch (avoids 4.5GB+ CUDA/Nvidia wheels and download timeouts)
+RUN uv pip install --no-cache torch --index https://download.pytorch.org/whl/cpu
+
+# Install application dependencies
 RUN uv pip install --no-cache -r pyproject.toml
 
 # ------------------------------------------------------------------------------
@@ -61,15 +66,20 @@ COPY --from=builder /opt/venv /opt/venv
 # Copy application codebase
 COPY --chown=appuser:appuser . /app
 
+# Ensure appuser owns /app and all runtime data directories with read-write permissions
+RUN mkdir -p /app/chroma_db /app/data/uploads && \
+    chown -R appuser:appuser /app && \
+    chmod -R 775 /app
+
 # Switch to non-root user
 USER appuser
 
-# Expose Streamlit port
-EXPOSE 8501
+# Expose Streamlit (8501) and FastAPI (8000) ports
+EXPOSE 8501 8000
 
-# Healthcheck probe verifying Streamlit responsiveness
+# Healthcheck probe verifying service responsiveness
 HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
-    CMD curl -f http://localhost:8501/_stcore/health || exit 1
+    CMD curl -f http://localhost:8501/_stcore/health || curl -f http://localhost:8000/healthz || exit 1
 
-# Start Streamlit application
-ENTRYPOINT ["python", "-m", "streamlit", "run", "app.py"]
+# Default startup command (can be overridden by docker-compose for api/workers)
+CMD ["python", "-m", "streamlit", "run", "app.py"]

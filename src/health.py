@@ -65,14 +65,30 @@ def check_rag_models() -> Dict[str, Any]:
     return results
 
 
+def run_health_check() -> Dict[str, Any]:
+    """Execute complete health assessment returning diagnostic dictionary."""
+    config_res = check_configuration()
+    creds_res = check_api_credentials()
+    rag_res = check_rag_models()
+
+    is_healthy = config_res.get("status") == "HEALTHY"
+    return {
+        "status": "healthy" if is_healthy else "degraded",
+        "configuration": config_res,
+        "credentials": creds_res,
+        "rag": rag_res,
+    }
+
+
 def run_preflight_diagnostic() -> bool:
     """Execute complete health assessment."""
     logger.info("Starting AI Clinical Lab Report Explainer Pre-Flight Check...")
     start_t = time.perf_counter()
 
-    config_res = check_configuration()
-    creds_res = check_api_credentials()
-    rag_res = check_rag_models()
+    diag = run_health_check()
+    config_res = diag["configuration"]
+    creds_res = diag["credentials"]
+    rag_res = diag["rag"]
 
     elapsed = (time.perf_counter() - start_t) * 1000.0
 
@@ -81,8 +97,7 @@ def run_preflight_diagnostic() -> bool:
     logger.info(f"3. RAG & Model Check: {rag_res['status']}")
     logger.info(f"Diagnostic completed in {elapsed:.1f}ms.")
 
-    is_healthy = config_res["status"] == "HEALTHY"
-    return is_healthy
+    return diag["status"] == "healthy"
 
 
 if __name__ == "__main__":

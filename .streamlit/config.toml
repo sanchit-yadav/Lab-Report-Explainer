@@ -18,4 +18,4 @@ textColor = "#0f172a"
 font = "sans serif"
 
 [client]
-showErrorDetails = false
+showErrorDetails = true

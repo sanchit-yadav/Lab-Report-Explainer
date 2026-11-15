@@ -22,13 +22,22 @@ class ChromaRetriever:
     def __init__(self, config: Optional[RAGConfig] = None):
         self.config = config or get_config().rag
         self.embedder = EmbeddingManager(self.config.embeddings)
-        self.chroma_client = chromadb.PersistentClient(
-            path=str(PROJECT_ROOT / self.config.vector_store.persist_directory)
-        )
+        persist_path = (PROJECT_ROOT / self.config.vector_store.persist_directory).resolve()
+        persist_path.mkdir(parents=True, exist_ok=True)
+        self.chroma_client = chromadb.PersistentClient(path=str(persist_path))
         self.collection_name = self.config.vector_store.collection_name
         self.collection: Collection = self.chroma_client.get_or_create_collection(
             name=self.collection_name
         )
+        if self.collection.count() == 0:
+            logger.info("ChromaDB collection is empty. Auto-indexing data/rag_sources...")
+            try:
+                from src.rag.indexer import DocumentIndexer
+                indexer = DocumentIndexer(self.config)
+                indexer.index_all()
+                logger.info(f"Auto-indexed {self.collection.count()} clinical guidelines.")
+            except Exception as e:
+                logger.warning(f"Could not auto-populate ChromaDB: {e}")
 
     def retrieve(
         self,

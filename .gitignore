@@ -28,3 +28,6 @@ htmlcov/
 # OS metadata
 .DS_Store
 Thumbs.db
+
+# User data & staging uploads
+data/uploads/
