@@ -9,9 +9,11 @@ from typing import Any, BinaryIO, Dict, List, Optional, Union
 from src.config import get_config
 from src.explainer.generator import ExplanationGenerator
 from src.explainer.schema import ReportExplanation, TestExplanation
+from src.extraction.loinc_mapper import LOINCMapper
 from src.extraction.router import ExtractionRouter
 from src.extraction.schema import FlagStatus, LabReport
 from src.flagging.correlations import CorrelationEngine
+from src.flagging.demographics import DemographicIntervalEngine
 from src.flagging.flagger import Flagger
 from src.flagging.interferences import DrugInterferenceEngine
 from src.flagging.lifestyle import LifestyleEngine
@@ -95,7 +97,11 @@ class LabReportPipeline:
         trace = None,
     ) -> ReportExplanation:
         """Internal helper to flag, evaluate correlations, run RAG, and assemble explanation for a single report."""
-        # Step 2: Deterministic Flagging (pure code, zero LLM)
+        # Step 2A: LOINC Standard Ontology Mapping & Demographic Stratification
+        lab_report = LOINCMapper.enrich_report(lab_report)
+        lab_report = DemographicIntervalEngine.apply_demographic_stratification(lab_report)
+
+        # Step 2B: Deterministic Flagging (pure code, zero LLM)
         flag_span = self.tracer.span("flagging", trace) if trace else None
         if flag_span:
             with flag_span as s_flag:

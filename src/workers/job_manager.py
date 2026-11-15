@@ -13,6 +13,8 @@ import uuid
 from src.api.models import JobStatus
 from src.explainer.pdf_export import generate_doctor_brief_pdf
 from src.explainer.schema import ReportExplanation
+from src.extraction.loinc_mapper import LOINCMapper
+from src.extraction.schema import LabReport
 from src.pipeline import LabReportPipeline
 
 logger = logging.getLogger("job_manager")
@@ -41,6 +43,7 @@ class JobRecord:
         self.completed_at: Optional[str] = None
         self.error: Optional[str] = None
         self.explanation: Optional[ReportExplanation] = None
+        self.extracted_report: Optional[Any] = None
         self.pdf_bytes: Optional[bytes] = None
         self.patient_name: Optional[str] = None
         self.total_tests: Optional[int] = None
@@ -53,7 +56,12 @@ class JobRecord:
         self.progress_pct = progress_pct
         self.current_step = current_step
 
-    def mark_complete(self, explanation: ReportExplanation, pdf_bytes: bytes):
+    def mark_complete(
+        self,
+        explanation: ReportExplanation,
+        pdf_bytes: bytes,
+        extracted_report: Optional[Any] = None,
+    ):
         """Mark job successfully completed with artifacts."""
         self.status = JobStatus.READY
         self.progress_pct = 100
@@ -61,6 +69,7 @@ class JobRecord:
         self.completed_at = datetime.now(timezone.utc).isoformat()
         self.explanation = explanation
         self.pdf_bytes = pdf_bytes
+        self.extracted_report = extracted_report
         self.patient_name = explanation.patient_name
         self.total_tests = explanation.total_tests
         self.flagged_count = explanation.flagged_count
@@ -185,7 +194,20 @@ class JobManager:
                 "en",
             )
 
-            record.mark_complete(explanation, pdf_bytes)
+            # Cache the extracted LabReport with LOINC ontology for FHIR export
+            extracted_report: Optional[LabReport] = None
+            try:
+                extracted_report = await loop.run_in_executor(
+                    None,
+                    self.pipeline.extractor.extract,
+                    record.file_path,
+                )
+                if extracted_report:
+                    extracted_report = LOINCMapper.enrich_report(extracted_report)
+            except Exception as e:
+                logger.warning(f"Could not cache extracted_report on job: {e}")
+
+            record.mark_complete(explanation, pdf_bytes, extracted_report=extracted_report)
             logger.info(
                 f"Job {job_id} completed successfully. "
                 f"Patient: {explanation.patient_name}, Tests: {explanation.total_tests}"

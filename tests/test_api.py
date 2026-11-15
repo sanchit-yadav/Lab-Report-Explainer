@@ -12,7 +12,7 @@ from starlette.testclient import TestClient
 from src.api.main import app
 from src.api.models import JobStatus
 from src.explainer.schema import ReportExplanation, TestExplanation
-from src.extraction.schema import FlagStatus
+from src.extraction.schema import FlagStatus, LabReport, TestResult
 from src.workers.job_manager import JobManager
 
 
@@ -263,3 +263,39 @@ def test_audit_verify_and_logs_endpoints(client):
     assert logs_resp.status_code == 200
     logs_data = logs_resp.json()
     assert isinstance(logs_data, list)
+
+
+def test_get_fhir_bundle_endpoint(client, tmp_path):
+    """Retrieving FHIR bundle for a completed job returns a valid FHIR R4 Bundle."""
+    jm = JobManager.get_instance()
+    dummy_file = tmp_path / "report.pdf"
+    dummy_file.write_bytes(b"%PDF-1.4")
+    record = jm.create_job("report.pdf", dummy_file, "hash999", 8)
+
+    mock_raw_report = LabReport(
+        patient_name="Ananya Sen",
+        tests=[TestResult(test_name="Hemoglobin", value=14.0, unit="g/dL", flag=FlagStatus.NORMAL)],
+    )
+    mock_exp = ReportExplanation(
+        patient_name="Ananya Sen",
+        report_summary_en="Healthy report.",
+        report_summary_hi="स्वस्थ रिपोर्ट।",
+        total_tests=1,
+        flagged_count=0,
+        test_explanations=[
+            TestExplanation(
+                test_name="Hemoglobin",
+                flag=FlagStatus.NORMAL,
+                explanation_en="Normal oxygen-carrying protein.",
+                explanation_hi="सामान्य प्रोटीन।",
+            )
+        ],
+    )
+    record.mark_complete(mock_exp, b"%PDF-DoctorBrief", extracted_report=mock_raw_report)
+
+    response = client.get(f"/api/v1/reports/{record.job_id}/fhir")
+    assert response.status_code == 200
+    bundle = response.json()
+    assert bundle["resourceType"] == "Bundle"
+    assert bundle["type"] == "collection"
+    assert bundle["total"] >= 2  # 1 DiagnosticReport + 1 Observation

@@ -414,3 +414,57 @@ async def get_audit_logs(limit: int = Query(50, ge=1, le=200)) -> List[Dict[str,
     audit = SecurityAuditLogger.get_instance()
     records = audit.get_records(limit=limit)
     return [asdict(r) for r in records]
+
+
+@app.get(
+    "/api/v1/reports/{job_id}/fhir",
+    tags=["Interoperability & EHR"],
+    summary="Export Report as HL7 FHIR R4 Bundle",
+)
+async def get_job_fhir_bundle(job_id: str) -> Dict[str, Any]:
+    """Export the laboratory evaluation as an official HL7 FHIR R4 Bundle (DiagnosticReport + Observations)."""
+    job_mgr = JobManager.get_instance()
+    record = job_mgr.get_job(job_id)
+
+    if not record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Job '{job_id}' not found.",
+        )
+
+    if record.status != JobStatus.READY or not record.explanation:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"FHIR bundle for job '{job_id}' is not ready (status: {record.status}).",
+        )
+
+    from src.extraction.schema import LabReport, TestResult
+    from src.interop.fhir_export import FHIRExporter
+
+    report_obj = record.extracted_report or (record.explanation.raw_report if record.explanation else None)
+    if not report_obj:
+        tests_list = [
+            TestResult(
+                test_name=t.test_name,
+                flag=t.flag,
+            )
+            for t in record.explanation.test_explanations
+        ]
+        report_obj = LabReport(
+            patient_name=record.patient_name,
+            tests=tests_list,
+        )
+
+    SecurityAuditLogger.get_instance().log_event(
+        event_type="FHIR_BUNDLE_EXPORTED",
+        actor_id="ehr_gateway",
+        resource_id=job_id,
+        details={"patient_name": record.patient_name, "test_count": len(report_obj.tests)},
+    )
+
+    bundle = FHIRExporter.create_diagnostic_report(
+        report_obj,
+        explanation=record.explanation,
+        pdf_bytes=record.pdf_bytes,
+    )
+    return bundle

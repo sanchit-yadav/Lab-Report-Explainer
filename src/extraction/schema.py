@@ -31,6 +31,9 @@ class TestResult(BaseModel):
     ref_raw: str = Field(default="", description="Original reference range string from report")
     flag: FlagStatus = Field(default=FlagStatus.UNKNOWN, description="Assigned flag status")
     extraction_tier: int = Field(default=1, description="Tier that extracted this record: 1, 2, or 3")
+    loinc_code: Optional[str] = Field(default=None, description="Standardized LOINC ontology code (e.g. 2093-3)")
+    loinc_name: Optional[str] = Field(default=None, description="Standard LOINC analyte display description")
+    category: Optional[str] = Field(default=None, description="Clinical category (e.g. Lipid, Hematology, Renal)")
 
 
 class LabReport(BaseModel):
