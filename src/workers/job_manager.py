@@ -134,6 +134,14 @@ class JobManager:
         with self._jobs_lock:
             self._jobs[job_id] = record
         logger.info(f"Registered job {job_id} for file {filename} ({file_hash[:8]}...)")
+        try:
+            from src.api.metrics import MetricsRegistry
+
+            registry = MetricsRegistry.get_instance()
+            registry.jobs_total.inc(status="queued")
+            registry.active_jobs_gauge.inc()
+        except Exception:
+            pass
         return record
 
     def get_job(self, job_id: str) -> Optional[JobRecord]:
@@ -208,6 +216,16 @@ class JobManager:
                 logger.warning(f"Could not cache extracted_report on job: {e}")
 
             record.mark_complete(explanation, pdf_bytes, extracted_report=extracted_report)
+            try:
+                from src.api.metrics import MetricsRegistry
+
+                registry = MetricsRegistry.get_instance()
+                registry.jobs_total.inc(status="completed")
+                registry.active_jobs_gauge.dec()
+                if explanation and explanation.total_tests:
+                    registry.extracted_tests_count.observe(explanation.total_tests)
+            except Exception:
+                pass
             logger.info(
                 f"Job {job_id} completed successfully. "
                 f"Patient: {explanation.patient_name}, Tests: {explanation.total_tests}"
@@ -215,4 +233,14 @@ class JobManager:
 
         except Exception as e:
             logger.exception(f"Job {job_id} failed with error: {e}")
+            try:
+                from src.api.metrics import MetricsRegistry
+                from src.monitoring.sentry import capture_exception
+
+                capture_exception(e, tags={"job_id": job_id})
+                registry = MetricsRegistry.get_instance()
+                registry.jobs_total.inc(status="failed")
+                registry.active_jobs_gauge.dec()
+            except Exception:
+                pass
             record.mark_failed(str(e))

@@ -39,6 +39,23 @@ class ChromaRetriever:
             except Exception as e:
                 logger.warning(f"Could not auto-populate ChromaDB: {e}")
 
+        # Detect whether the persistent collection was indexed using dense neural or sparse fallback embeddings
+        self._is_sparse_collection = False
+        try:
+            sample = self.collection.get(limit=1, include=["embeddings"])
+            if (
+                sample is not None
+                and sample.get("embeddings") is not None
+                and len(sample["embeddings"]) > 0
+            ):
+                first_emb = sample["embeddings"][0]
+                zeros_count = sum(1 for x in first_emb if x == 0.0)
+                if zeros_count > 200:
+                    self._is_sparse_collection = True
+                    logger.debug("Detected sparse fallback embeddings in ChromaDB; aligning query embedder.")
+        except Exception as e:
+            logger.debug(f"Could not inspect collection embedding density: {e}")
+
     def retrieve(
         self,
         query: str,
@@ -59,8 +76,11 @@ class ChromaRetriever:
         if not query.strip():
             return []
 
-        # Embed query
-        query_embedding = self.embedder.embed_query(query)
+        # Embed query in aligned vector space
+        if getattr(self, "_is_sparse_collection", False):
+            query_embedding = self.embedder._fallback_embed(query)
+        else:
+            query_embedding = self.embedder.embed_query(query)
 
         # ChromaDB query
         results = self.collection.query(

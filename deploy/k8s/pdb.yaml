@@ -1,0 +1,25 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: cds-api-pdb
+  namespace: clinical-cds
+  labels:
+    app.kubernetes.io/name: cds-api
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cds-api
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: cds-web-pdb
+  namespace: clinical-cds
+  labels:
+    app.kubernetes.io/name: cds-web
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cds-web

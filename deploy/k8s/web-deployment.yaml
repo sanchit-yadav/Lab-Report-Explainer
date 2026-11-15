@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cds-web-deployment
+  namespace: clinical-cds
+  labels:
+    app.kubernetes.io/name: cds-web
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: lab-report-explainer
+spec:
+  replicas: 2
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cds-web
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: cds-web
+        app.kubernetes.io/component: frontend
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: streamlit
+          image: ghcr.io/sanchit-yadav/lab-report-explainer:latest
+          imagePullPolicy: IfNotPresent
+          command: ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+          ports:
+            - name: http
+              containerPort: 8501
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: cds-config
+            - secretRef:
+                name: cds-secrets
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: 2000m
+              memory: 3Gi
+          livenessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: 8501
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: 8501
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 3
+          volumeMounts:
+            - name: staging-uploads
+              mountPath: /app/data/uploads
+      volumes:
+        - name: staging-uploads
+          emptyDir:
+            sizeLimit: 10Gi

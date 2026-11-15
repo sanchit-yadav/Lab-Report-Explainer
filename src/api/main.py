@@ -33,12 +33,17 @@ from src.api.models import (
     QAResponse,
     UploadResponse,
 )
+from src.api.metrics import MetricsRegistry, PrometheusMiddleware
 from src.health import run_health_check
+from src.monitoring.sentry import init_sentry
 from src.security.audit import SecurityAuditLogger
 from src.security.scanner import FileSecurityScanner
 from src.workers.job_manager import JobManager, JobRecord
 
 logger = logging.getLogger("api")
+
+# Initialize SRE Sentry monitoring with HIPAA PHI scrubber
+init_sentry()
 
 # Staging directory for uploaded patient reports
 UPLOAD_DIR = Path("data/uploads")
@@ -68,12 +73,24 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# Prometheus telemetry metrics collection middleware
+app.add_middleware(PrometheusMiddleware)
 
 
 @app.get("/healthz", tags=["Diagnostics"], summary="Liveness Probe")
 async def healthz() -> Dict[str, str]:
     """Lightweight Kubernetes / Docker liveness probe."""
     return {"status": "ok", "timestamp": datetime.now(timezone.utc).isoformat()}
+
+
+@app.get("/metrics", tags=["Diagnostics"], summary="Prometheus Telemetry Metrics")
+async def get_metrics() -> Response:
+    """Scrapes Prometheus metrics in standard exposition text format v0.0.4."""
+    registry = MetricsRegistry.get_instance()
+    return Response(
+        content=registry.render_all(),
+        media_type="text/plain; version=0.0.4; charset=utf-8",
+    )
 
 
 @app.get("/readyz", tags=["Diagnostics"], summary="Readiness Probe", response_model=HealthResponse)
@@ -148,6 +165,7 @@ async def upload_report(
     audit = SecurityAuditLogger.get_instance()
 
     if not scan_res.is_safe:
+        MetricsRegistry.get_instance().guardrail_blocks_total.inc(reason="malware_scan")
         audit.log_event(
             event_type="MALWARE_SCAN_FAILED",
             actor_id="client_upload",
@@ -284,11 +302,15 @@ async def ask_question_for_job(job_id: str, qa_req: QARequest) -> QAResponse:
     if not context_str and record.explanation:
         exp = record.explanation
         parts = [f"Patient: {exp.patient_name or 'Unknown'}"]
-        if exp.test_explanations:
+        if exp.raw_report and exp.raw_report.tests:
             parts.append("Key Biomarkers:")
-            for t in exp.test_explanations:
+            for t in exp.raw_report.tests:
                 val_s = f"{t.value} {t.unit or ''}".strip()
                 parts.append(f"- {t.test_name}: {val_s} [{t.flag.value.upper()}]")
+        elif exp.test_explanations:
+            parts.append("Key Biomarkers:")
+            for t in exp.test_explanations:
+                parts.append(f"- {t.test_name}: [{t.flag.value.upper()}]")
         context_str = "\n".join(parts)
 
     res = job_mgr.pipeline.answer_question(
@@ -296,6 +318,11 @@ async def ask_question_for_job(job_id: str, qa_req: QARequest) -> QAResponse:
         patient_context=context_str if context_str else None,
         chat_history=qa_req.chat_history,
     )
+
+    if res.get("blocked", False):
+        MetricsRegistry.get_instance().guardrail_blocks_total.inc(
+            reason=res.get("category") or "adversarial"
+        )
 
     SecurityAuditLogger.get_instance().log_event(
         event_type="QA_QUERY_PROCESSED",

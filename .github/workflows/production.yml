@@ -1,0 +1,170 @@
+name: Enterprise Production CI/CD & Clinical Safety Gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ──────────────────────────────────────────────────────────────────────────
+  # 1. Code Quality & Security Linting
+  # ──────────────────────────────────────────────────────────────────────────
+  code-quality:
+    name: Code Health & Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Linting Tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff bandit[toml]
+
+      - name: Run Ruff Lint Checks
+        run: ruff check src/ tests/ eval/
+
+      - name: Run Ruff Formatting Verification
+        run: ruff format --check src/ tests/ eval/
+
+      - name: Run Bandit Security Analysis
+        run: bandit -r src/ -ll -ii
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 2. Comprehensive Unit & Integration Test Suite
+  # ──────────────────────────────────────────────────────────────────────────
+  test-suite:
+    name: Automated Unit & Integration Suite
+    runs-on: ubuntu-latest
+    needs: [code-quality]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install System Dependencies (Ghostscript & OCR)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ghostscript tesseract-ocr
+
+      - name: Install uv Package Manager
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Install Application Dependencies (CPU PyTorch)
+        run: |
+          uv venv
+          uv pip install --no-cache torch --index https://download.pytorch.org/whl/cpu
+          uv pip install --no-cache -r pyproject.toml
+
+      - name: Execute Full Test Suite with Coverage
+        run: |
+          source .venv/bin/activate
+          pytest tests/ -v --cov=src --cov-report=xml --cov-report=term-missing
+
+      - name: Upload Test Coverage Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-coverage-report
+          path: coverage.xml
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 3. Clinical CDS Regression Gate (Strict Quality Floor)
+  # ──────────────────────────────────────────────────────────────────────────
+  clinical-regression-gate:
+    name: Clinical CDS Safety & Accuracy Gate
+    runs-on: ubuntu-latest
+    needs: [test-suite]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ghostscript
+
+      - name: Install uv Package Manager
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Install Application Dependencies
+        run: |
+          uv venv
+          uv pip install --no-cache torch --index https://download.pytorch.org/whl/cpu
+          uv pip install --no-cache -r pyproject.toml
+
+      - name: Run Clinical Quality Gate & Benchmark Evaluation
+        env:
+          GITHUB_STEP_SUMMARY: ${{ github.step_summary }}
+        run: |
+          source .venv/bin/activate
+          python eval/regression_gate.py
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 4. Multi-Stage Container Build & Trivy Security Vulnerability Scan
+  # ──────────────────────────────────────────────────────────────────────────
+  container-security-and-build:
+    name: Container Build & Trivy Vulnerability Scan
+    runs-on: ubuntu-latest
+    needs: [clinical-regression-gate]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Production Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: lab-report-explainer:latest
+          load: true
+
+      - name: Run Trivy Container Vulnerability Scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: lab-report-explainer:latest
+          format: "table"
+          exit-code: "0" # Non-blocking on informational, logs report
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH"
+
+      - name: Container Runtime Smoke Test & Health Probes
+        run: |
+          docker run -d --name cds-smoke-test -p 8000:8000 \
+            -e ENVIRONMENT=staging \
+            lab-report-explainer:latest \
+            uvicorn src.api.main:app --host 0.0.0.0 --port 8000
+          
+          # Wait up to 30s for readiness
+          sleep 10
+          curl --fail --retry 5 --retry-connrefused http://localhost:8000/healthz || exit 1
+          curl --fail --retry 3 http://localhost:8000/metrics | grep -E "lab_report_http_requests_total" || exit 1
+          docker stop cds-smoke-test
