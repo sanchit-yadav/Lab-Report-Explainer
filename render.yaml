@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: ai-clinical-lab-explainer
+    runtime: python
+    region: ohio
+    plan: free
+    buildCommand: pip install --upgrade pip uv && uv pip install --system torch --index https://download.pytorch.org/whl/cpu && uv pip install --system -r pyproject.toml
+    startCommand: uvicorn src.api.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: ENVIRONMENT
+        value: production
+      - key: DISABLE_CROSS_ENCODER
+        value: "true"
+      - key: CORS_ORIGIN_REGEX
+        value: "https://.*\\.vercel\\.app"
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
