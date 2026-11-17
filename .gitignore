@@ -19,6 +19,8 @@ venv/
 chroma_db/
 *.sqlite
 *.sqlite3
+*.db
+data/*.db
 
 # Test & coverage caches
 .pytest_cache/
@@ -35,3 +37,6 @@ data/*.jsonl
 
 # Scratch directories
 scratch/
+
+# Local audit reports
+COMPLETE_FEATURE_AUDIT.md

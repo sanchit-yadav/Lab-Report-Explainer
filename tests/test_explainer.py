@@ -64,6 +64,33 @@ def test_explain_test_returns_valid_schema(generator):
     assert len(explanation.explanation_hi) > 20
     assert len(explanation.doctor_questions) >= 2
     assert "https://medlineplus.gov/lab-tests/creatinine-test/" in explanation.source_urls
+    assert "• What It Measures:" in explanation.explanation_en
+    assert "• What This Finding Indicates:" in explanation.explanation_en
+    assert "• यह जांच क्या मापती है:" in explanation.explanation_hi
+    assert not any("medication" in q.lower() or "drug" in q.lower() for q in explanation.doctor_questions)
+
+
+def test_concise_clinical_format_and_zero_medication_mention(generator):
+    """Verify that multiple analytes produce concise structured bullets with zero drug/medication mentions."""
+    test_cases = [
+        ("Total Cholesterol", 240.0, "mg/dL", FlagStatus.HIGH),
+        ("Fasting Blood Glucose", 126.0, "mg/dL", FlagStatus.HIGH),
+        ("Hemoglobin", 10.2, "g/dL", FlagStatus.LOW),
+        ("Serum Creatinine", 1.9, "mg/dL", FlagStatus.HIGH),
+    ]
+    for name, val, unit, flag in test_cases:
+        tr = TestResult(test_name=name, value=val, unit=unit, flag=flag)
+        exp = generator._generate_mock_explanation(tr, [], ["https://medlineplus.gov"])
+        assert "• What It Measures:" in exp.explanation_en
+        assert "• What This Finding Indicates:" in exp.explanation_en
+        assert len(exp.doctor_questions) == 2
+        for q in exp.doctor_questions:
+            assert "medication" not in q.lower()
+            assert "drug" not in q.lower()
+            assert "prescribe" not in q.lower()
+        # Word count check: concise (~50-80 words, not verbose rambling)
+        words = exp.explanation_en.split()
+        assert len(words) <= 90
 
 
 def test_explain_report_assembles_summary(generator):

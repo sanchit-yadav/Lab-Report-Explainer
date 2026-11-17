@@ -12,10 +12,20 @@ RETRIEVED TRUSTED MEDICAL CONTEXT:
 SOURCE CITATIONS:
 {sources}
 
-INSTRUCTIONS:
-1. Explain what this test measures in plain, everyday English.
-2. Explain what being in the flagged status ({flag}) generally indicates, grounded solely in the retrieved context.
-3. Provide an accurate, natural Hindi translation of the explanation.
-4. Formulate 2-3 specific, constructive questions the patient should ask their doctor regarding this result.
-5. Include the verified source URLs cited in the context.
-6. Adhere strictly to the safety guidelines: no diagnosis, no medications, no alarmist claims.
+FORMATTING & CONTENT REQUIREMENTS:
+1. 'explanation_en' MUST follow this exact, concise 2-bullet structure (total ~50-70 words):
+   • What It Measures: Exactly one crisp sentence defining what this biological analyte measures in the human body.
+   • What This Finding Indicates: Exactly two concise sentences explaining what the patient's specific observed value ({value} {unit}) indicates in relation to standard reference intervals ({ref_raw}), grounded strictly in the retrieved medical context.
+
+2. 'explanation_hi' MUST provide an authentic, professional Hindi translation following the same 2-bullet structure:
+   • यह जांच क्या मापती है: [One sentence definition in clear Hindi]
+   • आपके परिणाम का क्या अर्थ है: [Two concise sentences interpreting the result in clear Hindi]
+
+3. 'doctor_questions' MUST contain exactly 2 specific, constructive questions the patient should ask their doctor regarding this result.
+
+4. 'source_urls' MUST include the verified source URLs cited in the context.
+
+STRICT MEDICAL SAFETY & COMPLIANCE (ZERO TOLERANCE):
+- NEVER name, suggest, prescribe, or hint at any medication, drug, chemical treatment, supplement, or dosage (e.g., do NOT mention statins, metformin, antibiotics, or vitamins).
+- NEVER diagnose the patient with any illness, disease, disorder, or condition (e.g., never declare "You have diabetes" or "You have anemia"; describe only what the lab value reflects physiologically).
+- NEVER use alarmist language, and never include generic fluff. Maintain a calm, objective, professional tone.

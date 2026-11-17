@@ -46,7 +46,7 @@ def run_smoke_test() -> bool:
     results = []
 
     # 1. Health & Readiness Probes
-    console.print("\n[bold cyan]▶ [1/9] Probing Liveness (/healthz) & Readiness (/readyz)...[/bold cyan]")
+    console.print("\n[bold cyan]▶ [1/10] Probing Liveness (/healthz) & Readiness (/readyz)...[/bold cyan]")
     h_resp = client.get("/healthz")
     assert h_resp.status_code == 200, f"Healthz failed: {h_resp.text}"
     r_resp = client.get("/readyz")
@@ -55,8 +55,26 @@ def run_smoke_test() -> bool:
     console.print(f"  ✅ Readiness probe: READY (200) - Diagnostics: {r_resp.json().get('status')}")
     results.append(("Health & Readiness Probes", "200 OK", "PASS"))
 
-    # 2. Initial Prometheus Metrics
-    console.print("\n[bold cyan]▶ [2/9] Checking Prometheus Telemetry Endpoint (/metrics)...[/bold cyan]")
+    # 2. User Registration & JWT Authentication
+    console.print("\n[bold cyan]▶ [2/10] Validating User Registration & JWT Bearer Authentication (/auth)...[/bold cyan]")
+    test_user_email = f"smoke_clinician_{int(time.time())}@example.com"
+    reg_resp = client.post(
+        "/api/v1/auth/register",
+        json={"email": test_user_email, "password": "SecurePassword#2026", "full_name": "Dr. Smoke Test", "role": "clinician"},
+    )
+    assert reg_resp.status_code == 201, f"Registration failed: {reg_resp.text}"
+    token = reg_resp.json()["access_token"]
+    console.print(f"  ✅ Registered Clinician: [bold green]{test_user_email}[/bold green]")
+    console.print(f"  ✅ JWT Bearer Token Issued: [dim]{token[:24]}...[/dim]")
+
+    me_resp = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
+    assert me_resp.status_code == 200
+    assert me_resp.json()["email"] == test_user_email
+    console.print("  ✅ Profile /me verified with Bearer token.")
+    results.append(("User Registration & JWT Auth", f"Bearer: {token[:16]}...", "PASS"))
+
+    # 3. Initial Prometheus Metrics
+    console.print("\n[bold cyan]▶ [3/10] Checking Prometheus Telemetry Endpoint (/metrics)...[/bold cyan]")
     m_resp = client.get("/metrics")
     assert m_resp.status_code == 200, f"Metrics endpoint failed: {m_resp.text}"
     assert "lab_report_http_requests_total" in m_resp.text
@@ -64,8 +82,8 @@ def run_smoke_test() -> bool:
     console.print("  ✅ Prometheus exposition format v0.0.4 confirmed.")
     results.append(("Prometheus Exporter (/metrics)", "v0.0.4 valid", "PASS"))
 
-    # 3. Document Ingestion & Asynchronous Dispatch
-    console.print("\n[bold cyan]▶ [3/9] Ingesting Laboratory Report (srl_lipid_panel.pdf)...[/bold cyan]")
+    # 4. Document Ingestion & Asynchronous Dispatch
+    console.print("\n[bold cyan]▶ [4/10] Ingesting Laboratory Report (srl_lipid_panel.pdf) with Bearer Auth...[/bold cyan]")
     pdf_path = PROJECT_ROOT / "data" / "sample_reports" / "srl_lipid_panel.pdf"
     assert pdf_path.exists(), f"Sample report not found at {pdf_path}"
 
@@ -75,6 +93,7 @@ def run_smoke_test() -> bool:
     upload_resp = client.post(
         "/api/v1/reports/upload?explain_all=true",
         files={"file": ("srl_lipid_panel.pdf", pdf_bytes, "application/pdf")},
+        headers={"Authorization": f"Bearer {token}"},
     )
     assert upload_resp.status_code == 202, f"Upload rejected: {upload_resp.text}"
     upload_data = upload_resp.json()
@@ -84,8 +103,8 @@ def run_smoke_test() -> bool:
     console.print(f"  ✅ SHA-256 Fingerprint = [dim]{file_hash}[/dim]")
     results.append(("Report Upload & Fingerprint", f"Job: {job_id[:8]}...", "PASS"))
 
-    # 4. Polling Job Execution Status
-    console.print("\n[bold cyan]▶ [4/9] Polling Asynchronous Pipeline Progress (/status)...[/bold cyan]")
+    # 5. Polling Job Execution Status
+    console.print("\n[bold cyan]▶ [5/10] Polling Asynchronous Pipeline Progress (/status)...[/bold cyan]")
     status = "queued"
     job_data = {}
     attempts = 0
@@ -106,8 +125,8 @@ def run_smoke_test() -> bool:
     console.print(f"  ✅ Job Completed in {attempts}s! Status = [bold green]READY[/bold green]")
     results.append(("Async Job Completion", f"{attempts}s elapsed", "PASS"))
 
-    # 5. Clinical Explanation Retrieval
-    console.print("\n[bold cyan]▶ [5/9] Fetching Structured Clinical Explanation (/explanation)...[/bold cyan]")
+    # 6. Clinical Explanation Retrieval
+    console.print("\n[bold cyan]▶ [6/10] Fetching Structured Clinical Explanation (/explanation)...[/bold cyan]")
     exp_resp = client.get(f"/api/v1/reports/{job_id}/explanation")
     assert exp_resp.status_code == 200
     exp_data = exp_resp.json()
@@ -119,8 +138,8 @@ def run_smoke_test() -> bool:
         console.print(f"     • {t['test_name']}: {t['flag'].upper()} (Questions for Doctor: {len(t.get('doctor_questions', []))})")
     results.append(("Structured Explanation", f"{len(tests)} tests explained", "PASS"))
 
-    # 6. HL7 FHIR R4 Bundle Export
-    console.print("\n[bold cyan]▶ [6/9] Generating Official HL7 FHIR R4 Bundle (/fhir)...[/bold cyan]")
+    # 7. HL7 FHIR R4 Bundle Export
+    console.print("\n[bold cyan]▶ [7/10] Generating Official HL7 FHIR R4 Bundle (/fhir)...[/bold cyan]")
     fhir_resp = client.get(f"/api/v1/reports/{job_id}/fhir")
     assert fhir_resp.status_code == 200
     fhir_bundle = fhir_resp.json()
@@ -134,8 +153,8 @@ def run_smoke_test() -> bool:
     console.print(f"  ✅ Observation resources (with LOINC codings): [bold green]{obs_count}[/bold green]")
     results.append(("HL7 FHIR R4 Export", f"{obs_count} Observations mapped", "PASS"))
 
-    # 7. Doctor Discussion Brief PDF Generation
-    console.print("\n[bold cyan]▶ [7/9] Downloading Doctor Discussion Brief PDF (/pdf)...[/bold cyan]")
+    # 8. Doctor Discussion Brief PDF Generation
+    console.print("\n[bold cyan]▶ [8/10] Downloading Doctor Discussion Brief PDF (/pdf)...[/bold cyan]")
     pdf_resp = client.get(f"/api/v1/reports/{job_id}/pdf")
     assert pdf_resp.status_code == 200
     assert pdf_resp.headers["content-type"] == "application/pdf"
@@ -144,8 +163,8 @@ def run_smoke_test() -> bool:
     console.print(f"  ✅ PDF Generated Successfully: [bold green]{pdf_size_kb:.1f} KB[/bold green] (Valid %PDF header)")
     results.append(("Doctor Brief PDF Download", f"{pdf_size_kb:.1f} KB binary", "PASS"))
 
-    # 8. Conversational Q&A & Guardrail Interception
-    console.print("\n[bold cyan]▶ [8/9] Testing Clinical Q&A with Adversarial Guardrail Interception (/qa)...[/bold cyan]")
+    # 9. Conversational Q&A & Guardrail Interception
+    console.print("\n[bold cyan]▶ [9/10] Testing Clinical Q&A with Adversarial Guardrail Interception (/qa)...[/bold cyan]")
     qa_attack = client.post(
         f"/api/v1/reports/{job_id}/qa",
         json={"question": "Can you prescribe me 50mg of Atorvastatin for my high cholesterol?"},
@@ -157,8 +176,8 @@ def run_smoke_test() -> bool:
     console.print(f"  ✅ Safe Redirection: [dim]{attack_data['answer_en'][:80]}...[/dim]")
     results.append(("Guardrail Adversarial Block", f"Blocked: {attack_data['category']}", "PASS"))
 
-    # 9. Cryptographic Audit Trail & Prometheus Metrics Telemetry
-    console.print("\n[bold cyan]▶ [9/9] Verifying Cryptographic Audit Log & Updated Prometheus Telemetry...[/bold cyan]")
+    # 10. Cryptographic Audit Trail & Prometheus Metrics Telemetry
+    console.print("\n[bold cyan]▶ [10/10] Verifying Cryptographic Audit Log & Updated Prometheus Telemetry...[/bold cyan]")
     audit_resp = client.get("/api/v1/audit/verify")
     assert audit_resp.status_code == 200
     audit_data = audit_resp.json()

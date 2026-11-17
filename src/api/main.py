@@ -6,15 +6,18 @@ conversational Q&A with guardrails, and Doctor Brief PDF downloads.
 
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 import hashlib
 import logging
+import math
 import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from fastapi import (
     BackgroundTasks,
+    Depends,
     FastAPI,
     File,
     HTTPException,
@@ -25,7 +28,11 @@ from fastapi import (
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 
+from src.api.auth import get_current_user, get_optional_current_user, validate_jwt_security
 from src.api.models import (
+    ConfirmReportRequest,
+    ConfirmReportResponse,
+    ExtractedReportResponse,
     HealthResponse,
     JobStatus,
     JobStatusResponse,
@@ -34,9 +41,13 @@ from src.api.models import (
     UploadResponse,
 )
 from src.api.metrics import MetricsRegistry, PrometheusMiddleware
+from src.api.routes.auth import router as auth_router
+from src.db.models import User
+from src.db.session import init_db
 from src.health import run_health_check
 from src.monitoring.sentry import init_sentry
 from src.security.audit import SecurityAuditLogger
+from src.security.rate_limiter import SlidingWindowRateLimiter
 from src.security.scanner import FileSecurityScanner
 from src.workers.job_manager import JobManager, JobRecord
 
@@ -45,6 +56,9 @@ logger = logging.getLogger("api")
 # Initialize SRE Sentry monitoring with HIPAA PHI scrubber
 init_sentry()
 
+# 30 upload requests per minute per IP to protect against resource exhaustion / DoS
+upload_rate_limiter = SlidingWindowRateLimiter(times=30, seconds=60, name="reports_upload")
+
 # Staging directory for uploaded patient reports
 UPLOAD_DIR = Path("data/uploads")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -52,6 +66,19 @@ UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 # 50MB file size ceiling
 MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024
 ALLOWED_EXTENSIONS = {".pdf", ".png", ".jpg", ".jpeg", ".webp"}
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan manager to handle startup and shutdown sequences."""
+    validate_jwt_security()
+    try:
+        init_db()
+        logger.info("Relational database schema initialized successfully.")
+    except Exception as exc:
+        logger.error(f"Error during relational database initialization: {exc}")
+    yield
+
 
 app = FastAPI(
     title="AI Clinical Lab Report Explainer API",
@@ -63,18 +90,30 @@ app = FastAPI(
     ),
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
-# Configure Cross-Origin Resource Sharing (CORS) for web & mobile clients
+# Configure Cross-Origin Resource Sharing (CORS) restricted to trusted web & mobile clients
+allowed_origins_env = os.environ.get(
+    "CORS_ORIGINS",
+    "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://localhost:8501,http://127.0.0.1:8501,http://localhost:8000",
+)
+cors_origins = [origin.strip() for origin in allowed_origins_env.split(",") if origin.strip()]
+cors_origin_regex = os.environ.get("CORS_ORIGIN_REGEX", r"https://.*\.vercel\.app")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Restrict to trusted client domains in production env
+    allow_origins=cors_origins,
+    allow_origin_regex=cors_origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 # Prometheus telemetry metrics collection middleware
 app.add_middleware(PrometheusMiddleware)
+
+# Include Authentication & User Management Router
+app.include_router(auth_router)
 
 
 @app.get("/healthz", tags=["Diagnostics"], summary="Liveness Probe")
@@ -120,6 +159,7 @@ async def readyz() -> HealthResponse:
     summary="Upload Laboratory Report",
     status_code=status.HTTP_202_ACCEPTED,
     response_model=UploadResponse,
+    dependencies=[Depends(upload_rate_limiter)],
 )
 async def upload_report(
     background_tasks: BackgroundTasks,
@@ -127,6 +167,10 @@ async def upload_report(
     explain_all: bool = Query(
         False, description="Whether to generate LLM explanations for normal biomarkers in addition to abnormal ones"
     ),
+    auto_confirm: bool = Query(
+        True, description="Whether to automatically confirm and explain immediately without pausing for review"
+    ),
+    current_user: Optional[User] = Depends(get_optional_current_user),
 ) -> UploadResponse:
     """Accepts a multipart file upload, validates extension & size, fingerprints SHA-256,
 
@@ -195,6 +239,7 @@ async def upload_report(
         file_path=staged_path,
         file_hash=file_hash,
         file_size_bytes=file_size,
+        user_id=current_user.id if current_user else None,
     )
 
     # Dispatch to background tasks for asynchronous non-blocking processing
@@ -202,6 +247,7 @@ async def upload_report(
         job_mgr.run_pipeline_job,
         job_record.job_id,
         explain_all,
+        auto_confirm,
     )
 
     return UploadResponse(
@@ -246,6 +292,143 @@ async def get_job_status(job_id: str) -> JobStatusResponse:
         flagged_count=record.flagged_count,
         panic_count=record.panic_count,
         error=record.error,
+    )
+
+
+def _clean_float(val: Any) -> Optional[float]:
+    """Safely convert numeric values to JSON-compliant floats, mapping NaN/inf to None."""
+    if val is None:
+        return None
+    try:
+        f = float(val)
+        if math.isnan(f) or math.isinf(f):
+            return None
+        return f
+    except (ValueError, TypeError):
+        return None
+
+
+@app.get(
+    "/api/v1/reports/{job_id}/extracted",
+    tags=["Reports"],
+    summary="Get Extracted Lab Biomarkers For Human Review",
+    response_model=ExtractedReportResponse,
+)
+async def get_extracted_report(job_id: str) -> ExtractedReportResponse:
+    """Retrieve raw extracted biomarkers to support human-in-the-loop inspection and editing."""
+    job_mgr = JobManager.get_instance()
+    record = job_mgr.get_job(job_id)
+
+    if not record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Job '{job_id}' not found.",
+        )
+
+    if not record.extracted_report:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Extraction is not ready for job '{job_id}' (current status: {record.status}).",
+        )
+
+    tests_list = []
+    for t in getattr(record.extracted_report, "tests", []):
+        tests_list.append(
+            {
+                "test_name": t.test_name,
+                "value": _clean_float(t.value),
+                "raw_value": t.raw_value or "",
+                "unit": t.unit or "",
+                "ref_low": _clean_float(t.ref_low),
+                "ref_high": _clean_float(t.ref_high),
+                "ref_raw": t.ref_raw or "",
+                "flag": t.flag.value if hasattr(t.flag, "value") else str(t.flag),
+                "loinc_code": t.loinc_code,
+                "category": t.category,
+            }
+        )
+
+    return ExtractedReportResponse(
+        job_id=job_id,
+        patient_name=record.patient_name,
+        total_tests=len(tests_list),
+        tests=tests_list,
+    )
+
+
+@app.post(
+    "/api/v1/reports/{job_id}/confirm",
+    tags=["Reports"],
+    summary="Confirm or Correct Extracted Parameters and Trigger Explanations",
+    response_model=ConfirmReportResponse,
+)
+async def confirm_report(
+    job_id: str,
+    req: ConfirmReportRequest,
+    background_tasks: BackgroundTasks,
+) -> ConfirmReportResponse:
+    """Accept verified/corrected parameters and resume explanation generation."""
+    job_mgr = JobManager.get_instance()
+    record = job_mgr.get_job(job_id)
+
+    if not record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Job '{job_id}' not found.",
+        )
+
+    from src.extraction.schema import FlagStatus, LabReport, TestResult
+
+    updated_tests = []
+    for p in req.tests:
+        val_clean = _clean_float(p.value)
+        ref_low_clean = _clean_float(p.ref_low)
+        ref_high_clean = _clean_float(p.ref_high)
+
+        flag_val = FlagStatus.UNKNOWN
+        if p.flag:
+            try:
+                flag_val = FlagStatus(p.flag.lower())
+            except ValueError:
+                flag_val = FlagStatus.UNKNOWN
+        elif val_clean is not None and ref_low_clean is not None and ref_high_clean is not None:
+            if val_clean < ref_low_clean:
+                flag_val = FlagStatus.LOW
+            elif val_clean > ref_high_clean:
+                flag_val = FlagStatus.HIGH
+            else:
+                flag_val = FlagStatus.NORMAL
+
+        test_res = TestResult(
+            test_name=p.test_name,
+            value=val_clean,
+            raw_value=p.raw_value or (str(val_clean) if val_clean is not None else ""),
+            unit=p.unit or "",
+            ref_low=ref_low_clean,
+            ref_high=ref_high_clean,
+            ref_raw=p.ref_raw or (f"{ref_low_clean} - {ref_high_clean}" if ref_low_clean is not None and ref_high_clean is not None else ""),
+            flag=flag_val,
+        )
+        updated_tests.append(test_res)
+
+    confirmed_lab_report = LabReport(
+        patient_name=req.patient_name or record.patient_name,
+        tests=updated_tests,
+    )
+
+    # Dispatch to background tasks to resume explanation generation
+    background_tasks.add_task(
+        job_mgr.confirm_and_explain_job,
+        job_id,
+        confirmed_lab_report,
+        req.explain_all,
+    )
+
+    return ConfirmReportResponse(
+        job_id=job_id,
+        status=JobStatus.FLAGGING,
+        message="Parameters confirmed. Clinical explanations and Doctor Brief generation dispatched.",
+        confirmed_tests_count=len(updated_tests),
     )
 
 
@@ -359,10 +542,24 @@ async def download_doctor_brief_pdf(job_id: str) -> Response:
             detail=f"Job '{job_id}' not found.",
         )
 
-    if record.status != JobStatus.READY or not record.pdf_bytes:
+    if record.status != JobStatus.READY:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"PDF for job '{job_id}' is not ready (status: {record.status}).",
+        )
+
+    # If pdf_bytes not in memory, dynamically re-generate from explanation
+    if not record.pdf_bytes and record.explanation:
+        try:
+            from src.explainer.pdf_export import generate_doctor_brief_pdf
+            record.pdf_bytes = generate_doctor_brief_pdf(record.explanation)
+        except Exception as pdf_gen_err:
+            logger.warning(f"Could not re-generate Doctor Brief PDF for job {job_id}: {pdf_gen_err}")
+
+    if not record.pdf_bytes:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"PDF for job '{job_id}' could not be generated or loaded.",
         )
 
     clean_filename = f"doctor_brief_{record.job_id[:8]}.pdf"
@@ -388,10 +585,16 @@ async def download_doctor_brief_pdf(job_id: str) -> Response:
     summary="List Recent Processing Jobs",
     response_model=List[JobStatusResponse],
 )
-async def list_recent_jobs(limit: int = Query(50, ge=1, le=200)) -> List[JobStatusResponse]:
-    """List recent laboratory report jobs."""
+async def list_recent_jobs(
+    limit: int = Query(50, ge=1, le=200),
+    current_user: Optional[User] = Depends(get_optional_current_user),
+) -> List[JobStatusResponse]:
+    """List recent laboratory report jobs, scoped to current user if authenticated."""
     job_mgr = JobManager.get_instance()
-    records = job_mgr.list_jobs(limit=limit)
+    records = job_mgr.list_jobs(
+        limit=limit,
+        user_id=current_user.id if current_user else None,
+    )
 
     return [
         JobStatusResponse(
@@ -411,6 +614,60 @@ async def list_recent_jobs(limit: int = Query(50, ge=1, le=200)) -> List[JobStat
         )
         for r in records
     ]
+
+
+@app.delete(
+    "/api/v1/reports/{job_id}",
+    tags=["Reports"],
+    summary="Delete Laboratory Report",
+    status_code=status.HTTP_200_OK,
+)
+async def delete_report(
+    job_id: str,
+    current_user: User = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """Permanently delete a laboratory report and its associated biomarker observations.
+
+    Ensures strict user isolation: regular users may only delete their own reports,
+    while administrative users can delete any report.
+    """
+    job_mgr = JobManager.get_instance()
+    record = job_mgr.get_job(job_id)
+
+    if not record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Report '{job_id}' not found.",
+        )
+
+    # Authorization check
+    if current_user.role != "admin" and record.user_id and record.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to delete this report.",
+        )
+
+    target_user_id = None if current_user.role == "admin" else current_user.id
+    success = job_mgr.delete_job(job_id=job_id, user_id=target_user_id)
+
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Report '{job_id}' could not be deleted.",
+        )
+
+    SecurityAuditLogger.get_instance().log_event(
+        event_type="REPORT_DELETED",
+        actor_id=current_user.id,
+        resource_id=job_id,
+        details={"filename": record.filename, "file_hash": record.file_hash},
+    )
+
+    return {
+        "job_id": job_id,
+        "status": "deleted",
+        "message": f"Report '{record.filename}' and all associated test records were permanently deleted.",
+    }
 
 
 @app.get(
@@ -495,3 +752,13 @@ async def get_job_fhir_bundle(job_id: str) -> Dict[str, Any]:
         pdf_bytes=record.pdf_bytes,
     )
     return bundle
+
+
+# Mount React Modern Frontend if built
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+frontend_dist = _PROJECT_ROOT / "frontend" / "dist"
+if frontend_dist.exists() and (frontend_dist / "index.html").exists():
+    from fastapi.staticfiles import StaticFiles
+    app.mount("/", StaticFiles(directory=str(frontend_dist), html=True), name="frontend")
+
+

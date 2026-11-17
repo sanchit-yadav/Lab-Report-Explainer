@@ -65,18 +65,34 @@ def check_rag_models() -> Dict[str, Any]:
     return results
 
 
+def check_database() -> Dict[str, Any]:
+    """Verify relational database reachability and table accessibility."""
+    try:
+        from src.db.session import check_db_connection, engine
+
+        ok = check_db_connection()
+        return {
+            "status": "HEALTHY" if ok else "UNHEALTHY",
+            "dialect": engine.url.drivername,
+        }
+    except Exception as e:
+        return {"status": "UNHEALTHY", "error": str(e)}
+
+
 def run_health_check() -> Dict[str, Any]:
     """Execute complete health assessment returning diagnostic dictionary."""
     config_res = check_configuration()
     creds_res = check_api_credentials()
     rag_res = check_rag_models()
+    db_res = check_database()
 
-    is_healthy = config_res.get("status") == "HEALTHY"
+    is_healthy = config_res.get("status") == "HEALTHY" and db_res.get("status") == "HEALTHY"
     return {
         "status": "healthy" if is_healthy else "degraded",
         "configuration": config_res,
         "credentials": creds_res,
         "rag": rag_res,
+        "database": db_res,
     }
 
 
@@ -89,12 +105,14 @@ def run_preflight_diagnostic() -> bool:
     config_res = diag["configuration"]
     creds_res = diag["credentials"]
     rag_res = diag["rag"]
+    db_res = diag["database"]
 
     elapsed = (time.perf_counter() - start_t) * 1000.0
 
     logger.info(f"1. Configuration Check: {config_res['status']}")
     logger.info(f"2. API Credentials Check: {creds_res['status']}")
     logger.info(f"3. RAG & Model Check: {rag_res['status']}")
+    logger.info(f"4. Relational Database Check: {db_res['status']} ({db_res.get('dialect', 'unknown')})")
     logger.info(f"Diagnostic completed in {elapsed:.1f}ms.")
 
     return diag["status"] == "healthy"

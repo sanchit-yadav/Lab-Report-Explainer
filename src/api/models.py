@@ -2,20 +2,75 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from enum import Enum
+import re
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class JobStatus(str, Enum):
     """Lifecycle stages for asynchronous report processing jobs."""
     QUEUED = "queued"
     EXTRACTING = "extracting"
+    REVIEW_NEEDED = "review_needed"
     FLAGGING = "flagging"
     RAG_RETRIEVAL = "rag_retrieval"
     GENERATING = "generating"
     READY = "ready"
     FAILED = "failed"
+
+
+EMAIL_REGEX = re.compile(r"^[\w\.-]+@[\w\.-]+\.\w+$")
+
+
+class UserRegisterRequest(BaseModel):
+    """Payload for registering a new user account."""
+    email: str = Field(..., description="Unique email address")
+    password: str = Field(..., min_length=8, max_length=128, description="Account password (min 8 characters)")
+    full_name: Optional[str] = Field(None, max_length=255, description="Full name of the user")
+    role: str = Field("patient", pattern="^(patient|clinician|admin)$", description="Role: patient, clinician, or admin")
+
+    @field_validator("email")
+    @classmethod
+    def validate_email_format(cls, v: str) -> str:
+        v_clean = v.strip().lower()
+        if not EMAIL_REGEX.match(v_clean):
+            raise ValueError("Invalid email address format.")
+        return v_clean
+
+
+class UserLoginRequest(BaseModel):
+    """Payload for user authentication."""
+    email: str = Field(..., description="Account email address")
+    password: str = Field(..., description="Account password")
+
+    @field_validator("email")
+    @classmethod
+    def validate_email_format(cls, v: str) -> str:
+        v_clean = v.strip().lower()
+        if not EMAIL_REGEX.match(v_clean):
+            raise ValueError("Invalid email address format.")
+        return v_clean
+
+
+class UserResponse(BaseModel):
+    """Public user profile model."""
+    id: str
+    email: str
+    full_name: Optional[str] = None
+    role: str
+    is_active: bool
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class TokenResponse(BaseModel):
+    """JWT bearer token and authenticated user profile response."""
+    access_token: str
+    token_type: str = "bearer"
+    user: UserResponse
 
 
 class UploadResponse(BaseModel):
@@ -73,3 +128,38 @@ class HealthResponse(BaseModel):
     timestamp: str
     ready: bool
     diagnostics: Dict[str, Any]
+
+
+class ConfirmBiomarkerPayload(BaseModel):
+    """Biomarker test entry confirmed or edited by user."""
+    test_name: str
+    value: Optional[float] = None
+    raw_value: Optional[str] = None
+    unit: Optional[str] = None
+    ref_low: Optional[float] = None
+    ref_high: Optional[float] = None
+    ref_raw: Optional[str] = None
+    flag: Optional[str] = None
+
+
+class ConfirmReportRequest(BaseModel):
+    """Request payload to confirm or correct extracted lab parameters."""
+    patient_name: Optional[str] = None
+    tests: List[ConfirmBiomarkerPayload] = Field(default_factory=list)
+    explain_all: bool = False
+
+
+class ConfirmReportResponse(BaseModel):
+    """Response returned upon confirming report parameters."""
+    job_id: str
+    status: JobStatus
+    message: str
+    confirmed_tests_count: int
+
+
+class ExtractedReportResponse(BaseModel):
+    """Structured laboratory data extracted from document for human review."""
+    job_id: str
+    patient_name: Optional[str] = None
+    total_tests: int
+    tests: List[Dict[str, Any]]

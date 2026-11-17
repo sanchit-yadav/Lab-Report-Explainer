@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 import logging
 from pathlib import Path
 from typing import Any, BinaryIO, Dict, List, Optional, Union
@@ -90,6 +91,15 @@ class LabReportPipeline:
 
             return self._explain_single_lab_report(lab_report, explain_all_tests=explain_all_tests, trace=trace)
 
+    def explain_lab_report(
+        self,
+        lab_report: LabReport,
+        explain_all_tests: bool = False,
+    ) -> ReportExplanation:
+        """Process an already extracted/confirmed LabReport through flagging, RAG, and explanation synthesis."""
+        with self.tracer.start_trace("explain_lab_report", explain_all=explain_all_tests) as trace:
+            return self._explain_single_lab_report(lab_report, explain_all_tests=explain_all_tests, trace=trace)
+
     def _explain_single_lab_report(
         self,
         lab_report: LabReport,
@@ -133,14 +143,13 @@ class LabReportPipeline:
         # Record in longitudinal history tracker
         self.history_tracker.add_report(lab_report)
 
-        # Step 3 & 4: RAG Retrieval + Re-ranking and LLM Explanation
-        test_explanations: List[TestExplanation] = []
+        # Step 3 & 4: RAG Retrieval + Re-ranking and LLM Explanation (Concurrent Execution)
+        tests_to_explain = [
+            test for test in lab_report.tests
+            if (test.flag not in (FlagStatus.NORMAL, FlagStatus.UNKNOWN)) or explain_all_tests
+        ]
 
-        for test in lab_report.tests:
-            is_flagged = test.flag not in (FlagStatus.NORMAL, FlagStatus.UNKNOWN)
-            if not is_flagged and not explain_all_tests:
-                continue
-
+        def _process_single_analyte(test: TestResult) -> TestExplanation:
             query = f"{test.test_name} {test.flag.value} lab test meaning"
 
             # 3A & 3B: RAG
@@ -176,7 +185,14 @@ class LabReportPipeline:
             else:
                 explanation = self.output_guard.check(explanation)
 
-            test_explanations.append(explanation)
+            return explanation
+
+        if len(tests_to_explain) <= 1:
+            test_explanations = [_process_single_analyte(t) for t in tests_to_explain]
+        else:
+            max_workers = min(8, len(tests_to_explain))
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                test_explanations = list(executor.map(_process_single_analyte, tests_to_explain))
 
         # Step 6: HIPAA PHI de-identification before assembling final report
         anonymized_report, phi_mapping = self.deidentifier.anonymize_lab_report(lab_report)

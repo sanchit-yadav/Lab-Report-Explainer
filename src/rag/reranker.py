@@ -7,6 +7,8 @@ full cross-attention across (query, candidate_document) pairs.
 from __future__ import annotations
 
 import logging
+import os
+import threading
 from typing import Any, Dict, List, Optional
 
 from src.config import RerankerConfig, get_config
@@ -17,29 +19,43 @@ logger = logging.getLogger("reranker")
 class CrossEncoderReranker:
     """Joint cross-attention re-ranking for clinical search candidates."""
 
+    _model_cache: Dict[str, Any] = {}
+    _lock = threading.Lock()
+
     def __init__(self, config: Optional[RerankerConfig] = None):
         self.config = config or get_config().rag.reranker
         self.enabled = self.config.enabled
+        # Allow environment override to save memory / avoid CPU cross-attention bottlenecks on low-spec hosting
+        if os.environ.get("DISABLE_CROSS_ENCODER", "").lower() in ("1", "true", "yes"):
+            self.enabled = False
         self.model_name = self.config.model
         self.top_n = self.config.top_n
         self._model = None
 
     def _get_model(self):
-        """Lazy load CrossEncoder to conserve memory and initialization time."""
-        if self._model is None and self.enabled:
+        """Lazy load CrossEncoder with thread-safe singleton cache to conserve memory and speed."""
+        if not self.enabled:
+            return None
+        if self.model_name in self._model_cache:
+            return self._model_cache[self.model_name]
+
+        with self._lock:
+            if self.model_name in self._model_cache:
+                return self._model_cache[self.model_name]
             try:
-                import os
                 from sentence_transformers import CrossEncoder
 
                 # Try local cached files first for speed and offline stability
                 try:
-                    self._model = CrossEncoder(self.model_name, local_files_only=True)
+                    model = CrossEncoder(self.model_name, local_files_only=True)
                 except Exception:
-                    self._model = CrossEncoder(self.model_name)
+                    model = CrossEncoder(self.model_name)
+                self._model_cache[self.model_name] = model
+                self._model = model
             except Exception as e:
                 logger.warning(f"Could not initialize CrossEncoder ({e}). Re-ranking will pass-through.")
                 self.enabled = False
-        return self._model
+        return self._model_cache.get(self.model_name)
 
     def rerank(
         self,

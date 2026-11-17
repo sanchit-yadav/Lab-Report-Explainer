@@ -1,5 +1,6 @@
 # ==============================================================================
 # Multi-Stage Production Dockerfile for AI Clinical Lab Report Explainer
+# Compatible with Hugging Face Spaces (Docker), Render, Railway, AWS, and Cloud Run
 # ==============================================================================
 
 # ------------------------------------------------------------------------------
@@ -16,6 +17,7 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy dependency definition
@@ -27,10 +29,10 @@ ENV VIRTUAL_ENV=/opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 ENV UV_HTTP_TIMEOUT=180
 
-# Pre-install lightweight CPU-only PyTorch (avoids 4.5GB+ CUDA/Nvidia wheels and download timeouts)
+# Pre-install lightweight CPU-only PyTorch (avoids 4.5GB+ CUDA/Nvidia wheels)
 RUN uv pip install --no-cache torch --index https://download.pytorch.org/whl/cpu
 
-# Install application dependencies
+# Install application dependencies (includes psycopg2-binary for PostgreSQL)
 RUN uv pip install --no-cache -r pyproject.toml
 
 # ------------------------------------------------------------------------------
@@ -38,10 +40,11 @@ RUN uv pip install --no-cache -r pyproject.toml
 # ------------------------------------------------------------------------------
 FROM python:3.11-slim AS runtime
 
-# Set security, Python, and Streamlit environment variables
+# Set security, Python, and microservice environment variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PATH="/opt/venv/bin:$PATH" \
+    PORT=8000 \
     STREAMLIT_SERVER_PORT=8501 \
     STREAMLIT_SERVER_ADDRESS=0.0.0.0 \
     STREAMLIT_SERVER_HEADLESS=true \
@@ -52,11 +55,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ghostscript \
     libgl1 \
     libglib2.0-0 \
+    libpq5 \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Create dedicated non-root user (UID 10001) for strict container security
-RUN useradd -m -u 10001 -s /bin/bash appuser
+# Create dedicated non-root user (UID 1000 standard for Hugging Face Spaces & security)
+RUN useradd -m -u 1000 -s /bin/bash appuser
 
 WORKDIR /app
 
@@ -66,20 +70,21 @@ COPY --from=builder /opt/venv /opt/venv
 # Copy application codebase
 COPY --chown=appuser:appuser . /app
 
-# Ensure appuser owns /app and all runtime data directories with read-write permissions
-RUN mkdir -p /app/chroma_db /app/data/uploads && \
+# Ensure appuser owns /app and all runtime data directories with full read-write permissions
+RUN mkdir -p /app/chroma_db /app/data/uploads /app/data && \
     chown -R appuser:appuser /app && \
-    chmod -R 775 /app
+    chmod -R 775 /app /app/data /app/chroma_db
 
 # Switch to non-root user
 USER appuser
 
-# Expose Streamlit (8501) and FastAPI (8000) ports
-EXPOSE 8501 8000
+# Expose FastAPI (8000), Hugging Face Spaces (7860), and Streamlit (8501) ports
+EXPOSE 8000 7860 8501
 
-# Healthcheck probe verifying service responsiveness
+# Healthcheck probe verifying microservice responsiveness
 HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
-    CMD curl -f http://localhost:8501/_stcore/health || curl -f http://localhost:8000/healthz || exit 1
+    CMD curl -f http://localhost:${PORT}/healthz || curl -f http://localhost:8000/healthz || curl -f http://localhost:8501/_stcore/health || exit 1
 
-# Default startup command (can be overridden by docker-compose for api/workers)
-CMD ["python", "-m", "streamlit", "run", "app.py"]
+# Default startup command: Launch FastAPI microservice (with integrated React 19 SPA at root)
+# Dynamically binds to $PORT (7860 on Hugging Face Spaces, 10000 on Render, 8000 default)
+CMD ["sh", "-c", "uvicorn src.api.main:app --host 0.0.0.0 --port ${PORT}"]
