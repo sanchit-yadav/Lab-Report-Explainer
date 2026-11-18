@@ -15,12 +15,10 @@ venv/
 .env
 .env.local
 
-# Vector database storage
-chroma_db/
+# Vector database storage - only ignore user report DBs, not the pre-built RAG index
 *.sqlite
-*.sqlite3
-*.db
 data/*.db
+data/*.sqlite3
 
 # Test & coverage caches
 .pytest_cache/

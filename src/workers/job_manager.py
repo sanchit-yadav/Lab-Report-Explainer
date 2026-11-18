@@ -374,12 +374,10 @@ class JobManager:
         try:
             logger.info(f"Starting execution for job {job_id} (auto_confirm={auto_confirm})")
             record.update_progress(JobStatus.EXTRACTING, 15, "Extracting text and tables from document...")
-            loop = asyncio.get_running_loop()
 
             if not auto_confirm:
                 # Stage 1: Extraction & initial deterministic flagging only
-                extracted_report: Optional[LabReport] = await loop.run_in_executor(
-                    None,
+                extracted_report: Optional[LabReport] = await asyncio.to_thread(
                     self.pipeline.extractor.extract,
                     record.file_path,
                 )
@@ -404,11 +402,8 @@ class JobManager:
 
             # Auto-confirm mode: Full end-to-end execution
             record.update_progress(JobStatus.FLAGGING, 35, "Evaluating clinical reference ranges & panic values...")
-            record.update_progress(JobStatus.RAG_RETRIEVAL, 55, "Querying clinical guidelines via MedlinePlus RAG...")
-            record.update_progress(JobStatus.GENERATING, 75, "Generating bilingual explanations & safety checks...")
 
-            explanation: ReportExplanation = await loop.run_in_executor(
-                None,
+            explanation: ReportExplanation = await asyncio.to_thread(
                 self.pipeline.process_report,
                 record.file_path,
                 None,
@@ -416,8 +411,7 @@ class JobManager:
             )
 
             record.update_progress(JobStatus.GENERATING, 90, "Assembling Doctor Discussion Brief PDF...")
-            pdf_bytes = await loop.run_in_executor(
-                None,
+            pdf_bytes = await asyncio.to_thread(
                 generate_doctor_brief_pdf,
                 explanation,
                 "en",
@@ -426,8 +420,7 @@ class JobManager:
             # Cache the extracted LabReport with LOINC ontology for FHIR export
             extracted_report: Optional[LabReport] = None
             try:
-                extracted_report = await loop.run_in_executor(
-                    None,
+                extracted_report = await asyncio.to_thread(
                     self.pipeline.extractor.extract,
                     record.file_path,
                 )
@@ -483,21 +476,20 @@ class JobManager:
             record.patient_name = confirmed_report.patient_name
             record.total_tests = len(confirmed_report.tests)
 
-            loop = asyncio.get_running_loop()
+            # Show FLAGGING immediately so the UI knows work has started
             record.update_progress(JobStatus.FLAGGING, 50, "Evaluating clinical reference ranges & panic values...")
-            record.update_progress(JobStatus.RAG_RETRIEVAL, 65, "Querying clinical guidelines via MedlinePlus RAG...")
-            record.update_progress(JobStatus.GENERATING, 80, "Generating bilingual explanations & safety checks...")
 
-            explanation = await loop.run_in_executor(
-                None,
+            # Run explanation pipeline in a thread so the event loop stays free
+            # for status polling requests while this CPU/IO-bound work runs
+            record.update_progress(JobStatus.RAG_RETRIEVAL, 60, "Querying clinical guidelines via MedlinePlus RAG...")
+            explanation = await asyncio.to_thread(
                 self.pipeline.explain_lab_report,
                 confirmed_report,
                 explain_all,
             )
 
             record.update_progress(JobStatus.GENERATING, 92, "Assembling Doctor Discussion Brief PDF...")
-            pdf_bytes = await loop.run_in_executor(
-                None,
+            pdf_bytes = await asyncio.to_thread(
                 generate_doctor_brief_pdf,
                 explanation,
                 "en",

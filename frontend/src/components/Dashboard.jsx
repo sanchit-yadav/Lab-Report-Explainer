@@ -55,6 +55,8 @@ export function Dashboard({ user, client, onLogout }) {
   const [isAnsweringChat, setIsAnsweringChat] = useState(false)
 
   const pollingTimerRef = useRef(null)
+  // Incrementing this triggers the polling effect to restart (e.g. after HITL confirm)
+  const [pollingTrigger, setPollingTrigger] = useState(0)
 
   // Fetch report history on mount
   useEffect(() => {
@@ -109,7 +111,7 @@ export function Dashboard({ user, client, onLogout }) {
     return () => {
       if (pollingTimerRef.current) clearInterval(pollingTimerRef.current)
     }
-  }, [activeJobId])
+  }, [activeJobId, pollingTrigger])
 
   const loadExplanation = async (jobId) => {
     try {
@@ -183,6 +185,9 @@ export function Dashboard({ user, client, onLogout }) {
       await client.confirmReport(activeJobId, testsToSubmit, patientNameInput, explainAll)
       setJobStatus('flagging')
       setStatusMessage('Synthesizing clinical explanations...')
+      // Restart status polling — the polling useEffect only fires on activeJobId changes,
+      // so we bump pollingTrigger to re-subscribe after the HITL confirm step
+      setPollingTrigger(t => t + 1)
     } catch (err) {
       setUploadError(err.message || 'Failed to submit verified parameters.')
     } finally {
