@@ -67,6 +67,14 @@ def init_db() -> None:
 
     try:
         Base.metadata.create_all(bind=engine)
+        # Safe backward-compatible schema migration for new columns
+        with engine.connect() as conn:
+            from sqlalchemy import text
+            try:
+                conn.execute(text("ALTER TABLE reports ADD COLUMN current_step VARCHAR(500)"))
+                conn.commit()
+            except Exception:
+                pass  # Column already exists or table was freshly created with it
         logger.info(f"Database schema initialized successfully using engine: {engine.url.drivername}")
     except Exception as exc:
         logger.error(f"Failed to initialize database schema: {exc}")

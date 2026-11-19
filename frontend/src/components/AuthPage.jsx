@@ -216,6 +216,10 @@ export function AuthPage({ initialMode = 'login', onNavigate, onAuthSuccess, cli
             <button
               onClick={() => {
                 setError(null)
+                setEmail('')
+                setPassword('')
+                setConfirmPassword('')
+                setFullName('')
                 setIsLogin(!isLogin)
               }}
               className="ml-1.5 font-bold text-slate-900 hover:underline"

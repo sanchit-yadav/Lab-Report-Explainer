@@ -14,11 +14,7 @@ export default function App() {
   // Initial authentication & health check
   useEffect(() => {
     const initApp = async () => {
-      // 1. Check Backend Connectivity
-      const isOnline = await api.checkHealth()
-      setBackendOnline(isOnline)
-
-      // 2. Check Saved Token
+      // Restore saved session first — don't block on backend health check
       const token = localStorage.getItem('access_token')
       if (token) {
         try {
@@ -31,6 +27,9 @@ export default function App() {
         }
       }
       setLoadingInitial(false)
+
+      // Health check runs after session is restored (non-blocking)
+      api.checkHealth().then(setBackendOnline).catch(() => setBackendOnline(false))
     }
 
     initApp()

@@ -65,6 +65,7 @@ class Report(Base):
     file_size_bytes = Column(Integer, nullable=False)
     status = Column(String(50), default="queued", index=True, nullable=False)
     progress_pct = Column(Integer, default=0, nullable=False)
+    current_step = Column(String(500), nullable=True)
 
     # Extracted metadata
     patient_name = Column(String(255), nullable=True, index=True)

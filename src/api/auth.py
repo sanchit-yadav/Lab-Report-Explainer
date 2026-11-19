@@ -25,6 +25,7 @@ DEFAULT_DEV_JWT_SECRET = (
 JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", DEFAULT_DEV_JWT_SECRET)
 JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))  # Default 24 hours
+_BCRYPT_ROUNDS = int(os.environ.get("BCRYPT_ROUNDS", "12"))
 
 
 def validate_jwt_security() -> bool:
@@ -64,7 +65,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=F
 
 def hash_password(plain_password: str) -> str:
     """Hash a plaintext password using bcrypt with standard salt rounds."""
-    salt = bcrypt.gensalt(rounds=12)
+    salt = bcrypt.gensalt(rounds=_BCRYPT_ROUNDS)
     return bcrypt.hashpw(plain_password.encode("utf-8"), salt).decode("utf-8")
 
 

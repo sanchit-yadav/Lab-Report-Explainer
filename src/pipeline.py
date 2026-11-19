@@ -26,6 +26,28 @@ from src.privacy.deidentifier import PHIDeidentifier
 from src.rag.reranker import CrossEncoderReranker
 from src.rag.retriever import ChromaRetriever
 from src.security.audit import SecurityAuditLogger
+from src.stages import (
+    ExplainInput,
+    ExplainOutput,
+    ExplainStage,
+    ExtractionOutputItem,
+    ExtractValuesInput,
+    ExtractValuesOutput,
+    ExtractValuesStage,
+    OCRParseInput,
+    OCRParseOutput,
+    OCRParseStage,
+    OutputGuardInput,
+    OutputGuardOutput,
+    OutputGuardStage,
+    RetrieveInput,
+    RetrieveOutput,
+    RetrieveStage,
+    ValidateUploadInput,
+    ValidateUploadOutput,
+    ValidateUploadStage,
+    generate_request_id,
+)
 from src.tracing.langfuse_setup import get_tracer
 
 logger = logging.getLogger("pipeline")
@@ -51,6 +73,104 @@ class LabReportPipeline:
         self.lifestyle_engine = LifestyleEngine()
         self.deidentifier = PHIDeidentifier()
         self.audit_logger = SecurityAuditLogger.get_instance()
+
+        # Decoupled pipeline stage instances (Phase 1 Refactor)
+        self.stage_validate = ValidateUploadStage()
+        self.stage_ocr = OCRParseStage()
+        self.stage_extract = ExtractValuesStage()
+        self.stage_retrieve = RetrieveStage()
+        self.stage_explain = ExplainStage()
+        self.stage_output_guard = OutputGuardStage()
+
+    def run_stage_validate(self, file_bytes: bytes, filename: str, request_id: Optional[str] = None) -> ValidateUploadOutput:
+        """Execute Stage 1: Upload Validation & Security Sanitization."""
+        req_id = request_id or generate_request_id()
+        return self.stage_validate(ValidateUploadInput(file_bytes=file_bytes, filename=filename, request_id=req_id))
+
+    def run_stage_ocr(self, file_bytes: bytes, filename: str, request_id: Optional[str] = None) -> OCRParseOutput:
+        """Execute Stage 2: OCR & Layout Geometry Parsing."""
+        req_id = request_id or generate_request_id()
+        return self.stage_ocr(OCRParseInput(file_bytes=file_bytes, filename=filename, request_id=req_id))
+
+    def run_stage_extract(
+        self,
+        parsed_doc: OCRParseOutput,
+        raw_bytes: Optional[bytes] = None,
+        request_id: Optional[str] = None,
+    ) -> ExtractValuesOutput:
+        """Execute Stage 3: Biomarker Value Extraction with Deterministic Range Flagging."""
+        req_id = request_id or generate_request_id()
+        return self.stage_extract(ExtractValuesInput(parsed_doc=parsed_doc, raw_bytes=raw_bytes, request_id=req_id))
+
+    def run_stage_retrieve(self, queries: List[str], request_id: Optional[str] = None) -> RetrieveOutput:
+        """Execute Stage 4: Clinical Knowledge Retrieval & Cross-Encoder Reranking."""
+        req_id = request_id or generate_request_id()
+        return self.stage_retrieve(RetrieveInput(queries=queries, request_id=req_id))
+
+    def run_stage_explain(
+        self,
+        extraction: ExtractValuesOutput,
+        retrieved: RetrieveOutput,
+        request_id: Optional[str] = None,
+        explain_all: bool = False,
+    ) -> ExplainOutput:
+        """Execute Stage 5: Bilingual Clinical Explanation Synthesis."""
+        req_id = request_id or generate_request_id()
+        return self.stage_explain(
+            ExplainInput(
+                request_id=req_id,
+                extraction=extraction,
+                retrieved_knowledge=retrieved,
+                explain_all=explain_all,
+            )
+        )
+
+    def run_stage_guard(
+        self,
+        explanation: ExplainOutput,
+        extracted_items: List[ExtractionOutputItem],
+        request_id: Optional[str] = None,
+    ) -> OutputGuardOutput:
+        """Execute Stage 6: Layer 3 Output Guardrails & Numerical Verification."""
+        req_id = request_id or generate_request_id()
+        return self.stage_output_guard(
+            OutputGuardInput(
+                request_id=req_id,
+                explanation=explanation,
+                extracted_items=extracted_items,
+            )
+        )
+
+    def run_modular_pipeline(
+        self,
+        file_bytes: bytes,
+        filename: str,
+        request_id: Optional[str] = None,
+        explain_all: bool = False,
+    ) -> OutputGuardOutput:
+        """Execute all six stages sequentially in an independently verifiable chain."""
+        req_id = request_id or generate_request_id()
+
+        # Stage 1: Validate upload
+        val_out = self.run_stage_validate(file_bytes, filename, req_id)
+        if not val_out.is_valid:
+            raise ValueError(f"Upload validation failed: {val_out.error}")
+
+        # Stage 2: OCR parse
+        ocr_out = self.run_stage_ocr(val_out.sanitized_bytes, filename, req_id)
+
+        # Stage 3: Extract values with deterministic flags
+        ext_out = self.run_stage_extract(ocr_out, raw_bytes=val_out.sanitized_bytes, request_id=req_id)
+
+        # Stage 4: Knowledge retrieval
+        queries = [f"{item.test_name} {item.flag.value} lab test meaning" for item in ext_out.items]
+        ret_out = self.run_stage_retrieve(queries, req_id)
+
+        # Stage 5: Explain synthesis
+        exp_out = self.run_stage_explain(ext_out, ret_out, req_id, explain_all=explain_all)
+
+        # Stage 6: Output guardrails & numerical check
+        return self.run_stage_guard(exp_out, ext_out.items, req_id)
 
     def check_user_input(self, user_question: str) -> GuardrailResult:
         """Evaluate a user question against Layer 1 Input Guardrails."""
@@ -251,7 +371,7 @@ class LabReportPipeline:
             patient_age=p_age,
             patient_gender=p_gender,
             report_date=p_date,
-            lab_name=lab_names or "Consolidated Diagnostic Services",
+            lab_name=lab_names or self.config.default_lab_name or "",
             tests=merged_tests,
             extraction_method=f"batch_merge({len(reports)}_docs)",
         )

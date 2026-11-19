@@ -4,6 +4,23 @@
 
 const BASE_URL = (import.meta.env?.VITE_API_BASE_URL || '').replace(/\/$/, '')
 
+const DEFAULT_TIMEOUT_MS = 60000
+
+async function requestWithTimeout(endpoint, options = {}) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
+  try {
+    return await request(endpoint, { ...options, signal: controller.signal })
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      throw new APIError('Request timed out. The server is processing — please check status again in a moment.', 408)
+    }
+    throw err
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 export class APIError extends Error {
   constructor(message, status = 500, detail = null) {
     super(message)
@@ -117,7 +134,7 @@ export const api = {
   },
 
   async confirmReport(jobId, tests, patientName, explainAll = false) {
-    return await request(`/api/v1/reports/${jobId}/confirm`, {
+    return await requestWithTimeout(`/api/v1/reports/${jobId}/confirm`, {
       method: 'POST',
       body: JSON.stringify({
         tests,
@@ -136,7 +153,7 @@ export const api = {
   },
 
   async askQuestion(jobId, question, chatHistory = []) {
-    return await request(`/api/v1/reports/${jobId}/qa`, {
+    return await requestWithTimeout(`/api/v1/reports/${jobId}/qa`, {
       method: 'POST',
       body: JSON.stringify({
         question,
@@ -157,7 +174,8 @@ export const api = {
 
   async checkHealth() {
     try {
-      const res = await fetch('/healthz')
+      const url = BASE_URL ? `${BASE_URL}/healthz` : '/healthz'
+      const res = await fetch(url)
       return res.ok
     } catch {
       return false

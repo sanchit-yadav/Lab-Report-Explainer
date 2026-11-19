@@ -27,3 +27,5 @@ languages:
 tracing:
   enabled: true
   provider: "langfuse"
+
+default_lab_name: ""

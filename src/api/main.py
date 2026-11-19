@@ -63,9 +63,9 @@ upload_rate_limiter = SlidingWindowRateLimiter(times=30, seconds=60, name="repor
 UPLOAD_DIR = Path("data/uploads")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
-# 50MB file size ceiling
-MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024
-ALLOWED_EXTENSIONS = {".pdf", ".png", ".jpg", ".jpeg", ".webp"}
+# 50MB file size ceiling (overridable via MAX_FILE_SIZE_MB env var)
+MAX_FILE_SIZE_BYTES = int(os.environ.get("MAX_FILE_SIZE_MB", "50")) * 1024 * 1024
+ALLOWED_EXTENSIONS = set(os.environ.get("ALLOWED_EXTENSIONS", ".pdf,.png,.jpg,.jpeg,.webp").split(","))
 
 
 @asynccontextmanager
@@ -377,6 +377,12 @@ async def confirm_report(
             detail=f"Job '{job_id}' not found.",
         )
 
+    if not req.tests:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="At least one test parameter is required to confirm a report.",
+        )
+
     from src.extraction.schema import FlagStatus, LabReport, TestResult
 
     updated_tests = []
@@ -450,8 +456,8 @@ async def get_job_explanation(job_id: str) -> Dict[str, Any]:
 
     if record.status == JobStatus.FAILED:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Job failed during execution: {record.error}",
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Report processing failed: {record.error or 'Unknown error'}",
         )
 
     if record.status != JobStatus.READY or not record.explanation:

@@ -104,6 +104,7 @@ class JobRecord:
                         file_size_bytes=self.file_size_bytes,
                         status=self.status.value if hasattr(self.status, "value") else str(self.status),
                         progress_pct=self.progress_pct,
+                        current_step=self.current_step,
                         patient_name=self.patient_name,
                         error=self.error,
                     )
@@ -111,6 +112,7 @@ class JobRecord:
                 else:
                     db_report.status = self.status.value if hasattr(self.status, "value") else str(self.status)
                     db_report.progress_pct = self.progress_pct
+                    db_report.current_step = self.current_step
                     db_report.patient_name = self.patient_name
                     db_report.error = self.error
 
@@ -224,6 +226,8 @@ class JobManager:
             rec.status = JobStatus.READY if str(db_report.status).lower() == "ready" else JobStatus.QUEUED
 
         rec.progress_pct = db_report.progress_pct or (100 if rec.status == JobStatus.READY else 0)
+        if getattr(db_report, "current_step", None):
+            rec.current_step = db_report.current_step
         rec.patient_name = db_report.patient_name
         rec.error = db_report.error
         rec.created_at = db_report.created_at.isoformat() if db_report.created_at else datetime.now(timezone.utc).isoformat()
@@ -381,15 +385,18 @@ class JobManager:
                     self.pipeline.extractor.extract,
                     record.file_path,
                 )
-                if extracted_report:
-                    extracted_report = LOINCMapper.enrich_report(extracted_report)
-                    extracted_report = self.pipeline.flagger.flag_report(extracted_report)
-                    record.extracted_report = extracted_report
-                    record.patient_name = extracted_report.patient_name
-                    record.total_tests = len(extracted_report.tests)
-                    record.flagged_count = sum(
-                        1 for t in extracted_report.tests if t.flag.value not in ("normal", "unknown")
-                    )
+                if not extracted_report:
+                    record.mark_failed("Document extraction returned no readable data. The file may be corrupt or empty.")
+                    return
+
+                extracted_report = LOINCMapper.enrich_report(extracted_report)
+                extracted_report = self.pipeline.flagger.flag_report(extracted_report)
+                record.extracted_report = extracted_report
+                record.patient_name = extracted_report.patient_name
+                record.total_tests = len(extracted_report.tests)
+                record.flagged_count = sum(
+                    1 for t in extracted_report.tests if t.flag.value not in ("normal", "unknown")
+                )
 
                 record.update_progress(
                     JobStatus.REVIEW_NEEDED,

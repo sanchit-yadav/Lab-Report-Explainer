@@ -82,9 +82,11 @@ export function Dashboard({ user, client, onLogout }) {
   useEffect(() => {
     if (!activeJobId) return
 
+    let consecutiveErrors = 0
     const poll = async () => {
       try {
         const res = await client.getJobStatus(activeJobId)
+        consecutiveErrors = 0
         setJobStatus(res.status)
         setProgressPct(res.progress_pct || 15)
         setStatusMessage(res.current_step || 'Processing report...')
@@ -101,7 +103,11 @@ export function Dashboard({ user, client, onLogout }) {
           setUploadError(res.error || 'Pipeline execution failed.')
         }
       } catch (err) {
-        // error during polling
+        consecutiveErrors++
+        if (consecutiveErrors >= 5) {
+          clearInterval(pollingTimerRef.current)
+          setUploadError('Lost connection to server. Please refresh and try again.')
+        }
       }
     }
 
@@ -179,9 +185,13 @@ export function Dashboard({ user, client, onLogout }) {
   }
 
   const handleConfirmReview = async (skipEditing = false) => {
+    const testsToSubmit = skipEditing ? extractedData?.tests : editableTests
+    if (!testsToSubmit || testsToSubmit.length === 0) {
+      setUploadError('No test parameters to confirm. Please check the extracted report.')
+      return
+    }
     setIsConfirming(true)
     try {
-      const testsToSubmit = skipEditing ? extractedData.tests : editableTests
       await client.confirmReport(activeJobId, testsToSubmit, patientNameInput, explainAll)
       setJobStatus('flagging')
       setStatusMessage('Synthesizing clinical explanations...')

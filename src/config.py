@@ -265,6 +265,9 @@ class Settings(BaseSettings):
     eval: EvalConfig
     prompts: Prompts
 
+    # Pipeline defaults
+    default_lab_name: str = Field(default="")
+
     # Paths
     project_root: Path = PROJECT_ROOT
     config_dir: Path = CONFIG_DIR
@@ -323,4 +326,5 @@ def get_config() -> Settings:
         guardrails=GuardrailsConfig(**guardrails_data),
         eval=EvalConfig(**eval_data),
         prompts=prompts,
+        default_lab_name=app_data.get("default_lab_name", ""),
     )
