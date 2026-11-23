@@ -52,7 +52,8 @@ def create_minimal_pdf_bytes(text_lines: List[str]) -> bytes:
 
 def test_validate_upload_valid_pdf():
     stage = ValidateUploadStage()
-    pdf_bytes = b"%PDF-1.4\n1 0 obj<<>>endobj\nxref\n0 1\n0000000000 65535 f \ntrailer<<>>startxref\n9\n%%EOF"
+    sample_pdf = Path("data/sample_reports/srl_lipid_panel.pdf")
+    pdf_bytes = sample_pdf.read_bytes()
     res = stage(ValidateUploadInput(file_bytes=pdf_bytes, filename="lab_report.pdf"))
     assert res.is_valid is True
     assert res.mime_type == "application/pdf"

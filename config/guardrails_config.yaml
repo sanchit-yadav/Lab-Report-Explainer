@@ -92,15 +92,19 @@ output_guard:
   enabled: true
 
   unsafe_patterns:
-    - "(?i)you have [a-z\\s]+(?:disease|syndrome|disorder|infection|cancer|deficiency)"
+    - "(?i)(?:you|they|patient)\\s+(?:definitely\\s+)?have\\s+[a-z\\s\\d]+(?:disease|syndrome|disorder|infection|cancer|deficiency|leukemia|cirrhosis|diabetes|lymphoma|atherosclerosis)"
     - "(?i)you suffer from"
     - "(?i)you are diagnosed with"
+    - "(?i)i diagnose (?:you )?with"
+    - "(?i)diagnose (?:you|me) with"
     - "(?i)indicates that you have"
-    - "(?i)take \\d+\\s*(?:mg|ml|tablet|tablets|capsule|capsules)"
+    - "(?i)take \\d+\\s*(?:mg|ml|tablet|tablets|capsule|capsules|units)"
     - "(?i)start taking"
     - "(?i)stop taking"
     - "(?i)i recommend (?:taking|using|starting)"
     - "(?i)prescribe"
+    - "(?i)confirm that .* (?:means|have)"
+    - "(?i)without urgent medical intervention"
 
   drug_list_file: "config/drug_names.txt"
 

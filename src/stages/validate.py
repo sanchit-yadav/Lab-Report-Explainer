@@ -122,22 +122,37 @@ class ValidateUploadStage:
         sanitized_bytes = raw_bytes
 
         if detected_mime == "application/pdf":
-            try:
-                import pypdf
-                reader = pypdf.PdfReader(io.BytesIO(raw_bytes))
-                page_count = len(reader.pages)
+            # 1. Structural EOF termination check
+            if b"%%EOF" not in raw_bytes and b"%EOF" not in raw_bytes:
+                logger.warning("Corrupt or truncated PDF missing EOF marker", inp.request_id)
+                return ValidateUploadOutput(
+                    request_id=inp.request_id,
+                    is_valid=False,
+                    file_hash=file_hash,
+                    filename=inp.filename,
+                    file_size_bytes=file_size,
+                    mime_type=detected_mime,
+                    sanitized_bytes=b"",
+                    error="Corrupted or truncated PDF structure: missing %%EOF marker.",
+                )
 
-                # Strip PDF metadata to sanitize document
-                writer = pypdf.PdfWriter()
-                for page in reader.pages:
-                    writer.add_page(page)
-                # Omit original metadata dictionary
-                writer.add_metadata({})
-                out_buffer = io.BytesIO()
-                writer.write(out_buffer)
-                sanitized_bytes = out_buffer.getvalue() or raw_bytes
-            except Exception:
-                # Fallback to original bytes if metadata stripping encountered warning
+            # 2. Page count determination & parser structure validation
+            try:
+                import pdfplumber
+                with pdfplumber.open(io.BytesIO(raw_bytes)) as pdf:
+                    page_count = len(pdf.pages)
+            except Exception as pdf_err:
+                logger.warning("Corrupt PDF structure rejected", inp.request_id, {"error": str(pdf_err)})
+                return ValidateUploadOutput(
+                    request_id=inp.request_id,
+                    is_valid=False,
+                    file_hash=file_hash,
+                    filename=inp.filename,
+                    file_size_bytes=file_size,
+                    mime_type=detected_mime,
+                    sanitized_bytes=b"",
+                    error=f"Corrupted or malformed PDF structure: {pdf_err}",
+                )
                 sanitized_bytes = raw_bytes
 
         elapsed_ms = (time.perf_counter() - t0) * 1000

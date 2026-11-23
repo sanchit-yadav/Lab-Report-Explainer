@@ -25,7 +25,7 @@ class ValidateUploadInput(BaseModel):
     file_bytes: bytes
     filename: str
     request_id: str = Field(default_factory=generate_request_id)
-    max_file_size_bytes: int = 50 * 1024 * 1024
+    max_file_size_bytes: int = 25 * 1024 * 1024
 
 
 class ValidateUploadOutput(BaseModel):
