@@ -1,0 +1,58 @@
+{
+  "case_id": "core_024",
+  "patient_name": "Alex Mercer",
+  "patient_age": "42",
+  "patient_gender": "Male",
+  "lab_name": "AIIMS Central Diagnostic Labs",
+  "layout": "aiims",
+  "variation": "clean_pdf",
+  "unit_system": "mmol_L",
+  "report_date": "2026-11-15",
+  "tests": [
+    {
+      "test_name": "Triglycerides",
+      "value": 1.83,
+      "unit": "mmol/L",
+      "ref_low": 0.56,
+      "ref_high": 1.7,
+      "flag": "high",
+      "category": "Lipid"
+    },
+    {
+      "test_name": "Blood Urea Nitrogen",
+      "value": 6.5,
+      "unit": "mmol/L",
+      "ref_low": 2.5,
+      "ref_high": 7.1,
+      "flag": "normal",
+      "category": "Renal"
+    },
+    {
+      "test_name": "Serum Creatinine",
+      "value": 503.0,
+      "unit": "umol/L",
+      "ref_low": 62.0,
+      "ref_high": 115.0,
+      "flag": "critical_high",
+      "category": "Renal"
+    },
+    {
+      "test_name": "HDL Cholesterol",
+      "value": 0.33,
+      "unit": "mmol/L",
+      "ref_low": 1.0,
+      "ref_high": 1.55,
+      "flag": "critical_low",
+      "category": "Lipid"
+    },
+    {
+      "test_name": "Hemoglobin",
+      "value": 157.6,
+      "unit": "g/L",
+      "ref_low": 130.0,
+      "ref_high": 170.0,
+      "flag": "normal",
+      "category": "Hematology"
+    }
+  ]
+}

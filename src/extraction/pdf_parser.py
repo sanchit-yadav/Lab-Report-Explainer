@@ -126,67 +126,8 @@ class PDFPlumberExtractor:
                     continue
 
                 for table in tables:
-                    if not table or len(table) < 2:
-                        continue
-
-                    header_idx = -1
-                    col_map = {}
-
-                    # Locate the header row — scan first 6 rows (was 3)
-                    for r_idx, row in enumerate(table[:6]):
-                        candidate_map = identify_columns(row)
-                        if "test_name" in candidate_map and "value" in candidate_map:
-                            header_idx = r_idx
-                            col_map = candidate_map
-                            break
-
-                    if header_idx == -1:
-                        continue
-
-                    # Process table rows following the header
-                    for row in table[header_idx + 1:]:
-                        if not row or all(c is None or clean_text(c) == "" for c in row):
-                            continue
-
-                        # Extract test name
-                        t_col = col_map.get("test_name", 0)
-                        raw_test_name = clean_text(row[t_col]) if t_col < len(row) else ""
-                        if not raw_test_name or raw_test_name.lower().startswith("patient name"):
-                            continue
-
-                        # Extract value
-                        v_col = col_map.get("value", 1)
-                        raw_val = clean_text(row[v_col]) if v_col < len(row) else ""
-                        if not raw_val:
-                            continue
-
-                        # Extract unit
-                        raw_unit = ""
-                        if "unit" in col_map and col_map["unit"] < len(row):
-                            raw_unit = clean_text(row[col_map["unit"]])
-
-                        # Extract reference range
-                        raw_range = ""
-                        if "ref_range" in col_map and col_map["ref_range"] < len(row):
-                            raw_range = clean_text(row[col_map["ref_range"]])
-
-                        # Normalization
-                        numeric_val = parse_numeric_value(raw_val)
-                        norm_unit = normalize_unit(raw_unit)
-                        ref_low, ref_high = parse_reference_range(raw_range)
-
-                        tests.append(
-                            TestResult(
-                                test_name=raw_test_name,
-                                value=numeric_val,
-                                raw_value=raw_val,
-                                unit=norm_unit,
-                                ref_low=ref_low,
-                                ref_high=ref_high,
-                                ref_raw=raw_range,
-                                extraction_tier=self.tier_id,
-                            )
-                        )
+                    parsed_tests = self.parse_table_rows(table)
+                    tests.extend(parsed_tests)
 
             used_text_fallback = False
             # Tier 1.5 fallback: text-line extraction if table parse yielded nothing
@@ -206,6 +147,80 @@ class PDFPlumberExtractor:
             tests=tests,
             extraction_method="pdfplumber_text_fallback" if used_text_fallback else "pdfplumber",
         )
+
+    def parse_table_rows(self, table: List[List[str]]) -> List[TestResult]:
+        """Parse structured 2D table matrix into validated TestResult objects."""
+        results: List[TestResult] = []
+        if not table or len(table) < 2:
+            return results
+
+        header_idx = -1
+        col_map = {}
+
+        # Locate the header row — scan first 6 rows
+        for r_idx, row in enumerate(table[:6]):
+            candidate_map = identify_columns(row)
+            if "test_name" in candidate_map and "value" in candidate_map:
+                header_idx = r_idx
+                col_map = candidate_map
+                break
+
+        if header_idx == -1:
+            return results
+
+        # Process table rows following the header
+        for row in table[header_idx + 1:]:
+            if not row or all(c is None or clean_text(c) == "" for c in row):
+                continue
+
+            # Extract test name
+            t_col = col_map.get("test_name", 0)
+            raw_test_name = clean_text(row[t_col]) if t_col < len(row) else ""
+            if not raw_test_name or raw_test_name.lower().startswith("patient name"):
+                continue
+
+            # Extract value (supporting single result column or dual in-range/out-of-range columns)
+            raw_val = ""
+            if "in_range_value" in col_map or "out_range_value" in col_map:
+                in_col = col_map.get("in_range_value")
+                out_col = col_map.get("out_range_value")
+                val_in = clean_text(row[in_col]) if in_col is not None and in_col < len(row) else ""
+                val_out = clean_text(row[out_col]) if out_col is not None and out_col < len(row) else ""
+                raw_val = val_out or val_in
+            else:
+                v_col = col_map.get("value", 1)
+                raw_val = clean_text(row[v_col]) if v_col < len(row) else ""
+            if not raw_val:
+                continue
+
+            # Extract unit
+            raw_unit = ""
+            if "unit" in col_map and col_map["unit"] < len(row):
+                raw_unit = clean_text(row[col_map["unit"]])
+
+            # Extract reference range
+            raw_range = ""
+            if "ref_range" in col_map and col_map["ref_range"] < len(row):
+                raw_range = clean_text(row[col_map["ref_range"]])
+
+            # Normalization
+            numeric_val = parse_numeric_value(raw_val)
+            norm_unit = normalize_unit(raw_unit)
+            ref_low, ref_high = parse_reference_range(raw_range)
+
+            results.append(
+                TestResult(
+                    test_name=raw_test_name,
+                    value=numeric_val,
+                    raw_value=raw_val,
+                    unit=norm_unit,
+                    ref_low=ref_low,
+                    ref_high=ref_high,
+                    ref_raw=raw_range,
+                    extraction_tier=self.tier_id,
+                )
+            )
+        return results
 
     def _extract_from_text_lines(self, lines: List[str]) -> List[TestResult]:
         """Tier 1.5: Extract test data from raw text lines when no table structure found.

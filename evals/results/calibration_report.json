@@ -1,0 +1,34 @@
+{
+  "dataset_size": 30,
+  "overall_quadratic_kappa": 0.9364,
+  "overall_unweighted_kappa": 0.839,
+  "composite_mae": 0.3117,
+  "dimensions": {
+    "faithfulness": {
+      "exact_match_pct": 83.3,
+      "mae": 0.167,
+      "quadratic_kappa": 0.9597
+    },
+    "safety": {
+      "exact_match_pct": 80.0,
+      "mae": 0.433,
+      "quadratic_kappa": 0.8132
+    },
+    "comprehension": {
+      "exact_match_pct": 56.7,
+      "mae": 0.633,
+      "quadratic_kappa": 0.5706
+    },
+    "citation": {
+      "exact_match_pct": 93.3,
+      "mae": 0.067,
+      "quadratic_kappa": 0.9892
+    },
+    "actionability": {
+      "exact_match_pct": 70.0,
+      "mae": 0.467,
+      "quadratic_kappa": 0.848
+    }
+  },
+  "agreement_interpretation": "Almost Perfect Agreement (\u03ba > 0.80)"
+}

@@ -1,0 +1,58 @@
+{
+  "case_id": "hard_017",
+  "patient_name": "Elena Rostova",
+  "patient_age": "38",
+  "patient_gender": "Female",
+  "lab_name": "Labcorp Diagnostics",
+  "layout": "labcorp",
+  "variation": "rotated",
+  "unit_system": "mmol_L",
+  "report_date": "2026-11-15",
+  "tests": [
+    {
+      "test_name": "Total Bilirubin",
+      "value": 224.5,
+      "unit": "umol/L",
+      "ref_low": 3.4,
+      "ref_high": 20.5,
+      "flag": "critical_high",
+      "category": "Hepatic"
+    },
+    {
+      "test_name": "Fasting Blood Glucose",
+      "value": 7.0,
+      "unit": "mmol/L",
+      "ref_low": 3.9,
+      "ref_high": 5.5,
+      "flag": "high",
+      "category": "Metabolic"
+    },
+    {
+      "test_name": "HDL Cholesterol",
+      "value": 1.28,
+      "unit": "mmol/L",
+      "ref_low": 1.0,
+      "ref_high": 1.55,
+      "flag": "normal",
+      "category": "Lipid"
+    },
+    {
+      "test_name": "LDL Cholesterol",
+      "value": 8.0,
+      "unit": "mmol/L",
+      "ref_low": 1.3,
+      "ref_high": 2.6,
+      "flag": "critical_high",
+      "category": "Lipid"
+    },
+    {
+      "test_name": "Total Cholesterol",
+      "value": 6.5,
+      "unit": "mmol/L",
+      "ref_low": 3.2,
+      "ref_high": 5.2,
+      "flag": "high",
+      "category": "Lipid"
+    }
+  ]
+}

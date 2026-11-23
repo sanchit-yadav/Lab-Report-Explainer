@@ -21,72 +21,91 @@ from src.flagging.panic_values import PanicAlert
 logger = logging.getLogger("generator")
 
 # Verified clinical analyte knowledge base for concise offline interpretation
+# Verified clinical analyte knowledge base for clear, patient-accessible interpretation
 ANALYTE_KNOWLEDGE = {
     "cholesterol": (
-        "Total Cholesterol evaluates the cumulative circulating lipid and lipoprotein particles in your bloodstream.",
-        "कुल कोलेस्ट्रॉल आपके रक्तप्रवाह में मौजूद समग्र लिपिड और लिपोप्रोटीन कणों की मात्रा को मापता है।",
-        "Elevated levels reflect higher circulating lipid density associated with arterial lipid deposition.",
-        "बढ़े हुए स्तर रक्त वाहिकाओं में वसा के जमाव और परिसंचरण संबंधी जोखिम से जुड़े होते हैं।",
+        "Total Cholesterol measures the overall fats in your blood.",
+        "कुल कोलेस्ट्रॉल आपके रक्त में समग्र वसा की मात्रा को मापता है।",
+        "Higher levels can build up in blood vessels. Your doctor can help you review diet and heart wellness.",
+        "उच्च स्तर रक्त वाहिकाओं में वसा जमाव से जुड़े हो सकते हैं। अपने डॉक्टर से आहार पर चर्चा करें।",
     ),
     "triglyceride": (
-        "Triglycerides evaluate the primary chemical form of circulating fatty acids stored in body fat.",
-        "ट्राइग्लिसराइड्स शरीर में संचित वसा और रक्त में मौजूद मुख्य वसायुक्त अम्लों के स्तर का मूल्यांकन करते हैं।",
-        "Elevated levels correlate with dietary lipid intake, metabolic regulation, and cardiovascular risk factors.",
-        "उच्च स्तर अक्सर आहार वसा, चयापचय नियमन और हृदय संबंधी जोखिम कारकों से जुड़े होते हैं।",
+        "Triglycerides measure the main type of fat stored in your body.",
+        "ट्राइग्लिसराइड्स शरीर में संचित मुख्य वसा के स्तर को मापते हैं।",
+        "Higher levels often relate to meals and exercise. Your doctor can suggest healthy lifestyle steps.",
+        "उच्च स्तर अक्सर खान-पान और शारीरिक गतिविधि से जुड़े होते हैं।",
     ),
     "hdl": (
-        "HDL (High-Density Lipoprotein) measures the 'protective' cholesterol that transports excess lipids from tissues back to the liver.",
-        "एचडीएल सुरक्षात्मक कोलेस्ट्रॉल है जो अतिरिक्त वसा को ऊतकों से वापस यकृत में स्थानांतरित करने का कार्य करता है।",
-        "Higher levels are physiologically desirable; reduced concentrations suggest diminished reverse lipid clearance.",
-        "उचित स्तर सुरक्षात्मक माने जाते हैं; कम स्तर ऊतकों से वसा निकासी में कमी का संकेत दे सकते हैं।",
+        "HDL is called protective cholesterol. It helps clear extra fat from your blood.",
+        "एचडीएल सुरक्षात्मक कोलेस्ट्रॉल है जो रक्त से अतिरिक्त वसा हटाने में मदद करता है।",
+        "Higher numbers are healthy and help protect your heart.",
+        "उच्च स्तर हृदय स्वास्थ्य के लिए लाभकारी और सुरक्षात्मक माने जाते हैं।",
     ),
     "ldl": (
-        "LDL (Low-Density Lipoprotein) measures circulating particles that carry cholesterol directly to peripheral tissues and arteries.",
-        "एलडीएल रक्तप्रवाह में वसा कणों को ऊतकों और धमनियों तक ले जाने का कार्य करता है।",
-        "Elevated levels indicate higher availability of circulating lipid particles prone to vascular deposition.",
-        "उच्च स्तर धमनियों की दीवारों पर लिपिड संचय की संभावना को बढ़ाते हैं।",
+        "LDL carries cholesterol to your body tissues.",
+        "एलडीएल रक्तप्रवाह में वसा कणों को शरीर के ऊतकों तक पहुंचाता है।",
+        "Higher levels can build up in artery walls. Your doctor can advise on heart wellness.",
+        "उच्च स्तर धमनियों में वसा जमाव की संभावना को बढ़ा सकते हैं।",
     ),
     "hemoglobin": (
-        "Hemoglobin is the iron-rich protein in red blood cells that transports oxygen from your lungs to tissues throughout your body.",
-        "हीमोग्लोबिन लाल रक्त कोशिकाओं में मौजूद वह प्रोटीन है जो फेफड़ों से शरीर के सभी अंगों तक ऑक्सीजन पहुंचाता है।",
-        "Deviations reflect alterations in cellular oxygen-carrying capacity and red blood cell production.",
-        "असामान्य स्तर शरीर के ऊतकों तक ऑक्सीजन पहुंचाने की क्षमता में कमी या बदलाव को दर्शाते हैं।",
+        "Hemoglobin is the protein in red blood cells that carries oxygen to your whole body.",
+        "हीमोग्लोबिन लाल रक्त कोशिकाओं में मौजूद प्रोटीन है जो पूरे शरीर में ऑक्सीजन पहुंचाता है।",
+        "Values outside normal limits affect how much oxygen your organs receive.",
+        "असामान्य स्तर शरीर के अंगों तक ऑक्सीजन पहुंचाने की क्षमता में बदलाव को दर्शाते हैं।",
     ),
     "glucose": (
-        "Blood Glucose measures the concentration of simple sugar circulating in your blood, the primary cellular energy source.",
-        "ब्लड ग्लूकोज रक्त में मौजूद शर्करा की मात्रा को मापता है, जो शरीर की कोशिकाओं का मुख्य ऊर्जा स्रोत है।",
-        "Values outside standard intervals reflect altered cellular glucose uptake and metabolic regulation.",
-        "सामान्य सीमा से बाहर परिणाम यह दर्शाते हैं कि शरीर कोशिकाओं में ग्लूकोज को कितनी कुशलता से नियंत्रित कर रहा है।",
+        "Blood Glucose measures the sugar in your blood, which gives your cells energy.",
+        "ब्लड ग्लूकोज रक्त में शर्करा की मात्रा को मापता है, जो कोशिकाओं को ऊर्जा देती है।",
+        "Values outside the normal range show how your body balances daily energy.",
+        "सामान्य सीमा से बाहर परिणाम यह दर्शाते हैं कि शरीर ऊर्जा संतुलन को कैसे नियंत्रित कर रहा है।",
     ),
     "creatinine": (
-        "Creatinine is a normal metabolic byproduct of muscle activity that is filtered continuously from blood by healthy kidneys.",
-        "क्रिएटिनिन मांसपेशियों की सामान्य क्रियाशीलता का उप-उत्पाद है जिसे स्वस्थ गुर्दे रक्त से लगातार छानते हैं।",
-        "Deviations from standard limits provide a direct indicator of renal filtration efficiency.",
-        "सीमा से बाहर परिणाम यह दर्शाते हैं कि गुर्दे रक्त को साफ करने और अपशिष्ट निकालने में कितने सक्षम हैं।",
+        "Creatinine measures natural muscle waste that healthy kidneys filter from blood.",
+        "क्रिएटिनिन मांसपेशियों का प्राकृतिक अपशिष्ट है जिसे स्वस्थ गुर्दे रक्त से छानते हैं।",
+        "Values outside normal limits show how well your kidneys are filtering your blood.",
+        "असामान्य परिणाम यह दर्शाते हैं कि गुर्दे अपशिष्ट साफ करने में कितने कुशल हैं।",
     ),
     "platelet": (
-        "Platelets are specialized cell fragments essential for normal blood clotting and vascular repair.",
-        "प्लेटलेट्स रक्त के थक्के जमने और रक्त वाहिकाओं की मरम्मत के लिए आवश्यक कोशिका अंश हैं।",
-        "Out-of-range counts reflect changes in bone marrow production, consumption, or immune clearance.",
-        "असामान्य संख्या प्लेटलेट उत्पादन, उपयोग या प्रतिरक्षा निकासी में परिवर्तन का संकेत देती है।",
+        "Platelets are tiny blood cells that help your blood clot and stop bleeding.",
+        "प्लेटलेट्स रक्त की छोटी कोशिकाएं हैं जो रक्त का थक्का बनाने और रक्तस्राव रोकने में मदद करती हैं।",
+        "Counts outside the normal range affect how quickly cuts and bruises heal.",
+        "असामान्य संख्या चोट लगने पर रक्त के थक्के बनने की गति को प्रभावित कर सकती है।",
     ),
     "alt": (
-        "ALT (Alanine Aminotransferase) is an intracellular enzyme found predominantly in liver cells.",
-        "एएलटी (एसजीपीटी) मुख्य रूप से यकृत की कोशिकाओं में पाया जाने वाला एक महत्वपूर्ण एंजाइम है।",
-        "Elevated levels indicate increased cellular leakage into the bloodstream, reflecting hepatic physiological stress.",
-        "बढ़े हुए स्तर यकृत कोशिकाओं से रक्त में एंजाइम के रिसाव और तनाव को दर्शाते हैं।",
+        "ALT is an enzyme found mainly inside your liver cells.",
+        "एएलटी (एसजीपीटी) मुख्य रूप से यकृत की कोशिकाओं में पाया जाने वाला एंजाइम है।",
+        "Higher levels show that liver cells may be facing temporary stress or irritation.",
+        "बढ़े हुए स्तर यह दर्शाते हैं कि यकृत कोशिकाएं अस्थायी तनाव का सामना कर सकती हैं।",
     ),
     "ast": (
-        "AST (Aspartate Aminotransferase) is an enzyme found in liver, heart, and muscle tissue supporting amino acid metabolism.",
-        "एएसटी (एसजीओटी) यकृत, हृदय और मांसपेशियों के ऊतकों में पाया जाने वाला आवश्यक एंजाइम है।",
-        "Changes in circulating activity reflect cellular turnover in metabolically active organ tissues.",
-        "रक्त में इसका स्तर यकृत और अन्य सक्रिय अंगों में कोशिकीय बदलावों को दर्शाता है।",
+        "AST is an enzyme found in liver and muscle cells.",
+        "एएसटी (एसजीओटी) यकृत और मांसपेशियों की कोशिकाओं में पाया जाने वाला एंजाइम है।",
+        "Higher levels can happen with liver stress or after heavy muscle exercise.",
+        "बढ़े हुए स्तर यकृत तनाव या भारी व्यायाम के बाद भी देखे जा सकते हैं।",
     ),
     "tsh": (
-        "TSH (Thyroid Stimulating Hormone) is produced by the pituitary gland to regulate thyroid hormone synthesis.",
-        "टीएसएच पिट्यूटरी ग्रंथि द्वारा निर्मित हार्मोन है जो थायरॉइड ग्रंथि के कार्य को नियंत्रित करता है।",
-        "Deviations from reference ranges reflect pituitary feedback regulation of systemic metabolic rate.",
-        "असामान्य स्तर शरीर की चयापचय दर और थायरॉइड संतुलन में बदलाव का संकेत देते हैं।",
+        "TSH is a hormone made by your brain to help guide your thyroid gland.",
+        "टीएसएच मस्तिष्क द्वारा निर्मित हार्मोन है जो थायरॉइड ग्रंथि को नियंत्रित करता है।",
+        "Values outside the normal range show how your body is setting its energy pace.",
+        "असामान्य स्तर शरीर की ऊर्जा गति और चयापचय संतुलन में बदलाव का संकेत देते हैं।",
+    ),
+    "alkaline": (
+        "Alkaline Phosphatase is an enzyme found in your liver and bones.",
+        "अल्केलाइन फॉस्फेटेस यकृत और हड्डियों में पाया जाने वाला एंजाइम है।",
+        "Higher levels can relate to bone growth, healing, or liver bile flow.",
+        "बढ़े हुए स्तर हड्डियों के विकास या पित्त प्रवाह से संबंधित हो सकते हैं।",
+    ),
+    "bun": (
+        "Blood Urea Nitrogen measures waste from protein that your kidneys remove.",
+        "ब्लड यूरिया नाइट्रोजन प्रोटीन अपशिष्ट को मापता है जिसे गुर्दे बाहर निकालते हैं।",
+        "Higher levels often relate to low fluid intake, high protein, or kidney filtering.",
+        "उच्च स्तर अक्सर कम पानी पीने या गुर्दे की छानने की गति से जुड़े होते हैं।",
+    ),
+    "bilirubin": (
+        "Bilirubin is a natural yellow substance made when old red blood cells break down.",
+        "बिलीरुबिन एक पीला पदार्थ है जो पुरानी लाल रक्त कोशिकाओं के टूटने से बनता है।",
+        "Higher levels can cause yellowing of eyes and show how bile flows through the liver.",
+        "उच्च स्तर आंखों में पीलापन ला सकते हैं और यकृत के पित्त प्रवाह को दर्शाते हैं।",
     ),
 }
 
@@ -124,10 +143,10 @@ class ExplanationGenerator:
             finding_en = f"Your observed result is {val_str}, categorized as {flag_str.upper()} against the reference range ({ref_str}). {finding_detail_en}"
             finding_hi = f"आपका परिणाम {val_str} है, जो संदर्भ सीमा ({ref_str}) के अनुसार {flag_str.upper()} की श्रेणी में आता है। {finding_detail_hi}"
         else:
-            purpose_en = f"{test.test_name} is a clinical biomarker used to assess specific physiological pathways and metabolic status."
-            purpose_hi = f"{test.test_name} एक नैदानिक बायोमार्कर है जो विशिष्ट शारीरिक कार्यप्रणाली और संतुलन का मूल्यांकन करता है।"
-            finding_en = f"Your observed result is {val_str}, categorized as {flag_str.upper()} relative to standard reference limits ({ref_str}). Results outside standard intervals warrant review in the context of your overall clinical history."
-            finding_hi = f"आपका परिणाम {val_str} है, जो संदर्भ सीमा ({ref_str}) के अनुसार {flag_str.upper()} की श्रेणी में आता है। मानक सीमा से बाहर परिणाम आपके समग्र स्वास्थ्य संदर्भ में समीक्षा की आवश्यकता दर्शाते हैं।"
+            purpose_en = f"{test.test_name} measures a health indicator in your blood."
+            purpose_hi = f"{test.test_name} आपके रक्त में एक महत्वपूर्ण स्वास्थ्य संकेतक को मापता है।"
+            finding_en = f"Your result is {val_str}, noted as {flag_str.upper()} compared to the reference range ({ref_str}). Please discuss this finding with your physician."
+            finding_hi = f"आपका परिणाम {val_str} है, जो संदर्भ सीमा ({ref_str}) के अनुसार {flag_str.upper()} की श्रेणी में आता है। कृपया अपने चिकित्सक से चर्चा करें।"
 
         summary_en = (
             f"• What It Measures: {purpose_en}\n"

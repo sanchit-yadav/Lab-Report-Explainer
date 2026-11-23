@@ -1,0 +1,67 @@
+{
+  "case_id": "core_001",
+  "patient_name": "David Okafor",
+  "patient_age": "63",
+  "patient_gender": "Male",
+  "lab_name": "Quest Diagnostics",
+  "layout": "quest",
+  "variation": "clean_pdf",
+  "unit_system": "mg_dL",
+  "report_date": "2026-11-15",
+  "tests": [
+    {
+      "test_name": "Alkaline Phosphatase",
+      "value": 162.9,
+      "unit": "U/L",
+      "ref_low": 44.0,
+      "ref_high": 147.0,
+      "flag": "high",
+      "category": "Hepatic"
+    },
+    {
+      "test_name": "Hemoglobin",
+      "value": 22.6,
+      "unit": "g/dL",
+      "ref_low": 13.0,
+      "ref_high": 17.0,
+      "flag": "critical_high",
+      "category": "Hematology"
+    },
+    {
+      "test_name": "Triglycerides",
+      "value": 184.3,
+      "unit": "mg/dL",
+      "ref_low": 50.0,
+      "ref_high": 150.0,
+      "flag": "high",
+      "category": "Lipid"
+    },
+    {
+      "test_name": "Blood Urea Nitrogen",
+      "value": 4.7,
+      "unit": "mg/dL",
+      "ref_low": 7.0,
+      "ref_high": 20.0,
+      "flag": "low",
+      "category": "Renal"
+    },
+    {
+      "test_name": "Serum Creatinine",
+      "value": 1.57,
+      "unit": "mg/dL",
+      "ref_low": 0.7,
+      "ref_high": 1.3,
+      "flag": "high",
+      "category": "Renal"
+    },
+    {
+      "test_name": "HDL Cholesterol",
+      "value": 115.1,
+      "unit": "mg/dL",
+      "ref_low": 40.0,
+      "ref_high": 60.0,
+      "flag": "critical_high",
+      "category": "Lipid"
+    }
+  ]
+}

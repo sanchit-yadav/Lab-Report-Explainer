@@ -1,0 +1,58 @@
+{
+  "case_id": "hard_004",
+  "patient_name": "Marcus Chen",
+  "patient_age": "55",
+  "patient_gender": "Male",
+  "lab_name": "AIIMS Central Diagnostic Labs",
+  "layout": "aiims",
+  "variation": "photographed",
+  "unit_system": "mg_dL",
+  "report_date": "2026-11-15",
+  "tests": [
+    {
+      "test_name": "Fasting Blood Glucose",
+      "value": 434.0,
+      "unit": "mg/dL",
+      "ref_low": 70.0,
+      "ref_high": 99.0,
+      "flag": "critical_high",
+      "category": "Metabolic"
+    },
+    {
+      "test_name": "Alkaline Phosphatase",
+      "value": 90.7,
+      "unit": "U/L",
+      "ref_low": 44.0,
+      "ref_high": 147.0,
+      "flag": "normal",
+      "category": "Hepatic"
+    },
+    {
+      "test_name": "Blood Urea Nitrogen",
+      "value": 4.2,
+      "unit": "mg/dL",
+      "ref_low": 7.0,
+      "ref_high": 20.0,
+      "flag": "low",
+      "category": "Renal"
+    },
+    {
+      "test_name": "Total Cholesterol",
+      "value": 168.8,
+      "unit": "mg/dL",
+      "ref_low": 125.0,
+      "ref_high": 200.0,
+      "flag": "normal",
+      "category": "Lipid"
+    },
+    {
+      "test_name": "HDL Cholesterol",
+      "value": 110.8,
+      "unit": "mg/dL",
+      "ref_low": 40.0,
+      "ref_high": 60.0,
+      "flag": "critical_high",
+      "category": "Lipid"
+    }
+  ]
+}

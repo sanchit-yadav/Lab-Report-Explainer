@@ -1,0 +1,58 @@
+{
+  "case_id": "hard_006",
+  "patient_name": "David Okafor",
+  "patient_age": "63",
+  "patient_gender": "Male",
+  "lab_name": "Quest Diagnostics",
+  "layout": "quest",
+  "variation": "scanned",
+  "unit_system": "mg_dL",
+  "report_date": "2026-11-15",
+  "tests": [
+    {
+      "test_name": "Fasting Blood Glucose",
+      "value": 425.6,
+      "unit": "mg/dL",
+      "ref_low": 70.0,
+      "ref_high": 99.0,
+      "flag": "critical_high",
+      "category": "Metabolic"
+    },
+    {
+      "test_name": "Total Bilirubin",
+      "value": 1.39,
+      "unit": "mg/dL",
+      "ref_low": 0.2,
+      "ref_high": 1.2,
+      "flag": "high",
+      "category": "Hepatic"
+    },
+    {
+      "test_name": "Hemoglobin",
+      "value": 16.4,
+      "unit": "g/dL",
+      "ref_low": 13.0,
+      "ref_high": 17.0,
+      "flag": "normal",
+      "category": "Hematology"
+    },
+    {
+      "test_name": "LDL Cholesterol",
+      "value": 25.1,
+      "unit": "mg/dL",
+      "ref_low": 50.0,
+      "ref_high": 100.0,
+      "flag": "critical_low",
+      "category": "Lipid"
+    },
+    {
+      "test_name": "Blood Urea Nitrogen",
+      "value": 10.2,
+      "unit": "mg/dL",
+      "ref_low": 7.0,
+      "ref_high": 20.0,
+      "flag": "normal",
+      "category": "Renal"
+    }
+  ]
+}

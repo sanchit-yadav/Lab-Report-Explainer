@@ -55,12 +55,30 @@ class ExtractValuesStage:
                 {"error": str(exc)},
             )
 
-        if not extracted_report:
-            extracted_report = LabReport(
-                patient_name=inp.patient_name_hint,
-                tests=[],
-                extraction_method="fallback",
-            )
+        if not extracted_report or not extracted_report.tests:
+            # Fallback to OCR parsed tables / lines from Stage 2
+            from src.extraction.pdf_parser import PDFPlumberExtractor
+            parser = PDFPlumberExtractor()
+            fallback_tests = []
+            for page in parsed.pages:
+                if page.tables:
+                    for tbl in page.tables:
+                        fallback_tests.extend(parser.parse_table_rows(tbl))
+            if not fallback_tests and parsed.full_text:
+                fallback_tests = parser._extract_from_text_lines(parsed.full_text.splitlines())
+
+            if fallback_tests:
+                extracted_report = LabReport(
+                    patient_name=extracted_report.patient_name if extracted_report else inp.patient_name_hint,
+                    tests=fallback_tests,
+                    extraction_method="ocr_parsed_fallback",
+                )
+            elif not extracted_report:
+                extracted_report = LabReport(
+                    patient_name=inp.patient_name_hint,
+                    tests=[],
+                    extraction_method="fallback",
+                )
 
         # 1. Apply Standard Ontology Mapping (LOINC)
         extracted_report = LOINCMapper.enrich_report(extracted_report)

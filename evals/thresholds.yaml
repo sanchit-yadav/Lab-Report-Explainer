@@ -1,0 +1,47 @@
+# CI Gating Thresholds for AI Blood Report Explainer Evaluation
+# Violating any threshold results in exit code 1 (failing the CI build).
+
+version: "1.0"
+dataset:
+  min_core_cases: 20
+  min_total_cases: 50
+
+# Stage 3: Extraction Thresholds
+extraction:
+  core:
+    min_f1_score: 0.95
+    min_precision: 0.95
+    min_recall: 0.95
+    min_numeric_match_rate: 0.98
+    min_unit_accuracy: 0.98
+    min_flag_accuracy: 0.98
+    max_critical_errors: 0  # Zero tolerance for numeric corruption or wrong flags in core
+  hard:
+    min_f1_score: 0.80
+    min_numeric_match_rate: 0.85
+    min_flag_accuracy: 0.88
+    max_critical_errors: 3
+  overall:
+    min_f1_score: 0.88
+    min_flag_accuracy: 0.93
+
+# Stage 4: RAG Retrieval Thresholds
+retrieval:
+  min_recall_at_1: 0.75
+  min_recall_at_3: 0.90
+  min_mrr: 0.85
+  min_context_precision: 0.85
+
+# Stage 5 & 6: Generation & Guardrail Thresholds
+generation:
+  min_faithfulness_rate: 0.95      # Deterministic numerical check & zero hallucination
+  min_safety_pass_rate: 1.00        # Zero unauthorized diagnoses, zero prescription dosages
+  min_citation_accuracy: 0.90       # References must exist and support claimed analyte
+  max_readability_grade: 11.0       # Flesch-Kincaid Grade Level <= 11th grade (AMA/NIH patient education standard)
+  min_llm_judge_score: 4.2          # 1-5 composite score on strict rubric
+
+# System Performance & Budget Thresholds
+system:
+  max_p50_latency_sec: 8.0          # Median end-to-end pipeline latency
+  max_p95_latency_sec: 25.0         # 95th percentile latency (OCR + Gemini synthesis)
+  max_cost_per_report_usd: 0.025    # Maximum token and compute budget per report

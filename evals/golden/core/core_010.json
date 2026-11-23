@@ -1,0 +1,58 @@
+{
+  "case_id": "core_010",
+  "patient_name": "David Okafor",
+  "patient_age": "63",
+  "patient_gender": "Male",
+  "lab_name": "BioReference Laboratories",
+  "layout": "bioreference",
+  "variation": "clean_pdf",
+  "unit_system": "mmol_L",
+  "report_date": "2026-11-15",
+  "tests": [
+    {
+      "test_name": "Total Bilirubin",
+      "value": 6.7,
+      "unit": "umol/L",
+      "ref_low": 3.4,
+      "ref_high": 20.5,
+      "flag": "normal",
+      "category": "Hepatic"
+    },
+    {
+      "test_name": "Blood Urea Nitrogen",
+      "value": 3.9,
+      "unit": "mmol/L",
+      "ref_low": 2.5,
+      "ref_high": 7.1,
+      "flag": "normal",
+      "category": "Renal"
+    },
+    {
+      "test_name": "HDL Cholesterol",
+      "value": 1.08,
+      "unit": "mmol/L",
+      "ref_low": 1.0,
+      "ref_high": 1.55,
+      "flag": "normal",
+      "category": "Lipid"
+    },
+    {
+      "test_name": "Hemoglobin",
+      "value": 159.3,
+      "unit": "g/L",
+      "ref_low": 130.0,
+      "ref_high": 170.0,
+      "flag": "normal",
+      "category": "Hematology"
+    },
+    {
+      "test_name": "Serum Creatinine",
+      "value": 76.3,
+      "unit": "umol/L",
+      "ref_low": 62.0,
+      "ref_high": 115.0,
+      "flag": "normal",
+      "category": "Renal"
+    }
+  ]
+}

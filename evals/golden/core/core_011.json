@@ -1,0 +1,67 @@
+{
+  "case_id": "core_011",
+  "patient_name": "David Okafor",
+  "patient_age": "63",
+  "patient_gender": "Male",
+  "lab_name": "Quest Diagnostics",
+  "layout": "quest",
+  "variation": "clean_pdf",
+  "unit_system": "mg_dL",
+  "report_date": "2026-11-15",
+  "tests": [
+    {
+      "test_name": "Hemoglobin",
+      "value": 10.6,
+      "unit": "g/dL",
+      "ref_low": 13.0,
+      "ref_high": 17.0,
+      "flag": "low",
+      "category": "Hematology"
+    },
+    {
+      "test_name": "LDL Cholesterol",
+      "value": 109.0,
+      "unit": "mg/dL",
+      "ref_low": 50.0,
+      "ref_high": 100.0,
+      "flag": "high",
+      "category": "Lipid"
+    },
+    {
+      "test_name": "Total Cholesterol",
+      "value": 71.7,
+      "unit": "mg/dL",
+      "ref_low": 125.0,
+      "ref_high": 200.0,
+      "flag": "low",
+      "category": "Lipid"
+    },
+    {
+      "test_name": "Total Bilirubin",
+      "value": 0.15,
+      "unit": "mg/dL",
+      "ref_low": 0.2,
+      "ref_high": 1.2,
+      "flag": "low",
+      "category": "Hepatic"
+    },
+    {
+      "test_name": "Blood Urea Nitrogen",
+      "value": 25.6,
+      "unit": "mg/dL",
+      "ref_low": 7.0,
+      "ref_high": 20.0,
+      "flag": "high",
+      "category": "Renal"
+    },
+    {
+      "test_name": "Serum Creatinine",
+      "value": 0.4,
+      "unit": "mg/dL",
+      "ref_low": 0.7,
+      "ref_high": 1.3,
+      "flag": "low",
+      "category": "Renal"
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "case_id": "core_005",
+  "patient_name": "David Okafor",
+  "patient_age": "63",
+  "patient_gender": "Male",
+  "lab_name": "BioReference Laboratories",
+  "layout": "bioreference",
+  "variation": "clean_pdf",
+  "unit_system": "mg_dL",
+  "report_date": "2026-11-15",
+  "tests": [
+    {
+      "test_name": "Serum Creatinine",
+      "value": 0.59,
+      "unit": "mg/dL",
+      "ref_low": 0.7,
+      "ref_high": 1.3,
+      "flag": "low",
+      "category": "Renal"
+    },
+    {
+      "test_name": "Fasting Blood Glucose",
+      "value": 106.8,
+      "unit": "mg/dL",
+      "ref_low": 70.0,
+      "ref_high": 99.0,
+      "flag": "high",
+      "category": "Metabolic"
+    },
+    {
+      "test_name": "Total Bilirubin",
+      "value": 0.15,
+      "unit": "mg/dL",
+      "ref_low": 0.2,
+      "ref_high": 1.2,
+      "flag": "low",
+      "category": "Hepatic"
+    },
+    {
+      "test_name": "LDL Cholesterol",
+      "value": 278.3,
+      "unit": "mg/dL",
+      "ref_low": 50.0,
+      "ref_high": 100.0,
+      "flag": "critical_high",
+      "category": "Lipid"
+    },
+    {
+      "test_name": "Hemoglobin",
+      "value": 14.8,
+      "unit": "g/dL",
+      "ref_low": 13.0,
+      "ref_high": 17.0,
+      "flag": "normal",
+      "category": "Hematology"
+    },
+    {
+      "test_name": "Triglycerides",
+      "value": 161.5,
+      "unit": "mg/dL",
+      "ref_low": 50.0,
+      "ref_high": 150.0,
+      "flag": "high",
+      "category": "Lipid"
+    }
+  ]
+}

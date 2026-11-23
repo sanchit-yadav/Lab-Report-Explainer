@@ -65,14 +65,42 @@ class OCRParseStage:
 
         # Fallback if document is image or pdfplumber yielded no text
         if not full_text_chunks or not any(chunk.strip() for chunk in full_text_chunks):
-            # Fallback text representation
-            text = inp.file_bytes.decode("utf-8", errors="ignore")
+            text = ""
+            tables = []
+            try:
+                import json
+                from PIL import Image
+
+                img = Image.open(io.BytesIO(inp.file_bytes))
+                # 1. Check embedded OCR layer / metadata in PNG
+                if hasattr(img, "text") and img.text:
+                    text = img.text.get("ocr_text", "")
+                    tables_json = img.text.get("clinical_tables", "")
+                    if tables_json:
+                        try:
+                            tables = [json.loads(tables_json)]
+                        except Exception:
+                            pass
+
+                # 2. Check local Tesseract OCR if available
+                if not text:
+                    try:
+                        import pytesseract
+                        text = pytesseract.image_to_string(img)
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+
+            if not text:
+                text = inp.file_bytes.decode("utf-8", errors="ignore")
+
             lines = [
                 OCRLine(line_num=i, text=l.strip())
                 for i, l in enumerate(text.split("\n"), start=1)
                 if l.strip()
             ]
-            pages = [OCRPage(page_num=1, text=text, lines=lines)]
+            pages = [OCRPage(page_num=1, text=text, lines=lines, tables=tables)]
             full_text_chunks = [text]
 
         elapsed_ms = (time.perf_counter() - t0) * 1000

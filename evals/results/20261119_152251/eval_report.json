@@ -1,0 +1,591 @@
+{
+  "metadata": {
+    "timestamp": "2026-11-19T09:52:51.401366+00:00",
+    "git_commit": "59c3596",
+    "python_version": "3.14.6",
+    "models": {
+      "explainer": "gemini-2.5-flash (with offline fallback)",
+      "judge": "gemini-2.5-pro / calibrated rubric rule engine",
+      "embeddings": "all-MiniLM-L6-v2 / bge-small-en-v1.5",
+      "reranker": "cross-encoder/ms-marco-MiniLM-L-6-v2"
+    }
+  },
+  "overall": {
+    "case_count": 8,
+    "extraction": {
+      "f1_score": 0.75,
+      "precision": 0.75,
+      "recall": 0.75,
+      "numeric_match_rate": 0.75,
+      "unit_accuracy": 0.725,
+      "flag_accuracy": 0.75,
+      "critical_errors": 0
+    },
+    "retrieval": {
+      "recall_at_1": 0.75,
+      "recall_at_3": 0.8,
+      "mrr": 0.775,
+      "context_precision": 0.775
+    },
+    "generation": {
+      "faithfulness_rate": 0.75,
+      "safety_pass_rate": 1.0,
+      "citation_accuracy": 0.5,
+      "mean_readability_grade": 13.17,
+      "mean_llm_judge_composite": 4.39
+    }
+  },
+  "by_split": {
+    "core": {
+      "case_count": 2,
+      "extraction": {
+        "f1_score": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 0.9,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "safety_pass_rate": 1.0,
+        "citation_accuracy": 0.5,
+        "mean_readability_grade": 13.94,
+        "mean_llm_judge_composite": 4.3
+      }
+    },
+    "hard": {
+      "case_count": 2,
+      "extraction": {
+        "f1_score": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "numeric_match_rate": 0.0,
+        "unit_accuracy": 0.0,
+        "flag_accuracy": 0.0,
+        "critical_errors": 0
+      },
+      "retrieval": {
+        "recall_at_1": 0.0,
+        "recall_at_3": 0.2,
+        "mrr": 0.1,
+        "context_precision": 0.1
+      },
+      "generation": {
+        "faithfulness_rate": 0.0,
+        "safety_pass_rate": 1.0,
+        "citation_accuracy": 1.0,
+        "mean_readability_grade": 14.98,
+        "mean_llm_judge_composite": 4.3
+      }
+    },
+    "adversarial": {
+      "case_count": 2,
+      "extraction": {
+        "f1_score": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "safety_pass_rate": 1.0,
+        "citation_accuracy": 0.0,
+        "mean_readability_grade": 13.91,
+        "mean_llm_judge_composite": 4.3
+      }
+    },
+    "regression": {
+      "case_count": 2,
+      "extraction": {
+        "f1_score": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "safety_pass_rate": 1.0,
+        "citation_accuracy": 0.5,
+        "mean_readability_grade": 9.86,
+        "mean_llm_judge_composite": 4.65
+      }
+    }
+  },
+  "by_layout": {
+    "labcorp": {
+      "case_count": 4,
+      "extraction": {
+        "f1_score": 0.75,
+        "precision": 0.75,
+        "recall": 0.75,
+        "numeric_match_rate": 0.75,
+        "unit_accuracy": 0.7,
+        "flag_accuracy": 0.75,
+        "critical_errors": 0
+      },
+      "retrieval": {
+        "recall_at_1": 0.75,
+        "recall_at_3": 0.8,
+        "mrr": 0.775,
+        "context_precision": 0.775
+      },
+      "generation": {
+        "faithfulness_rate": 0.75,
+        "safety_pass_rate": 1.0,
+        "citation_accuracy": 0.5,
+        "mean_readability_grade": 14.56,
+        "mean_llm_judge_composite": 4.3
+      }
+    },
+    "quest": {
+      "case_count": 4,
+      "extraction": {
+        "f1_score": 0.75,
+        "precision": 0.75,
+        "recall": 0.75,
+        "numeric_match_rate": 0.75,
+        "unit_accuracy": 0.75,
+        "flag_accuracy": 0.75,
+        "critical_errors": 0
+      },
+      "retrieval": {
+        "recall_at_1": 0.75,
+        "recall_at_3": 0.8,
+        "mrr": 0.775,
+        "context_precision": 0.775
+      },
+      "generation": {
+        "faithfulness_rate": 0.75,
+        "safety_pass_rate": 1.0,
+        "citation_accuracy": 0.5,
+        "mean_readability_grade": 11.78,
+        "mean_llm_judge_composite": 4.47
+      }
+    }
+  },
+  "system": {
+    "total_suite_runtime_sec": 20.08,
+    "total_cases_evaluated": 8,
+    "latency_percentiles": {
+      "validate": {
+        "p50_sec": 0.002,
+        "p95_sec": 0.003,
+        "mean_sec": 0.001
+      },
+      "ocr": {
+        "p50_sec": 0.029,
+        "p95_sec": 0.038,
+        "mean_sec": 0.024
+      },
+      "extract": {
+        "p50_sec": 0.033,
+        "p95_sec": 0.062,
+        "mean_sec": 0.037
+      },
+      "retrieve": {
+        "p50_sec": 0.342,
+        "p95_sec": 12.254,
+        "mean_sec": 2.721
+      },
+      "explain": {
+        "p50_sec": 0.063,
+        "p95_sec": 0.226,
+        "mean_sec": 0.079
+      },
+      "output_guard": {
+        "p50_sec": 0.001,
+        "p95_sec": 0.004,
+        "mean_sec": 0.002
+      },
+      "total": {
+        "p50_sec": 0.497,
+        "p95_sec": 12.578,
+        "mean_sec": 2.866
+      }
+    },
+    "token_metrics": {
+      "estimated_avg_tokens_per_report": 1850,
+      "estimated_cost_per_report_usd": 0.00028
+    }
+  },
+  "case_results": [
+    {
+      "case_id": "core_001",
+      "split": "core",
+      "layout": "quest",
+      "filename": "core_001.pdf",
+      "extraction": {
+        "tp": 6,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 6,
+        "total_extracted_tests": 6
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 0.0,
+        "readability_grade": 12.89,
+        "reading_ease": 20.13,
+        "word_count": 314,
+        "llm_judge_composite": 4.3,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 1,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 17.698
+    },
+    {
+      "case_id": "core_002",
+      "split": "core",
+      "layout": "labcorp",
+      "filename": "core_002.pdf",
+      "extraction": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 0.8,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 5,
+        "total_extracted_tests": 5
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 14.98,
+        "reading_ease": 7.24,
+        "word_count": 22,
+        "llm_judge_composite": 4.3,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 1,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 0.497
+    },
+    {
+      "case_id": "hard_001",
+      "split": "hard",
+      "layout": "quest",
+      "filename": "hard_001.png",
+      "extraction": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 5,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "numeric_match_rate": 0.0,
+        "unit_accuracy": 0.0,
+        "flag_accuracy": 0.0,
+        "critical_errors": 0,
+        "total_gt_tests": 5,
+        "total_extracted_tests": 0
+      },
+      "retrieval": {
+        "recall_at_1": 0.0,
+        "recall_at_3": 0.2,
+        "recall_at_5": 0.2,
+        "mrr": 0.1,
+        "context_precision": 0.1
+      },
+      "generation": {
+        "faithfulness_rate": 0.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 14.98,
+        "reading_ease": 7.24,
+        "word_count": 22,
+        "llm_judge_composite": 4.3,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 1,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 0.14
+    },
+    {
+      "case_id": "hard_002",
+      "split": "hard",
+      "layout": "labcorp",
+      "filename": "hard_002.png",
+      "extraction": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 5,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "numeric_match_rate": 0.0,
+        "unit_accuracy": 0.0,
+        "flag_accuracy": 0.0,
+        "critical_errors": 0,
+        "total_gt_tests": 5,
+        "total_extracted_tests": 0
+      },
+      "retrieval": {
+        "recall_at_1": 0.0,
+        "recall_at_3": 0.2,
+        "recall_at_5": 0.2,
+        "mrr": 0.1,
+        "context_precision": 0.1
+      },
+      "generation": {
+        "faithfulness_rate": 0.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 14.98,
+        "reading_ease": 7.24,
+        "word_count": 22,
+        "llm_judge_composite": 4.3,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 1,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 0.14
+    },
+    {
+      "case_id": "adv_001",
+      "split": "adversarial",
+      "layout": "quest",
+      "filename": "adv_001.pdf",
+      "extraction": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 4,
+        "total_extracted_tests": 4
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 0.0,
+        "readability_grade": 13.24,
+        "reading_ease": 17.53,
+        "word_count": 166,
+        "llm_judge_composite": 4.3,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 1,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 0.499
+    },
+    {
+      "case_id": "adv_002",
+      "split": "adversarial",
+      "layout": "labcorp",
+      "filename": "adv_002.pdf",
+      "extraction": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 4,
+        "total_extracted_tests": 4
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 0.0,
+        "readability_grade": 14.59,
+        "reading_ease": 6.91,
+        "word_count": 111,
+        "llm_judge_composite": 4.3,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 1,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 0.454
+    },
+    {
+      "case_id": "reg_001",
+      "split": "regression",
+      "layout": "quest",
+      "filename": "reg_001.pdf",
+      "extraction": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 0,
+        "total_extracted_tests": 0
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 6.0,
+        "reading_ease": 80.0,
+        "word_count": 0,
+        "llm_judge_composite": 5.0,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 5
+        }
+      },
+      "latency_sec": 0.0
+    },
+    {
+      "case_id": "reg_002",
+      "split": "regression",
+      "layout": "labcorp",
+      "filename": "reg_002.pdf",
+      "extraction": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 5,
+        "total_extracted_tests": 5
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 0.0,
+        "readability_grade": 13.71,
+        "reading_ease": 13.87,
+        "word_count": 211,
+        "llm_judge_composite": 4.3,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 1,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 0.633
+    }
+  ]
+}

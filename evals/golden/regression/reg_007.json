@@ -1,0 +1,58 @@
+{
+  "case_id": "reg_007",
+  "patient_name": "Marcus Chen",
+  "patient_age": "55",
+  "patient_gender": "Male",
+  "lab_name": "Labcorp Diagnostics",
+  "layout": "labcorp",
+  "variation": "clean_pdf",
+  "unit_system": "mg_dL",
+  "report_date": "2026-11-15",
+  "tests": [
+    {
+      "test_name": "Fasting Blood Glucose",
+      "value": 92.8,
+      "unit": "mg/dL",
+      "ref_low": 70.0,
+      "ref_high": 99.0,
+      "flag": "normal",
+      "category": "Metabolic"
+    },
+    {
+      "test_name": "Total Cholesterol",
+      "value": 162.7,
+      "unit": "mg/dL",
+      "ref_low": 125.0,
+      "ref_high": 200.0,
+      "flag": "normal",
+      "category": "Lipid"
+    },
+    {
+      "test_name": "Total Bilirubin",
+      "value": 0.57,
+      "unit": "mg/dL",
+      "ref_low": 0.2,
+      "ref_high": 1.2,
+      "flag": "normal",
+      "category": "Hepatic"
+    },
+    {
+      "test_name": "Triglycerides",
+      "value": 71.3,
+      "unit": "mg/dL",
+      "ref_low": 50.0,
+      "ref_high": 150.0,
+      "flag": "normal",
+      "category": "Lipid"
+    },
+    {
+      "test_name": "LDL Cholesterol",
+      "value": 94.5,
+      "unit": "mg/dL",
+      "ref_low": 50.0,
+      "ref_high": 100.0,
+      "flag": "normal",
+      "category": "Lipid"
+    }
+  ]
+}

@@ -244,6 +244,19 @@ def identify_columns(headers: List[Optional[str]]) -> Dict[str, int]:
             mapping["value"] = idx
             continue
 
+        # Match Quest / Cerner dual result columns (In Range / Out of Range)
+        if "in_range_value" not in mapping and "in range" in header:
+            mapping["in_range_value"] = idx
+            if "value" not in mapping:
+                mapping["value"] = idx
+            continue
+
+        if "out_range_value" not in mapping and "out of range" in header:
+            mapping["out_range_value"] = idx
+            if "value" not in mapping:
+                mapping["value"] = idx
+            continue
+
         # Match unit column
         if "unit" not in mapping and any(p in header for p in patterns.unit):
             mapping["unit"] = idx

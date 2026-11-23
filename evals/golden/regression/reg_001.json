@@ -1,0 +1,58 @@
+{
+  "case_id": "reg_001",
+  "patient_name": "David Okafor",
+  "patient_age": "63",
+  "patient_gender": "Male",
+  "lab_name": "Quest Diagnostics",
+  "layout": "quest",
+  "variation": "clean_pdf",
+  "unit_system": "mg_dL",
+  "report_date": "2026-11-15",
+  "tests": [
+    {
+      "test_name": "Total Cholesterol",
+      "value": 186.2,
+      "unit": "mg/dL",
+      "ref_low": 125.0,
+      "ref_high": 200.0,
+      "flag": "normal",
+      "category": "Lipid"
+    },
+    {
+      "test_name": "Alkaline Phosphatase",
+      "value": 74.2,
+      "unit": "U/L",
+      "ref_low": 44.0,
+      "ref_high": 147.0,
+      "flag": "normal",
+      "category": "Hepatic"
+    },
+    {
+      "test_name": "Triglycerides",
+      "value": 94.4,
+      "unit": "mg/dL",
+      "ref_low": 50.0,
+      "ref_high": 150.0,
+      "flag": "normal",
+      "category": "Lipid"
+    },
+    {
+      "test_name": "LDL Cholesterol",
+      "value": 87.9,
+      "unit": "mg/dL",
+      "ref_low": 50.0,
+      "ref_high": 100.0,
+      "flag": "normal",
+      "category": "Lipid"
+    },
+    {
+      "test_name": "Hemoglobin",
+      "value": 14.3,
+      "unit": "g/dL",
+      "ref_low": 13.0,
+      "ref_high": 17.0,
+      "flag": "normal",
+      "category": "Hematology"
+    }
+  ]
+}

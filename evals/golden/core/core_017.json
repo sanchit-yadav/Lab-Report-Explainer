@@ -1,0 +1,67 @@
+{
+  "case_id": "core_017",
+  "patient_name": "David Okafor",
+  "patient_age": "63",
+  "patient_gender": "Male",
+  "lab_name": "Labcorp Diagnostics",
+  "layout": "labcorp",
+  "variation": "clean_pdf",
+  "unit_system": "mg_dL",
+  "report_date": "2026-11-15",
+  "tests": [
+    {
+      "test_name": "Alkaline Phosphatase",
+      "value": 460.1,
+      "unit": "U/L",
+      "ref_low": 44.0,
+      "ref_high": 147.0,
+      "flag": "critical_high",
+      "category": "Hepatic"
+    },
+    {
+      "test_name": "Triglycerides",
+      "value": 169.2,
+      "unit": "mg/dL",
+      "ref_low": 50.0,
+      "ref_high": 150.0,
+      "flag": "high",
+      "category": "Lipid"
+    },
+    {
+      "test_name": "Blood Urea Nitrogen",
+      "value": 92.7,
+      "unit": "mg/dL",
+      "ref_low": 7.0,
+      "ref_high": 20.0,
+      "flag": "critical_high",
+      "category": "Renal"
+    },
+    {
+      "test_name": "Total Cholesterol",
+      "value": 175.3,
+      "unit": "mg/dL",
+      "ref_low": 125.0,
+      "ref_high": 200.0,
+      "flag": "normal",
+      "category": "Lipid"
+    },
+    {
+      "test_name": "LDL Cholesterol",
+      "value": 108.5,
+      "unit": "mg/dL",
+      "ref_low": 50.0,
+      "ref_high": 100.0,
+      "flag": "high",
+      "category": "Lipid"
+    },
+    {
+      "test_name": "Fasting Blood Glucose",
+      "value": 428.9,
+      "unit": "mg/dL",
+      "ref_low": 70.0,
+      "ref_high": 99.0,
+      "flag": "critical_high",
+      "category": "Metabolic"
+    }
+  ]
+}
