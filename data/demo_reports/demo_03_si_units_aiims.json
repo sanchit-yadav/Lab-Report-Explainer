@@ -1,0 +1,58 @@
+{
+  "case_id": "demo_03_si_units_aiims",
+  "patient_name": "David Okafor",
+  "patient_age": "63",
+  "patient_gender": "Male",
+  "lab_name": "AIIMS Central Diagnostic Labs",
+  "layout": "aiims",
+  "variation": "clean_pdf",
+  "unit_system": "mmol_L",
+  "report_date": "2026-11-15",
+  "tests": [
+    {
+      "test_name": "Total Bilirubin",
+      "value": 217.5,
+      "unit": "umol/L",
+      "ref_low": 3.4,
+      "ref_high": 20.5,
+      "flag": "critical_high",
+      "category": "Hepatic"
+    },
+    {
+      "test_name": "Fasting Blood Glucose",
+      "value": 4.3,
+      "unit": "mmol/L",
+      "ref_low": 3.9,
+      "ref_high": 5.5,
+      "flag": "normal",
+      "category": "Metabolic"
+    },
+    {
+      "test_name": "Total Cholesterol",
+      "value": 3.7,
+      "unit": "mmol/L",
+      "ref_low": 3.2,
+      "ref_high": 5.2,
+      "flag": "normal",
+      "category": "Lipid"
+    },
+    {
+      "test_name": "HDL Cholesterol",
+      "value": 0.95,
+      "unit": "mmol/L",
+      "ref_low": 1.0,
+      "ref_high": 1.55,
+      "flag": "low",
+      "category": "Lipid"
+    },
+    {
+      "test_name": "Hemoglobin",
+      "value": 170.7,
+      "unit": "g/L",
+      "ref_low": 130.0,
+      "ref_high": 170.0,
+      "flag": "high",
+      "category": "Hematology"
+    }
+  ]
+}

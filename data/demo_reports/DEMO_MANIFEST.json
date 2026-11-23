@@ -1,0 +1,57 @@
+[
+  {
+    "scenario": "demo_01_clean_quest_lipid",
+    "description": "Clean standard Quest lipid panel with mild hyperlipidemia for primary baseline demo.",
+    "report_file": "demo_01_clean_quest_lipid.pdf",
+    "ground_truth_file": "demo_01_clean_quest_lipid.json",
+    "layout": "quest",
+    "variation": "clean_pdf",
+    "unit_system": "mg_dL",
+    "test_count": 6,
+    "critical_count": 0
+  },
+  {
+    "scenario": "demo_02_critical_apollo_panic",
+    "description": "Apollo metabolic report with panic-level critical glucose triggering urgency escalation banner.",
+    "report_file": "demo_02_critical_apollo_panic.pdf",
+    "ground_truth_file": "demo_02_critical_apollo_panic.json",
+    "layout": "apollo",
+    "variation": "clean_pdf",
+    "unit_system": "mg_dL",
+    "test_count": 5,
+    "critical_count": 2
+  },
+  {
+    "scenario": "demo_03_si_units_aiims",
+    "description": "AIIMS India panel with SI units (mmol/L) demonstrating bilingual English/Hindi output.",
+    "report_file": "demo_03_si_units_aiims.pdf",
+    "ground_truth_file": "demo_03_si_units_aiims.json",
+    "layout": "aiims",
+    "variation": "clean_pdf",
+    "unit_system": "mmol_L",
+    "test_count": 5,
+    "critical_count": 1
+  },
+  {
+    "scenario": "demo_04_scanned_photo_labcorp",
+    "description": "Simulated photographed paper report demonstrating multi-tier vision OCR robustness.",
+    "report_file": "demo_04_scanned_photo_labcorp.pdf",
+    "ground_truth_file": "demo_04_scanned_photo_labcorp.json",
+    "layout": "labcorp",
+    "variation": "scanned_image",
+    "unit_system": "mg_dL",
+    "test_count": 5,
+    "critical_count": 0
+  },
+  {
+    "scenario": "demo_05_adversarial_bioreference",
+    "description": "Adversarial embedded instruction override demonstrating 100% perimeter guardrail neutralization.",
+    "report_file": "demo_05_adversarial_bioreference.pdf",
+    "ground_truth_file": "demo_05_adversarial_bioreference.json",
+    "layout": "bioreference",
+    "variation": "prompt_injection",
+    "unit_system": "mg_dL",
+    "test_count": 5,
+    "critical_count": 0
+  }
+]
