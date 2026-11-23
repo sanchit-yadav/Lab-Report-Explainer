@@ -220,6 +220,8 @@ class RetrieveOutput(BaseModel):
 # Stage 5: explain
 # ==============================================================================
 
+from src.citations.models import AttributedClaim
+
 class TestExplanationItem(BaseModel):
     """Bilingual educational explanation for an individual biomarker."""
     test_name: str
@@ -229,6 +231,12 @@ class TestExplanationItem(BaseModel):
     explanation_hi: str
     clinical_significance: Optional[str] = None
     source_urls: List[str] = Field(default_factory=list)
+    claims: List[AttributedClaim] = Field(default_factory=list)
+    sources: Dict[str, Any] = Field(default_factory=dict)
+    citation_accuracy_score: float = 1.0
+    grounding_status: str = "FULLY_GROUNDED"
+    bibliography: Optional[str] = None
+    ui_citation_payload: Optional[Dict[str, Any]] = None
 
 
 class ExplainInput(BaseModel):
@@ -273,4 +281,6 @@ class OutputGuardOutput(BaseModel):
     sanitized_explanations: List[TestExplanationItem] = Field(default_factory=list)
     violations_detected: int = 0
     numerical_discrepancies: List[str] = Field(default_factory=list)
+    citation_accuracy: float = 1.0
+    total_verified_citations: int = 0
     disclaimer: str

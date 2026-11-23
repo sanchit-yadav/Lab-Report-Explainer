@@ -1,0 +1,1112 @@
+{
+  "manifest_version": "1.0.0",
+  "created_at": "2026-11-23",
+  "total_documents": 30,
+  "publisher": "MedlinePlus & Clinical Laboratory Reference Consortium",
+  "documents": [
+    {
+      "doc_id": "medlineplus_alkaline_phosphatase__alp_",
+      "test_name": "Alkaline Phosphatase (ALP)",
+      "category": "Liver Function",
+      "source_name": "MedlinePlus (U.S. National Library of Medicine)",
+      "source_url": "https://medlineplus.gov/lab-tests/alkaline-phosphatase-test/",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 123,
+          "content_hash": "c839fc84af74"
+        },
+        {
+          "section_name": "What Elevated / High Values Mean",
+          "section_id": "what_elevated_/_high_val",
+          "character_count": 191,
+          "content_hash": "4e8c8ee2b95f"
+        },
+        {
+          "section_name": "What Low Values Mean",
+          "section_id": "what_low_values_mean",
+          "character_count": 95,
+          "content_hash": "db95586d4870"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 155,
+          "content_hash": "2a3ae6ce6a90"
+        }
+      ],
+      "document_hash": "b3b9c0e2eb0609ff"
+    },
+    {
+      "doc_id": "medlineplus_bilirubin__total_and_direct_",
+      "test_name": "Bilirubin (Total and Direct)",
+      "category": "Liver Function",
+      "source_name": "MedlinePlus (U.S. National Library of Medicine)",
+      "source_url": "https://medlineplus.gov/lab-tests/bilirubin-blood-test/",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 192,
+          "content_hash": "4a7ac04210f8"
+        },
+        {
+          "section_name": "What Elevated / High Values Mean",
+          "section_id": "what_elevated_/_high_val",
+          "character_count": 308,
+          "content_hash": "75231a31cc96"
+        },
+        {
+          "section_name": "What Low Values Mean",
+          "section_id": "what_low_values_mean",
+          "character_count": 55,
+          "content_hash": "1e1f24d995f1"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 152,
+          "content_hash": "8af5cc2f4857"
+        }
+      ],
+      "document_hash": "b61c83d484d10565"
+    },
+    {
+      "doc_id": "medlineplus_blood_urea_nitrogen__bun_",
+      "test_name": "Blood Urea Nitrogen (BUN)",
+      "category": "Kidney Function",
+      "source_name": "MedlinePlus (U.S. National Library of Medicine)",
+      "source_url": "https://medlineplus.gov/lab-tests/bun-blood-urea-nitrogen-test/",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 113,
+          "content_hash": "f8c57f0ea935"
+        },
+        {
+          "section_name": "What Elevated / High Values Mean",
+          "section_id": "what_elevated_/_high_val",
+          "character_count": 145,
+          "content_hash": "48c7b9290d95"
+        },
+        {
+          "section_name": "What Low Values Mean",
+          "section_id": "what_low_values_mean",
+          "character_count": 96,
+          "content_hash": "c7528457bd8e"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 149,
+          "content_hash": "16dd8e4c928b"
+        }
+      ],
+      "document_hash": "0757357ae8656d88"
+    },
+    {
+      "doc_id": "medlineplus_c-reactive_protein__crp_",
+      "test_name": "C-Reactive Protein (CRP)",
+      "category": "Inflammatory Markers",
+      "source_name": "MedlinePlus (U.S. National Library of Medicine)",
+      "source_url": "https://medlineplus.gov/lab-tests/c-reactive-protein-crp-test/",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 109,
+          "content_hash": "666758102e89"
+        },
+        {
+          "section_name": "What Elevated / High Values Mean",
+          "section_id": "what_elevated_/_high_val",
+          "character_count": 207,
+          "content_hash": "9a050f0e9a70"
+        },
+        {
+          "section_name": "What Low Values Mean",
+          "section_id": "what_low_values_mean",
+          "character_count": 96,
+          "content_hash": "8154ca34d3fd"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 134,
+          "content_hash": "07163d84505d"
+        }
+      ],
+      "document_hash": "962984510bca720a"
+    },
+    {
+      "doc_id": "medlineplus_egfr__estimated_glomerular_filtration_rate_",
+      "test_name": "eGFR (Estimated Glomerular Filtration Rate)",
+      "category": "Kidney Function",
+      "source_name": "National Kidney Foundation (NKF)",
+      "source_url": "https://www.kidney.org/atoz/content/gfr",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 179,
+          "content_hash": "9c9411f8361d"
+        },
+        {
+          "section_name": "What Normal / Adequate Values Mean",
+          "section_id": "what_normal_/_adequate_v",
+          "character_count": 91,
+          "content_hash": "536f1794bd13"
+        },
+        {
+          "section_name": "What Reduced / Low Values Mean",
+          "section_id": "what_reduced_/_low_value",
+          "character_count": 125,
+          "content_hash": "e942aecf9702"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 143,
+          "content_hash": "b08f9c756c22"
+        }
+      ],
+      "document_hash": "d7a89b4f4cf85373"
+    },
+    {
+      "doc_id": "medlineplus_erythrocyte_sedimentation_rate__esr_",
+      "test_name": "Erythrocyte Sedimentation Rate (ESR)",
+      "category": "Inflammatory Markers",
+      "source_name": "MedlinePlus (U.S. National Library of Medicine)",
+      "source_url": "https://medlineplus.gov/lab-tests/erythrocyte-sedimentation-rate-esr/",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 185,
+          "content_hash": "1435a4bc90d8"
+        },
+        {
+          "section_name": "What Elevated / High Values Mean",
+          "section_id": "what_elevated_/_high_val",
+          "character_count": 192,
+          "content_hash": "3abaaeaea266"
+        },
+        {
+          "section_name": "What Low Values Mean",
+          "section_id": "what_low_values_mean",
+          "character_count": 128,
+          "content_hash": "f80d763558a8"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 165,
+          "content_hash": "96863d6dd113"
+        }
+      ],
+      "document_hash": "74cbd79196cb56a1"
+    },
+    {
+      "doc_id": "medlineplus_fasting_blood_glucose",
+      "test_name": "Fasting Blood Glucose",
+      "category": "Diabetes & Metabolism",
+      "source_name": "MedlinePlus (U.S. National Library of Medicine)",
+      "source_url": "https://medlineplus.gov/lab-tests/blood-glucose-test/",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 97,
+          "content_hash": "b06a5763d699"
+        },
+        {
+          "section_name": "What Elevated / High Values Mean",
+          "section_id": "what_elevated_/_high_val",
+          "character_count": 218,
+          "content_hash": "9127688d8cbe"
+        },
+        {
+          "section_name": "What Low Values Mean",
+          "section_id": "what_low_values_mean",
+          "character_count": 163,
+          "content_hash": "ae4a3c235a81"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 106,
+          "content_hash": "5313c99402d5"
+        }
+      ],
+      "document_hash": "c92d2e500051f18f"
+    },
+    {
+      "doc_id": "medlineplus_free_t4__thyroxine_",
+      "test_name": "Free T4 (Thyroxine)",
+      "category": "Thyroid Function",
+      "source_name": "MedlinePlus (U.S. National Library of Medicine)",
+      "source_url": "https://medlineplus.gov/lab-tests/thyroxine-t4-test/",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 152,
+          "content_hash": "46bfc0e29aa1"
+        },
+        {
+          "section_name": "What Elevated / High Values Mean",
+          "section_id": "what_elevated_/_high_val",
+          "character_count": 108,
+          "content_hash": "747f126c4da1"
+        },
+        {
+          "section_name": "What Low Values Mean",
+          "section_id": "what_low_values_mean",
+          "character_count": 126,
+          "content_hash": "e2ca5898dc3e"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 139,
+          "content_hash": "7c92e09db7e1"
+        }
+      ],
+      "document_hash": "d611243ed9d8baeb"
+    },
+    {
+      "doc_id": "medlineplus_hba1c__glycated_hemoglobin_",
+      "test_name": "HbA1c (Glycated Hemoglobin)",
+      "category": "Diabetes & Metabolism",
+      "source_name": "MedlinePlus (U.S. National Library of Medicine)",
+      "source_url": "https://medlineplus.gov/lab-tests/hemoglobin-a1c-hba1c-test/",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 171,
+          "content_hash": "b436b69891da"
+        },
+        {
+          "section_name": "What Diagnostic Thresholds Mean",
+          "section_id": "what_diagnostic_threshol",
+          "character_count": 193,
+          "content_hash": "980d21f3855a"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 164,
+          "content_hash": "dc57b432ca24"
+        }
+      ],
+      "document_hash": "b7025c8bad07a021"
+    },
+    {
+      "doc_id": "medlineplus_hdl_cholesterol",
+      "test_name": "HDL Cholesterol",
+      "category": "Lipid Profile",
+      "source_name": "MedlinePlus (U.S. National Library of Medicine)",
+      "source_url": "https://medlineplus.gov/hdlcholesterol.html",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 182,
+          "content_hash": "7272534d361c"
+        },
+        {
+          "section_name": "What Elevated / High Values Mean",
+          "section_id": "what_elevated_/_high_val",
+          "character_count": 131,
+          "content_hash": "0788eeb6edd5"
+        },
+        {
+          "section_name": "What Low Values Mean",
+          "section_id": "what_low_values_mean",
+          "character_count": 166,
+          "content_hash": "3365a46a40cf"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 126,
+          "content_hash": "b1a0863db4e4"
+        }
+      ],
+      "document_hash": "1bc0213d763cc0ea"
+    },
+    {
+      "doc_id": "medlineplus_hematocrit",
+      "test_name": "Hematocrit",
+      "category": "Complete Blood Count",
+      "source_name": "MedlinePlus (U.S. National Library of Medicine)",
+      "source_url": "https://medlineplus.gov/lab-tests/hematocrit-test/",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 132,
+          "content_hash": "0ad1b1eea311"
+        },
+        {
+          "section_name": "What Elevated / High Values Mean",
+          "section_id": "what_elevated_/_high_val",
+          "character_count": 126,
+          "content_hash": "39d7a8963e91"
+        },
+        {
+          "section_name": "What Low Values Mean",
+          "section_id": "what_low_values_mean",
+          "character_count": 74,
+          "content_hash": "018401ee1ceb"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 114,
+          "content_hash": "18f5a8911597"
+        }
+      ],
+      "document_hash": "a9e4bb17e4c7e7a1"
+    },
+    {
+      "doc_id": "medlineplus_hemoglobin",
+      "test_name": "Hemoglobin",
+      "category": "Complete Blood Count",
+      "source_name": "MedlinePlus (U.S. National Library of Medicine)",
+      "source_url": "https://medlineplus.gov/lab-tests/hemoglobin-test/",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 175,
+          "content_hash": "6bbd86e41d3c"
+        },
+        {
+          "section_name": "What Elevated / High Values Mean",
+          "section_id": "what_elevated_/_high_val",
+          "character_count": 200,
+          "content_hash": "475285762140"
+        },
+        {
+          "section_name": "What Low Values Mean",
+          "section_id": "what_low_values_mean",
+          "character_count": 204,
+          "content_hash": "8aa20fe90de2"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 216,
+          "content_hash": "3a19699a65db"
+        }
+      ],
+      "document_hash": "b8b5e3fba9636925"
+    },
+    {
+      "doc_id": "medlineplus_ldl_cholesterol",
+      "test_name": "LDL Cholesterol",
+      "category": "Lipid Profile",
+      "source_name": "MedlinePlus (U.S. National Library of Medicine)",
+      "source_url": "https://medlineplus.gov/ldlcholesterol.html",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 152,
+          "content_hash": "65047d766446"
+        },
+        {
+          "section_name": "What Elevated / High Values Mean",
+          "section_id": "what_elevated_/_high_val",
+          "character_count": 180,
+          "content_hash": "c41eb7675f97"
+        },
+        {
+          "section_name": "What Low Values Mean",
+          "section_id": "what_low_values_mean",
+          "character_count": 155,
+          "content_hash": "86b88a457733"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 136,
+          "content_hash": "b5b5831bb7b4"
+        }
+      ],
+      "document_hash": "2bafc5cf10b2aee7"
+    },
+    {
+      "doc_id": "medlineplus_mean_corpuscular_volume__mcv_",
+      "test_name": "Mean Corpuscular Volume (MCV)",
+      "category": "Complete Blood Count",
+      "source_name": "MedlinePlus (U.S. National Library of Medicine)",
+      "source_url": "https://medlineplus.gov/lab-tests/mcv-mean-corpuscular-volume/",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 128,
+          "content_hash": "83d5d5860a7a"
+        },
+        {
+          "section_name": "What Elevated / High Values Mean",
+          "section_id": "what_elevated_/_high_val",
+          "character_count": 193,
+          "content_hash": "7abc1458fcb1"
+        },
+        {
+          "section_name": "What Low Values Mean",
+          "section_id": "what_low_values_mean",
+          "character_count": 130,
+          "content_hash": "11f74bcaf574"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 146,
+          "content_hash": "43e5be25abab"
+        }
+      ],
+      "document_hash": "1c2ba9569ae183fa"
+    },
+    {
+      "doc_id": "medlineplus_platelet_count",
+      "test_name": "Platelet Count",
+      "category": "Complete Blood Count",
+      "source_name": "MedlinePlus (U.S. National Library of Medicine)",
+      "source_url": "https://medlineplus.gov/lab-tests/platelet-tests/",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 174,
+          "content_hash": "acbf79ffacd0"
+        },
+        {
+          "section_name": "What Elevated / High Values Mean",
+          "section_id": "what_elevated_/_high_val",
+          "character_count": 194,
+          "content_hash": "c9e9d5c09084"
+        },
+        {
+          "section_name": "What Low Values Mean",
+          "section_id": "what_low_values_mean",
+          "character_count": 209,
+          "content_hash": "a8efd2355c57"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 207,
+          "content_hash": "8bd253acee28"
+        }
+      ],
+      "document_hash": "ab053d2480d0d0a0"
+    },
+    {
+      "doc_id": "medlineplus_red_blood_cell_count__rbc_",
+      "test_name": "Red Blood Cell Count (RBC)",
+      "category": "Complete Blood Count",
+      "source_name": "MedlinePlus (U.S. National Library of Medicine)",
+      "source_url": "https://medlineplus.gov/lab-tests/red-blood-cell-rbc-count/",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 115,
+          "content_hash": "ebfa25ad89ef"
+        },
+        {
+          "section_name": "What Elevated / High Values Mean",
+          "section_id": "what_elevated_/_high_val",
+          "character_count": 147,
+          "content_hash": "254fe8c424af"
+        },
+        {
+          "section_name": "What Low Values Mean",
+          "section_id": "what_low_values_mean",
+          "character_count": 149,
+          "content_hash": "f43dd87fa819"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 149,
+          "content_hash": "e35a62863950"
+        }
+      ],
+      "document_hash": "0f38756f5f2b54a1"
+    },
+    {
+      "doc_id": "medlineplus_serum_albumin",
+      "test_name": "Serum Albumin",
+      "category": "Liver Function",
+      "source_name": "MedlinePlus (U.S. National Library of Medicine)",
+      "source_url": "https://medlineplus.gov/lab-tests/albumin-blood-test/",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 174,
+          "content_hash": "2cd9867cb022"
+        },
+        {
+          "section_name": "What Elevated / High Values Mean",
+          "section_id": "what_elevated_/_high_val",
+          "character_count": 89,
+          "content_hash": "1b4fb98ea49b"
+        },
+        {
+          "section_name": "What Low Values Mean",
+          "section_id": "what_low_values_mean",
+          "character_count": 177,
+          "content_hash": "ba77bf10713c"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 152,
+          "content_hash": "beee0902e360"
+        }
+      ],
+      "document_hash": "ccec3d8f0d500a7b"
+    },
+    {
+      "doc_id": "medlineplus_serum_calcium",
+      "test_name": "Serum Calcium",
+      "category": "Electrolytes & Minerals",
+      "source_name": "MedlinePlus (U.S. National Library of Medicine)",
+      "source_url": "https://medlineplus.gov/lab-tests/calcium-blood-test/",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 147,
+          "content_hash": "de6d42143f62"
+        },
+        {
+          "section_name": "What Elevated / High Values Mean",
+          "section_id": "what_elevated_/_high_val",
+          "character_count": 190,
+          "content_hash": "1ebd8dda6a2c"
+        },
+        {
+          "section_name": "What Low Values Mean",
+          "section_id": "what_low_values_mean",
+          "character_count": 216,
+          "content_hash": "29bcdb9992e3"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 130,
+          "content_hash": "78210542ff13"
+        }
+      ],
+      "document_hash": "44b1cf21d236e566"
+    },
+    {
+      "doc_id": "medlineplus_serum_creatinine",
+      "test_name": "Serum Creatinine",
+      "category": "Kidney Function",
+      "source_name": "MedlinePlus (U.S. National Library of Medicine)",
+      "source_url": "https://medlineplus.gov/lab-tests/creatinine-test/",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 187,
+          "content_hash": "e9f0be5573f2"
+        },
+        {
+          "section_name": "What Elevated / High Values Mean",
+          "section_id": "what_elevated_/_high_val",
+          "character_count": 279,
+          "content_hash": "19de19d21570"
+        },
+        {
+          "section_name": "What Low Values Mean",
+          "section_id": "what_low_values_mean",
+          "character_count": 103,
+          "content_hash": "283932cf7b7e"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 193,
+          "content_hash": "8195d2ad2753"
+        }
+      ],
+      "document_hash": "dfa99680079b56dc"
+    },
+    {
+      "doc_id": "medlineplus_serum_iron___ferritin",
+      "test_name": "Serum Iron & Ferritin",
+      "category": "Iron Studies",
+      "source_name": "MedlinePlus (U.S. National Library of Medicine)",
+      "source_url": "https://medlineplus.gov/lab-tests/iron-tests/",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 127,
+          "content_hash": "0db07a6890fd"
+        },
+        {
+          "section_name": "What Low Values Mean",
+          "section_id": "what_low_values_mean",
+          "character_count": 141,
+          "content_hash": "e020efd6d6e6"
+        },
+        {
+          "section_name": "What Elevated / High Values Mean",
+          "section_id": "what_elevated_/_high_val",
+          "character_count": 190,
+          "content_hash": "1eca61b3843f"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 145,
+          "content_hash": "622d2bfc6cfd"
+        }
+      ],
+      "document_hash": "8e6b843b4f02c041"
+    },
+    {
+      "doc_id": "medlineplus_sgot___ast__aspartate_aminotransferase_",
+      "test_name": "SGOT / AST (Aspartate Aminotransferase)",
+      "category": "Liver Function",
+      "source_name": "MedlinePlus (U.S. National Library of Medicine)",
+      "source_url": "https://medlineplus.gov/lab-tests/ast-test/",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 179,
+          "content_hash": "81d0e3979f3b"
+        },
+        {
+          "section_name": "What Elevated / High Values Mean",
+          "section_id": "what_elevated_/_high_val",
+          "character_count": 177,
+          "content_hash": "91b4d6121d58"
+        },
+        {
+          "section_name": "What Low Values Mean",
+          "section_id": "what_low_values_mean",
+          "character_count": 30,
+          "content_hash": "e33b4fb87a21"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 135,
+          "content_hash": "0a05d75357ef"
+        }
+      ],
+      "document_hash": "a2ca7fd87e092a16"
+    },
+    {
+      "doc_id": "medlineplus_sgpt___alt__alanine_aminotransferase_",
+      "test_name": "SGPT / ALT (Alanine Aminotransferase)",
+      "category": "Liver Function",
+      "source_name": "MedlinePlus (U.S. National Library of Medicine)",
+      "source_url": "https://medlineplus.gov/lab-tests/alt-blood-test/",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 136,
+          "content_hash": "6ba7fc5f70aa"
+        },
+        {
+          "section_name": "What Elevated / High Values Mean",
+          "section_id": "what_elevated_/_high_val",
+          "character_count": 204,
+          "content_hash": "611669572b1a"
+        },
+        {
+          "section_name": "What Low Values Mean",
+          "section_id": "what_low_values_mean",
+          "character_count": 66,
+          "content_hash": "4c9ad75768aa"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 151,
+          "content_hash": "8749668ce45a"
+        }
+      ],
+      "document_hash": "ba0264849e41d11e"
+    },
+    {
+      "doc_id": "medlineplus_total_cholesterol",
+      "test_name": "Total Cholesterol",
+      "category": "Lipid Profile",
+      "source_name": "MedlinePlus (U.S. National Library of Medicine)",
+      "source_url": "https://medlineplus.gov/cholesterol.html",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 141,
+          "content_hash": "9398718f5e57"
+        },
+        {
+          "section_name": "What Elevated / High Values Mean",
+          "section_id": "what_elevated_/_high_val",
+          "character_count": 258,
+          "content_hash": "f6c7f3ee816e"
+        },
+        {
+          "section_name": "What Low Values Mean",
+          "section_id": "what_low_values_mean",
+          "character_count": 138,
+          "content_hash": "f2c5e1dda34b"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 177,
+          "content_hash": "88a8f7f246a6"
+        }
+      ],
+      "document_hash": "639e4eb0edf8c7ac"
+    },
+    {
+      "doc_id": "medlineplus_total_t3__triiodothyronine_",
+      "test_name": "Total T3 (Triiodothyronine)",
+      "category": "Thyroid Function",
+      "source_name": "MedlinePlus (U.S. National Library of Medicine)",
+      "source_url": "https://medlineplus.gov/lab-tests/triiodothyronine-t3-tests/",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 110,
+          "content_hash": "3d5b05318a99"
+        },
+        {
+          "section_name": "What Elevated / High Values Mean",
+          "section_id": "what_elevated_/_high_val",
+          "character_count": 72,
+          "content_hash": "ab29ac4e2185"
+        },
+        {
+          "section_name": "What Low Values Mean",
+          "section_id": "what_low_values_mean",
+          "character_count": 102,
+          "content_hash": "56801c322c26"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 75,
+          "content_hash": "d4ee96256ab3"
+        }
+      ],
+      "document_hash": "609a105b98dd76ac"
+    },
+    {
+      "doc_id": "medlineplus_triglycerides",
+      "test_name": "Triglycerides",
+      "category": "Lipid Profile",
+      "source_name": "MedlinePlus (U.S. National Library of Medicine)",
+      "source_url": "https://medlineplus.gov/triglycerides.html",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 114,
+          "content_hash": "4f75dbc2339e"
+        },
+        {
+          "section_name": "What Elevated / High Values Mean",
+          "section_id": "what_elevated_/_high_val",
+          "character_count": 236,
+          "content_hash": "283edd26c421"
+        },
+        {
+          "section_name": "What Low Values Mean",
+          "section_id": "what_low_values_mean",
+          "character_count": 84,
+          "content_hash": "b066280a11f4"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 149,
+          "content_hash": "9140052e6e4d"
+        }
+      ],
+      "document_hash": "e0cf8503bc48fe82"
+    },
+    {
+      "doc_id": "medlineplus_tsh__thyroid_stimulating_hormone_",
+      "test_name": "TSH (Thyroid Stimulating Hormone)",
+      "category": "Thyroid Function",
+      "source_name": "MedlinePlus (U.S. National Library of Medicine)",
+      "source_url": "https://medlineplus.gov/lab-tests/tsh-thyroid-stimulating-hormone-test/",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 178,
+          "content_hash": "cc5f0b96e878"
+        },
+        {
+          "section_name": "What Elevated / High Values Mean",
+          "section_id": "what_elevated_/_high_val",
+          "character_count": 239,
+          "content_hash": "bd6ac94acab0"
+        },
+        {
+          "section_name": "What Low Values Mean",
+          "section_id": "what_low_values_mean",
+          "character_count": 220,
+          "content_hash": "310f4ee19afa"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 198,
+          "content_hash": "80857f2ee312"
+        }
+      ],
+      "document_hash": "6fb0423ba11c0ac1"
+    },
+    {
+      "doc_id": "medlineplus_uric_acid",
+      "test_name": "Uric Acid",
+      "category": "Kidney Function",
+      "source_name": "MedlinePlus (U.S. National Library of Medicine)",
+      "source_url": "https://medlineplus.gov/lab-tests/uric-acid-test/",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 172,
+          "content_hash": "54e35a153874"
+        },
+        {
+          "section_name": "What Elevated / High Values Mean",
+          "section_id": "what_elevated_/_high_val",
+          "character_count": 218,
+          "content_hash": "6791dac3ef92"
+        },
+        {
+          "section_name": "What Low Values Mean",
+          "section_id": "what_low_values_mean",
+          "character_count": 58,
+          "content_hash": "38a9d961c567"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 144,
+          "content_hash": "babc298712bb"
+        }
+      ],
+      "document_hash": "4bdd00184e0134c5"
+    },
+    {
+      "doc_id": "medlineplus_vitamin_b12__cobalamin_",
+      "test_name": "Vitamin B12 (Cobalamin)",
+      "category": "Vitamins & Minerals",
+      "source_name": "MedlinePlus (U.S. National Library of Medicine)",
+      "source_url": "https://medlineplus.gov/lab-tests/vitamin-b12-test/",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 165,
+          "content_hash": "a9ae77875aa9"
+        },
+        {
+          "section_name": "What Low Values Mean",
+          "section_id": "what_low_values_mean",
+          "character_count": 230,
+          "content_hash": "7f5a91c40fc1"
+        },
+        {
+          "section_name": "What Elevated / High Values Mean",
+          "section_id": "what_elevated_/_high_val",
+          "character_count": 112,
+          "content_hash": "121e4f1666f6"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 156,
+          "content_hash": "2c8c7cf6dee4"
+        }
+      ],
+      "document_hash": "66acb53760c22dd9"
+    },
+    {
+      "doc_id": "medlineplus_vitamin_d__25-hydroxyvitamin_d_",
+      "test_name": "Vitamin D (25-Hydroxyvitamin D)",
+      "category": "Vitamins & Minerals",
+      "source_name": "MedlinePlus (U.S. National Library of Medicine)",
+      "source_url": "https://medlineplus.gov/lab-tests/vitamin-d-test/",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 141,
+          "content_hash": "35a0b38d43cd"
+        },
+        {
+          "section_name": "What Low Values Mean",
+          "section_id": "what_low_values_mean",
+          "character_count": 242,
+          "content_hash": "bc6eb810f9ab"
+        },
+        {
+          "section_name": "What Elevated / High Values Mean",
+          "section_id": "what_elevated_/_high_val",
+          "character_count": 110,
+          "content_hash": "d6570898db2c"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 157,
+          "content_hash": "b69f516fb3b7"
+        }
+      ],
+      "document_hash": "a05157af0109f3ea"
+    },
+    {
+      "doc_id": "medlineplus_white_blood_cell_count__wbc_",
+      "test_name": "White Blood Cell Count (WBC)",
+      "category": "Complete Blood Count",
+      "source_name": "MedlinePlus (U.S. National Library of Medicine)",
+      "source_url": "https://medlineplus.gov/lab-tests/white-blood-count/",
+      "version": "2024.1",
+      "last_reviewed": "2024-05-15",
+      "authority": "U.S. National Library of Medicine / NIH",
+      "sections": [
+        {
+          "section_name": "What the Test Measures",
+          "section_id": "what_the_test_measures",
+          "character_count": 193,
+          "content_hash": "e07fb0c45475"
+        },
+        {
+          "section_name": "What Elevated / High Values Mean",
+          "section_id": "what_elevated_/_high_val",
+          "character_count": 243,
+          "content_hash": "f9b5c4ff7b9b"
+        },
+        {
+          "section_name": "What Low Values Mean",
+          "section_id": "what_low_values_mean",
+          "character_count": 238,
+          "content_hash": "dec6a9eb02c4"
+        },
+        {
+          "section_name": "Questions to Ask Your Doctor",
+          "section_id": "questions_to_ask_your_do",
+          "character_count": 229,
+          "content_hash": "1d2eb1111c5b"
+        }
+      ],
+      "document_hash": "ed1806a17e67fcb4"
+    }
+  ]
+}

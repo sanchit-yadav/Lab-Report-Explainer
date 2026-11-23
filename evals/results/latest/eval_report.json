@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "timestamp": "2026-11-23T09:13:30.129590+00:00",
-    "git_commit": "744e53b",
+    "timestamp": "2026-11-23T09:26:45.556336+00:00",
+    "git_commit": "0003121",
     "python_version": "3.14.6",
     "models": {
       "explainer": "gemini-2.5-flash (with offline fallback)",
@@ -265,7 +265,7 @@
     }
   },
   "system": {
-    "total_suite_runtime_sec": 48.01,
+    "total_suite_runtime_sec": 51.83,
     "total_cases_evaluated": 63,
     "latency_percentiles": {
       "validate": {
@@ -274,34 +274,34 @@
         "mean_sec": 0.001
       },
       "ocr": {
-        "p50_sec": 0.029,
-        "p95_sec": 0.04,
-        "mean_sec": 0.026
+        "p50_sec": 0.03,
+        "p95_sec": 0.041,
+        "mean_sec": 0.027
       },
       "extract": {
-        "p50_sec": 0.029,
+        "p50_sec": 0.031,
         "p95_sec": 0.043,
-        "mean_sec": 0.03
+        "mean_sec": 0.032
       },
       "retrieve": {
-        "p50_sec": 0.401,
-        "p95_sec": 0.513,
-        "mean_sec": 0.606
+        "p50_sec": 0.431,
+        "p95_sec": 0.547,
+        "mean_sec": 0.659
       },
       "explain": {
-        "p50_sec": 0.089,
-        "p95_sec": 0.17,
-        "mean_sec": 0.092
+        "p50_sec": 0.095,
+        "p95_sec": 0.185,
+        "mean_sec": 0.098
       },
       "output_guard": {
         "p50_sec": 0.002,
-        "p95_sec": 0.003,
+        "p95_sec": 0.004,
         "mean_sec": 0.002
       },
       "total": {
-        "p50_sec": 0.549,
-        "p95_sec": 0.75,
-        "mean_sec": 0.76
+        "p50_sec": 0.591,
+        "p95_sec": 0.805,
+        "mean_sec": 0.821
       }
     },
     "token_metrics": {
@@ -352,7 +352,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 13.142
+      "latency_sec": 14.615
     },
     {
       "case_id": "core_002",
@@ -396,7 +396,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.523
+      "latency_sec": 0.489
     },
     {
       "case_id": "core_003",
@@ -440,7 +440,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.706
+      "latency_sec": 0.812
     },
     {
       "case_id": "core_004",
@@ -484,7 +484,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.584
+      "latency_sec": 0.608
     },
     {
       "case_id": "core_005",
@@ -528,7 +528,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.687
+      "latency_sec": 0.774
     },
     {
       "case_id": "core_006",
@@ -572,7 +572,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.463
+      "latency_sec": 0.492
     },
     {
       "case_id": "core_007",
@@ -616,7 +616,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.754
+      "latency_sec": 0.742
     },
     {
       "case_id": "core_008",
@@ -660,7 +660,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.622
+      "latency_sec": 0.636
     },
     {
       "case_id": "core_009",
@@ -704,7 +704,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.683
+      "latency_sec": 0.718
     },
     {
       "case_id": "core_010",
@@ -748,7 +748,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.464
+      "latency_sec": 0.471
     },
     {
       "case_id": "core_011",
@@ -792,7 +792,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.709
+      "latency_sec": 0.753
     },
     {
       "case_id": "core_012",
@@ -836,7 +836,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.504
+      "latency_sec": 0.519
     },
     {
       "case_id": "core_013",
@@ -880,7 +880,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.689
+      "latency_sec": 0.943
     },
     {
       "case_id": "core_014",
@@ -924,7 +924,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.458
+      "latency_sec": 0.488
     },
     {
       "case_id": "core_015",
@@ -968,7 +968,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.759
+      "latency_sec": 0.778
     },
     {
       "case_id": "core_016",
@@ -1012,7 +1012,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.525
+      "latency_sec": 0.534
     },
     {
       "case_id": "core_017",
@@ -1056,7 +1056,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.674
+      "latency_sec": 0.719
     },
     {
       "case_id": "core_018",
@@ -1100,7 +1100,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.451
+      "latency_sec": 0.534
     },
     {
       "case_id": "core_019",
@@ -1144,7 +1144,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.71
+      "latency_sec": 0.77
     },
     {
       "case_id": "core_020",
@@ -1188,7 +1188,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.564
+      "latency_sec": 0.637
     },
     {
       "case_id": "core_021",
@@ -1232,7 +1232,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.6
+      "latency_sec": 0.591
     },
     {
       "case_id": "core_022",
@@ -1276,7 +1276,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.498
+      "latency_sec": 0.479
     },
     {
       "case_id": "core_023",
@@ -1320,7 +1320,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.783
+      "latency_sec": 0.808
     },
     {
       "case_id": "core_024",
@@ -1364,7 +1364,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.537
+      "latency_sec": 0.602
     },
     {
       "case_id": "core_025",
@@ -1408,7 +1408,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.546
+      "latency_sec": 0.591
     },
     {
       "case_id": "hard_001",
@@ -1452,7 +1452,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.555
+      "latency_sec": 0.587
     },
     {
       "case_id": "hard_002",
@@ -1496,7 +1496,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.597
+      "latency_sec": 0.66
     },
     {
       "case_id": "hard_003",
@@ -1540,7 +1540,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.583
+      "latency_sec": 0.658
     },
     {
       "case_id": "hard_004",
@@ -1584,7 +1584,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.617
+      "latency_sec": 0.552
     },
     {
       "case_id": "hard_005",
@@ -1628,7 +1628,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.594
+      "latency_sec": 0.67
     },
     {
       "case_id": "hard_006",
@@ -1672,7 +1672,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.534
+      "latency_sec": 0.594
     },
     {
       "case_id": "hard_007",
@@ -1716,7 +1716,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.548
+      "latency_sec": 0.545
     },
     {
       "case_id": "hard_008",
@@ -1760,7 +1760,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.521
+      "latency_sec": 0.571
     },
     {
       "case_id": "hard_009",
@@ -1804,7 +1804,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.524
+      "latency_sec": 0.555
     },
     {
       "case_id": "hard_010",
@@ -1848,7 +1848,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.59
+      "latency_sec": 0.629
     },
     {
       "case_id": "hard_011",
@@ -1892,7 +1892,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.573
+      "latency_sec": 0.674
     },
     {
       "case_id": "hard_012",
@@ -1936,7 +1936,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.63
+      "latency_sec": 0.647
     },
     {
       "case_id": "hard_013",
@@ -1980,7 +1980,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.619
+      "latency_sec": 0.587
     },
     {
       "case_id": "hard_014",
@@ -2024,7 +2024,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.547
+      "latency_sec": 0.618
     },
     {
       "case_id": "hard_015",
@@ -2068,7 +2068,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.559
+      "latency_sec": 0.597
     },
     {
       "case_id": "hard_016",
@@ -2112,7 +2112,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.533
+      "latency_sec": 0.607
     },
     {
       "case_id": "hard_017",
@@ -2156,7 +2156,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.574
+      "latency_sec": 0.722
     },
     {
       "case_id": "hard_018",
@@ -2200,7 +2200,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.549
+      "latency_sec": 0.597
     },
     {
       "case_id": "hard_019",
@@ -2288,7 +2288,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.56
+      "latency_sec": 0.576
     },
     {
       "case_id": "adv_001",
@@ -2376,7 +2376,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.441
+      "latency_sec": 0.462
     },
     {
       "case_id": "adv_003",
@@ -2420,7 +2420,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.456
+      "latency_sec": 0.473
     },
     {
       "case_id": "adv_004",
@@ -2464,7 +2464,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.504
+      "latency_sec": 0.546
     },
     {
       "case_id": "adv_005",
@@ -2508,7 +2508,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.468
+      "latency_sec": 0.508
     },
     {
       "case_id": "adv_006",
@@ -2552,7 +2552,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.417
+      "latency_sec": 0.465
     },
     {
       "case_id": "adv_007",
@@ -2596,7 +2596,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.498
+      "latency_sec": 0.553
     },
     {
       "case_id": "adv_008",
@@ -2640,7 +2640,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.474
+      "latency_sec": 0.509
     },
     {
       "case_id": "adv_009",
@@ -2684,7 +2684,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.527
+      "latency_sec": 0.499
     },
     {
       "case_id": "adv_010",
@@ -2728,7 +2728,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.489
+      "latency_sec": 0.5
     },
     {
       "case_id": "reg_001",
@@ -2772,7 +2772,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.468
+      "latency_sec": 0.511
     },
     {
       "case_id": "reg_002",
@@ -2816,7 +2816,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.568
+      "latency_sec": 0.609
     },
     {
       "case_id": "reg_003",
@@ -2860,7 +2860,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.454
+      "latency_sec": 0.524
     },
     {
       "case_id": "reg_004",
@@ -2904,7 +2904,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.543
+      "latency_sec": 0.587
     },
     {
       "case_id": "reg_005",
@@ -2948,7 +2948,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.469
+      "latency_sec": 0.494
     },
     {
       "case_id": "reg_006",
@@ -2992,7 +2992,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.585
+      "latency_sec": 0.593
     },
     {
       "case_id": "reg_007",
@@ -3036,7 +3036,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.463
+      "latency_sec": 0.5
     },
     {
       "case_id": "reg_008",
@@ -3080,7 +3080,7 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.591
+      "latency_sec": 0.603
     }
   ]
 }

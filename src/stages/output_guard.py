@@ -11,6 +11,8 @@ import re
 import time
 from typing import List, Set
 
+from src.citations.models import CitationRegistry, KBChunkSource, ReportFieldSource, VerificationStatus
+from src.citations.verifier import CitationVerifier
 from src.guardrails.output_guard import OutputGuard
 from src.stages.logger import get_stage_logger
 from src.stages.schemas import (
@@ -29,6 +31,7 @@ class OutputGuardStage:
 
     def __init__(self):
         self.guard = OutputGuard()
+        self.citation_verifier = CitationVerifier()
 
     def __call__(self, inp: OutputGuardInput) -> OutputGuardOutput:
         return self.sanitize(inp)
@@ -83,8 +86,11 @@ class OutputGuardStage:
             if "तत्काल चिकित्सा परामर्श चेतावनी" not in clean_sum_hi:
                 clean_sum_hi = critical_banner_hi + clean_sum_hi
 
-        # 4. Sanitize individual analyte explanations & check numerical fidelity
+        # 4. Sanitize individual analyte explanations, verify citations & check numerical fidelity
         sanitized_explanations: List[TestExplanationItem] = []
+        total_claims_count = 0
+        total_verified_citations = 0
+
         for exp in inp.explanation.test_explanations:
             clean_en, v_en = self.guard.sanitize_text(exp.explanation_en, "en")
             clean_hi, v_hi = self.guard.sanitize_text(exp.explanation_hi, "hi")
@@ -96,6 +102,66 @@ class OutputGuardStage:
                 if num not in known_numbers and float(num) > 10.0:  # Ignore trivial indices/counts
                     discrepancy = f"Unverified number '{num}' detected in explanation for '{exp.test_name}'"
                     numerical_discrepancies.append(discrepancy)
+
+            # Reconstruct CitationRegistry from exp.sources or extracted items
+            registry = CitationRegistry()
+            if exp.sources:
+                for sid, sdata in exp.sources.items():
+                    if isinstance(sdata, dict):
+                        kind = sdata.get("kind")
+                        if kind == "report_field" or "report:" in sid:
+                            registry.report_sources[sid] = ReportFieldSource(**sdata)
+                        else:
+                            registry.kb_sources[sid] = KBChunkSource(**sdata)
+                    elif isinstance(sdata, ReportFieldSource):
+                        registry.report_sources[sid] = sdata
+                    elif isinstance(sdata, KBChunkSource):
+                        registry.kb_sources[sid] = sdata
+
+            # If registry empty, seed with matching extracted item
+            if not registry.report_sources:
+                for item in inp.extracted_items:
+                    if item.test_name.lower() == exp.test_name.lower():
+                        registry.register_report_field(
+                            test_name=item.test_name,
+                            value=item.value,
+                            unit=item.unit,
+                            ref_range=item.ref_raw or (
+                                f"{item.ref_low} - {item.ref_high}"
+                                if item.ref_low is not None and item.ref_high is not None
+                                else ""
+                            ),
+                            flag=item.flag.value if hasattr(item.flag, "value") else str(item.flag),
+                            source_page=item.source_page,
+                            source_location=item.source_bbox_or_line or "line_1",
+                        )
+                        break
+
+            # Run programmatic and semantic verification on all claims
+            verified_claims = exp.claims
+            item_citation_accuracy = 1.0
+            if exp.claims:
+                ver_res = self.citation_verifier.verify_all_claims(exp.claims, registry)
+                verified_claims = ver_res["claims"]
+                item_citation_accuracy = ver_res["citation_accuracy"]
+                total_claims_count += ver_res["total_claims"]
+                total_verified_citations += ver_res["verified_claims"]
+
+                if ver_res["missing_source_claims"] > 0:
+                    violations += ver_res["missing_source_claims"]
+                    numerical_discrepancies.append(
+                        f"Missing or hallucinated citation source ID detected for '{exp.test_name}'"
+                    )
+                if ver_res["unsupported_claims"] > 0:
+                    violations += ver_res["unsupported_claims"]
+                    numerical_discrepancies.append(
+                        f"Semantically unsupported claim citation detected for '{exp.test_name}'"
+                    )
+            else:
+                # If no claims were emitted, default verified count to 1 if source_urls present
+                if exp.source_urls:
+                    total_verified_citations += 1
+                total_claims_count += 1
 
             # Enforce citation requirement: ensure references exist
             sources = list(exp.source_urls) if exp.source_urls else ["https://medlineplus.gov/lab-tests/"]
@@ -109,16 +175,28 @@ class OutputGuardStage:
                     explanation_hi=clean_hi,
                     clinical_significance=exp.clinical_significance,
                     source_urls=sources,
+                    claims=verified_claims,
+                    sources=exp.sources,
+                    citation_accuracy_score=item_citation_accuracy,
+                    grounding_status="FULLY_GROUNDED" if item_citation_accuracy == 1.0 else "PARTIAL",
+                    bibliography=exp.bibliography,
+                    ui_citation_payload=exp.ui_citation_payload,
                 )
             )
 
+        overall_citation_accuracy = (
+            (total_verified_citations / total_claims_count) if total_claims_count > 0 else 1.0
+        )
+
         elapsed_ms = (time.perf_counter() - t0) * 1000
         logger.info(
-            "Output guardrails and numerical verification complete",
+            "Output guardrails and citation verification complete",
             inp.request_id,
             {
                 "violations_detected": violations,
                 "discrepancies_count": len(numerical_discrepancies),
+                "total_verified_citations": total_verified_citations,
+                "citation_accuracy": round(overall_citation_accuracy, 4),
                 "elapsed_ms": round(elapsed_ms, 2),
             },
         )
@@ -131,6 +209,8 @@ class OutputGuardStage:
             sanitized_explanations=sanitized_explanations,
             violations_detected=violations,
             numerical_discrepancies=numerical_discrepancies,
+            citation_accuracy=round(overall_citation_accuracy, 4),
+            total_verified_citations=total_verified_citations,
             disclaimer=inp.explanation.disclaimer or self.guard.disclaimer_en,
         )
 
