@@ -102,3 +102,52 @@ class CrossEncoderReranker:
         except Exception as e:
             logger.warning(f"Error during cross-encoder re-ranking: {e}. Falling back to vector ranking.")
             return candidates[:n]
+
+    def rerank_batch(
+        self,
+        batch_items: List[Tuple[str, List[Dict[str, Any]]]],
+        top_n: Optional[int] = None,
+    ) -> List[List[Dict[str, Any]]]:
+        """Batched re-ranking for multiple queries in a single vectorized forward pass.
+
+        Args:
+            batch_items: List of (query_str, candidate_list) pairs.
+            top_n: Maximum chunks to return per query.
+
+        Returns:
+            List of sorted candidate lists per query.
+        """
+        n = top_n or self.top_n
+        if not batch_items:
+            return []
+
+        if not self.enabled:
+            return [cands[:n] for _, cands in batch_items]
+
+        model = self._get_model()
+        if model is None:
+            return [cands[:n] for _, cands in batch_items]
+
+        all_pairs = []
+        indices_map = []  # (item_idx, cand_idx)
+        for item_idx, (query, cands) in enumerate(batch_items):
+            for cand_idx, c in enumerate(cands):
+                all_pairs.append([query, c.get("text", "")])
+                indices_map.append((item_idx, cand_idx))
+
+        if not all_pairs:
+            return [cands[:n] for _, cands in batch_items]
+
+        try:
+            scores = model.predict(all_pairs, batch_size=32)
+            for (item_idx, cand_idx), score in zip(indices_map, scores):
+                batch_items[item_idx][1][cand_idx]["rerank_score"] = float(score)
+
+            results = []
+            for _, cands in batch_items:
+                sorted_c = sorted(cands, key=lambda x: x.get("rerank_score", 0.0), reverse=True)
+                results.append(sorted_c[:n])
+            return results
+        except Exception as e:
+            logger.warning(f"Error during batched cross-encoder re-ranking: {e}. Falling back to unranked.")
+            return [cands[:n] for _, cands in batch_items]

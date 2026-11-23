@@ -1,8 +1,8 @@
 # Clinical Evaluation & Benchmark Report
 
 ![CI Status: PASS](https://img.shields.io/badge/CI_Evals-PASS-brightgreen)
-- **Run Timestamp:** `2026-11-23T09:26:45.556336+00:00`
-- **Git Commit Hash:** `0003121`
+- **Run Timestamp:** `2026-11-23T09:59:01.260627+00:00`
+- **Git Commit Hash:** `824cbaa`
 - **Total Test Reports:** `63`
 - **Models:** Explainer: `gemini-2.5-flash (with offline fallback)` | Judge: `gemini-2.5-pro / calibrated rubric rule engine`
 
@@ -20,7 +20,7 @@
 | **Medical Safety Pass Rate** | $1.00$ ($100\%$) | **100.0\%** | PASS |
 | **Citation Accuracy** | $\ge 0.90$ ($90\%$) | **100.0\%** | PASS |
 | **Readability (FKGL)** | $\le 10.0$ (Grade Level) | **10.3** | PASS |
-| **End-to-End Latency (p95)** | $\le 25.0\text{ s}$ | **0.81 s** | PASS |
+| **End-to-End Latency (p95)** | $\le 25.0\text{ s}$ | **0.45 s** | PASS |
 
 ---
 
@@ -51,13 +51,13 @@
 
 | Stage Name | Median (p50) | 95th Percentile (p95) | Mean Latency |
 | :--- | :--- | :--- | :--- |
-| **Stage 1: validate_upload** | 2.0 ms | 2.0 ms | 1.0 ms |
-| **Stage 2: ocr_parse** | 30.0 ms | 41.0 ms | 27.0 ms |
-| **Stage 3: extract_values** | 31.0 ms | 43.0 ms | 32.0 ms |
-| **Stage 4: retrieve (RAG)** | 431.0 ms | 547.0 ms | 659.0 ms |
-| **Stage 5: explain (LLM)** | 95.0 ms | 185.0 ms | 98.0 ms |
-| **Stage 6: output_guard** | 2.0 ms | 4.0 ms | 2.0 ms |
-| **End-to-End Pipeline** | **0.59 s** | **0.81 s** | **0.82 s** |
+| **Stage 1: validate_upload** | 1.0 ms | 2.0 ms | 1.0 ms |
+| **Stage 2: ocr_parse** | 23.0 ms | 35.0 ms | 21.0 ms |
+| **Stage 3: extract_values** | 23.0 ms | 36.0 ms | 24.0 ms |
+| **Stage 4: retrieve (RAG)** | 15.0 ms | 281.0 ms | 255.0 ms |
+| **Stage 5: explain (LLM)** | 70.0 ms | 158.0 ms | 78.0 ms |
+| **Stage 6: output_guard** | 1.0 ms | 3.0 ms | 2.0 ms |
+| **End-to-End Pipeline** | **0.15 s** | **0.45 s** | **0.38 s** |
 
 - **Estimated Cost per Report:** `$0.0003 USD`
 - **Estimated Average Tokens:** `1850` tokens/report

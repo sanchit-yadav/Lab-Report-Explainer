@@ -77,3 +77,89 @@ def test_tracer_context_managers():
     assert trace.spans[0].elapsed_ms > 0
     assert trace.spans[1].name == "failing_step"
     assert "Deliberate failure" in trace.spans[1].error
+
+
+def test_pii_safe_sanitization_in_spans():
+    """Verify that sensitive PHI/PII fields are strictly redacted in span inputs/outputs."""
+    span = LocalSpan("pii_test_span")
+    span.set_input(
+        patient_name="John Doe",
+        email="john.doe@example.com",
+        phone="555-123-4567",
+        dob="01/01/1980",
+        safe_param="biomarker_query",
+    )
+    span.set_output(
+        patient_address="123 Main St, New York, NY",
+        ssn="123-45-6789",
+        count=10,
+    )
+
+    # Blocked keys should be redacted
+    assert span.inputs["patient_name"] == "[PII_REDACTED]"
+    assert span.inputs["email"] == "[EMAIL_REDACTED]"
+    assert span.inputs["phone"] == "[PHONE_REDACTED]"
+    assert span.inputs["dob"] == "[PII_REDACTED]"
+    assert span.inputs["safe_param"] == "biomarker_query"
+
+    assert span.outputs["patient_address"] == "[PII_REDACTED]"
+    assert span.outputs["ssn"] == "[PII_REDACTED]"
+    assert span.outputs["count"] == 10
+
+
+def test_opentelemetry_export():
+    """Verify OpenTelemetry OTLP compatible dictionary serialization."""
+    trace = LocalTrace("otel_pipeline_trace", request_id="req-999-otel")
+    span = LocalSpan("retrieve_stage", trace)
+    span.set_input(query="Glucose High")
+    span.set_output(results=3)
+    trace.add_span(span)
+
+    otel_dict = trace.to_otel_dict()
+    assert "resource_spans" in otel_dict
+    res_span = otel_dict["resource_spans"][0]
+    assert res_span["resource"]["attributes"]["service.name"] == "ai-blood-report-explainer"
+    spans = res_span["scope_spans"][0]["spans"]
+    assert len(spans) == 1
+    s = spans[0]
+    assert s["trace_id"] == "req-999-otel"
+    assert s["name"] == "retrieve_stage"
+    assert s["status"]["code"] == "STATUS_CODE_OK"
+    assert s["attributes"]["input.query"] == "Glucose High"
+    assert s["attributes"]["output.results"] == "3"
+
+
+def test_trace_stage_decorator():
+    """Test the @trace_stage decorator with simulated stage objects."""
+    from src.tracing.langfuse_setup import trace_stage
+
+    class DummyInput:
+        def __init__(self, req_id: str):
+            self.request_id = req_id
+
+    class DummyOutput:
+        def __init__(self):
+            self.items = [1, 2, 3]
+            self.is_valid = True
+
+    @trace_stage("dummy_stage")
+    def run_dummy_stage(inp: DummyInput) -> DummyOutput:
+        return DummyOutput()
+
+    res = run_dummy_stage(DummyInput("req-stage-123"))
+    assert res.is_valid is True
+    assert len(res.items) == 3
+
+
+def test_recent_traces_ring_buffer():
+    """Verify Tracer stores and retrieves recent traces in a bounded ring buffer."""
+    tracer = get_tracer()
+    with tracer.start_trace("ring_buffer_test_trace", request_id="ring-123") as t:
+        with tracer.span("inner_op", parent_trace=t) as s:
+            s.set_output(done=True)
+
+    recent = tracer.get_recent_traces(limit=10)
+    assert len(recent) >= 1
+    found = any(tr.get("trace_id") == "ring-123" for tr in recent)
+    assert found
+

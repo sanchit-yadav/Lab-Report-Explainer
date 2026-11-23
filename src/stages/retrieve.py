@@ -7,9 +7,10 @@ in ChromaDB, followed by cross-encoder re-ranking for contextual precision.
 from __future__ import annotations
 
 import time
-from typing import Dict, List
+from typing import Any, Dict, List, Tuple
 
 from src.config import get_config
+from src.rag.cache import RAGCacheManager
 from src.rag.reranker import CrossEncoderReranker
 from src.rag.retriever import ChromaRetriever
 from src.stages.logger import get_stage_logger
@@ -25,6 +26,7 @@ class RetrieveStage:
         self.config = get_config().rag
         self.retriever = ChromaRetriever(self.config)
         self.reranker = CrossEncoderReranker(self.config.reranker)
+        self.cache = RAGCacheManager.get_instance()
 
     def __call__(self, inp: RetrieveInput) -> RetrieveOutput:
         return self.retrieve(inp)
@@ -33,28 +35,46 @@ class RetrieveStage:
         t0 = time.perf_counter()
         chunks_by_query: Dict[str, List[RetrievedChunk]] = {}
         total_chunks = 0
+        cache_hits = 0
+        cache_misses = 0
 
+        # Step 1: Check cache for each query
+        missing_queries: List[Tuple[str, List[Dict[str, Any]]]] = []
         for query in inp.queries:
-            # 1. Bi-encoder ChromaDB retrieval
-            candidates = self.retriever.retrieve(query, top_k=inp.top_k)
+            cached_chunks = self.cache.get(query, inp.top_k, inp.top_n)
+            if cached_chunks is not None:
+                chunks_by_query[query] = cached_chunks
+                total_chunks += len(cached_chunks)
+                cache_hits += 1
+            else:
+                cache_misses += 1
+                candidates = self.retriever.retrieve(query, top_k=inp.top_k)
+                missing_queries.append((query, candidates))
 
-            # 2. Cross-Encoder re-ranking
-            reranked = self.reranker.rerank(query, candidates, top_n=inp.top_n)
+        # Step 2: Batched cross-encoder reranking for uncached queries
+        if missing_queries:
+            if len(missing_queries) == 1:
+                query, candidates = missing_queries[0]
+                reranked_lists = [self.reranker.rerank(query, candidates, top_n=inp.top_n)]
+            else:
+                reranked_lists = self.reranker.rerank_batch(missing_queries, top_n=inp.top_n)
 
-            query_chunks: List[RetrievedChunk] = []
-            for item in reranked:
-                chunk = RetrievedChunk(
-                    chunk_id=item.get("id", f"chunk_{total_chunks}"),
-                    doc_id=item.get("metadata", {}).get("source_file", item.get("id", "doc")),
-                    title=item.get("metadata", {}).get("title", query),
-                    text=item.get("text", ""),
-                    score=float(item.get("score", 0.0)),
-                    source_url=item.get("metadata", {}).get("source_url") or item.get("source_url"),
-                )
-                query_chunks.append(chunk)
-                total_chunks += 1
+            for (query, _), reranked in zip(missing_queries, reranked_lists):
+                query_chunks: List[RetrievedChunk] = []
+                for item in reranked:
+                    chunk = RetrievedChunk(
+                        chunk_id=item.get("id", f"chunk_{total_chunks}"),
+                        doc_id=item.get("metadata", {}).get("source_file", item.get("id", "doc")),
+                        title=item.get("metadata", {}).get("title", query),
+                        text=item.get("text", ""),
+                        score=float(item.get("score", 0.0)),
+                        source_url=item.get("metadata", {}).get("source_url") or item.get("source_url"),
+                    )
+                    query_chunks.append(chunk)
+                    total_chunks += 1
 
-            chunks_by_query[query] = query_chunks
+                chunks_by_query[query] = query_chunks
+                self.cache.put(query, inp.top_k, inp.top_n, query_chunks)
 
         elapsed_ms = (time.perf_counter() - t0) * 1000
         logger.info(
@@ -63,6 +83,9 @@ class RetrieveStage:
             {
                 "query_count": len(inp.queries),
                 "total_chunks_retrieved": total_chunks,
+                "cache_hits": cache_hits,
+                "cache_misses": cache_misses,
+                "hit_ratio": self.cache.hit_ratio,
                 "elapsed_ms": round(elapsed_ms, 2),
             },
         )

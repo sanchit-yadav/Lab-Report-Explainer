@@ -148,29 +148,57 @@ class LabReportPipeline:
         request_id: Optional[str] = None,
         explain_all: bool = False,
     ) -> OutputGuardOutput:
-        """Execute all six stages sequentially in an independently verifiable chain."""
+        """Execute all six stages sequentially in an independently verifiable chain with PII-safe tracing."""
         req_id = request_id or generate_request_id()
 
-        # Stage 1: Validate upload
-        val_out = self.run_stage_validate(file_bytes, filename, req_id)
-        if not val_out.is_valid:
-            raise ValueError(f"Upload validation failed: {val_out.error}")
+        with self.tracer.start_trace("modular_pipeline", request_id=req_id, filename=filename) as trace:
+            # Stage 1: Validate upload
+            with self.tracer.span("stage_1_validate", parent_trace=trace) as s_val:
+                s_val.set_input(filename=filename, file_size_bytes=len(file_bytes))
+                val_out = self.run_stage_validate(file_bytes, filename, req_id)
+                s_val.set_output(is_valid=val_out.is_valid, mime_type=val_out.mime_type)
+                if not val_out.is_valid:
+                    raise ValueError(f"Upload validation failed: {val_out.error}")
 
-        # Stage 2: OCR parse
-        ocr_out = self.run_stage_ocr(val_out.sanitized_bytes, filename, req_id)
+            # Stage 2: OCR parse
+            with self.tracer.span("stage_2_ocr", parent_trace=trace) as s_ocr:
+                s_ocr.set_input(page_count=val_out.page_count)
+                ocr_out = self.run_stage_ocr(val_out.sanitized_bytes, filename, req_id)
+                total_lines = sum(len(p.lines) for p in ocr_out.pages)
+                s_ocr.set_output(total_lines=total_lines, total_pages=ocr_out.total_pages)
 
-        # Stage 3: Extract values with deterministic flags
-        ext_out = self.run_stage_extract(ocr_out, raw_bytes=val_out.sanitized_bytes, request_id=req_id)
+            # Stage 3: Extract values with deterministic flags
+            with self.tracer.span("stage_3_extract", parent_trace=trace) as s_ext:
+                s_ext.set_input(total_pages=ocr_out.total_pages)
+                ext_out = self.run_stage_extract(ocr_out, raw_bytes=val_out.sanitized_bytes, request_id=req_id)
+                flagged_count = sum(1 for item in ext_out.items if item.flag not in (FlagStatus.NORMAL, FlagStatus.UNKNOWN))
+                s_ext.set_output(biomarkers_extracted=len(ext_out.items), flagged_count=flagged_count)
 
-        # Stage 4: Knowledge retrieval
-        queries = [f"{item.test_name} {item.flag.value} lab test meaning" for item in ext_out.items]
-        ret_out = self.run_stage_retrieve(queries, req_id)
+            # Stage 4: Knowledge retrieval
+            with self.tracer.span("stage_4_retrieve", parent_trace=trace) as s_ret:
+                queries = [f"{item.test_name} {item.flag.value} lab test meaning" for item in ext_out.items]
+                s_ret.set_input(query_count=len(queries))
+                ret_out = self.run_stage_retrieve(queries, req_id)
+                s_ret.set_output(total_chunks=ret_out.total_chunks)
 
-        # Stage 5: Explain synthesis
-        exp_out = self.run_stage_explain(ext_out, ret_out, req_id, explain_all=explain_all)
+            # Stage 5: Explain synthesis
+            with self.tracer.span("stage_5_explain", parent_trace=trace) as s_exp:
+                s_exp.set_input(explain_all=explain_all, query_count=len(queries))
+                exp_out = self.run_stage_explain(ext_out, ret_out, req_id, explain_all=explain_all)
+                total_citations = sum(len(t.claims) for t in exp_out.test_explanations)
+                s_exp.set_output(explanations_count=len(exp_out.test_explanations), citations_count=total_citations)
 
-        # Stage 6: Output guardrails & numerical check
-        return self.run_stage_guard(exp_out, ext_out.items, req_id)
+            # Stage 6: Output guardrails & numerical check
+            with self.tracer.span("stage_6_guard", parent_trace=trace) as s_grd:
+                s_grd.set_input(test_count=len(exp_out.test_explanations))
+                guard_out = self.run_stage_guard(exp_out, ext_out.items, req_id)
+                s_grd.set_output(
+                    is_safe=guard_out.is_safe,
+                    violations=guard_out.violations_detected,
+                    citation_accuracy=guard_out.citation_accuracy,
+                )
+
+            return guard_out
 
     def check_user_input(self, user_question: str) -> GuardrailResult:
         """Evaluate a user question against Layer 1 Input Guardrails."""
@@ -206,7 +234,7 @@ class LabReportPipeline:
                 s_extract.set_output(
                     method=lab_report.extraction_method,
                     total_tests=len(lab_report.tests),
-                    patient=lab_report.patient_name,
+                    patient_id=getattr(lab_report, "patient_id", "ANONYMIZED"),
                 )
 
             return self._explain_single_lab_report(lab_report, explain_all_tests=explain_all_tests, trace=trace)
