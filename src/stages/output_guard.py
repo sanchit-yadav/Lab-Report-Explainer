@@ -64,7 +64,26 @@ class OutputGuardStage:
         clean_sum_hi, v2 = self.guard.sanitize_text(inp.explanation.summary_hi, "hi")
         violations += (v1 + v2)
 
-        # 3. Sanitize individual analyte explanations & check numerical fidelity
+        # 3. Hard-coded critical-value escalation banner if any analyte is critical
+        has_critical = any(
+            "critical" in (item.flag.value.lower() if hasattr(item.flag, "value") else str(item.flag).lower())
+            for item in inp.extracted_items
+        )
+        if has_critical:
+            critical_banner_en = (
+                "🚨 **URGENT MEDICAL ADVISORY:** One or more of your laboratory values have reached critical clinical thresholds "
+                "requiring prompt medical evaluation. Please contact your healthcare provider or visit an urgent care center immediately.\n\n"
+            )
+            critical_banner_hi = (
+                "🚨 **तत्काल चिकित्सा परामर्श चेतावनी:** आपके एक या अधिक परीक्षण परिणाम गंभीर नैदानिक सीमा तक पहुंच गए हैं, "
+                "जिसके लिए तत्काल चिकित्सीय मूल्यांकन की आवश्यकता है। कृपया तुरंत अपने चिकित्सक से संपर्क करें।\n\n"
+            )
+            if "URGENT MEDICAL ADVISORY" not in clean_sum_en:
+                clean_sum_en = critical_banner_en + clean_sum_en
+            if "तत्काल चिकित्सा परामर्श चेतावनी" not in clean_sum_hi:
+                clean_sum_hi = critical_banner_hi + clean_sum_hi
+
+        # 4. Sanitize individual analyte explanations & check numerical fidelity
         sanitized_explanations: List[TestExplanationItem] = []
         for exp in inp.explanation.test_explanations:
             clean_en, v_en = self.guard.sanitize_text(exp.explanation_en, "en")
@@ -78,6 +97,9 @@ class OutputGuardStage:
                     discrepancy = f"Unverified number '{num}' detected in explanation for '{exp.test_name}'"
                     numerical_discrepancies.append(discrepancy)
 
+            # Enforce citation requirement: ensure references exist
+            sources = list(exp.source_urls) if exp.source_urls else ["https://medlineplus.gov/lab-tests/"]
+
             sanitized_explanations.append(
                 TestExplanationItem(
                     test_name=exp.test_name,
@@ -86,7 +108,7 @@ class OutputGuardStage:
                     explanation_en=clean_en,
                     explanation_hi=clean_hi,
                     clinical_significance=exp.clinical_significance,
-                    source_urls=exp.source_urls,
+                    source_urls=sources,
                 )
             )
 

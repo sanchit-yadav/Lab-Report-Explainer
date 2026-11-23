@@ -140,6 +140,16 @@ class ExtractValuesStage:
             )
             items.append(item)
 
+        # 5. Evaluate Biological Plausibility and OCR Scan Fidelity
+        from src.security.plausibility import PlausibilityValidator
+        plaus_check = PlausibilityValidator().validate_report(items)
+        if plaus_check.needs_better_upload:
+            logger.warning(
+                "Biological plausibility violation detected; requesting clean upload",
+                inp.request_id,
+                {"findings": plaus_check.implausible_findings},
+            )
+
         elapsed_ms = (time.perf_counter() - t0) * 1000
         logger.info(
             "Values extracted and deterministically flagged",
@@ -148,6 +158,7 @@ class ExtractValuesStage:
                 "analyte_count": len(items),
                 "flagged_count": flagged_count,
                 "critical_count": critical_count,
+                "needs_better_upload": plaus_check.needs_better_upload,
                 "elapsed_ms": round(elapsed_ms, 2),
             },
         )
@@ -163,6 +174,9 @@ class ExtractValuesStage:
             flagged_count=flagged_count,
             critical_count=critical_count,
             extraction_method=extracted_report.extraction_method,
+            needs_better_upload=plaus_check.needs_better_upload,
+            implausible_findings=plaus_check.implausible_findings,
+            plausibility_advisory=plaus_check.advisory_message if plaus_check.needs_better_upload else None,
         )
 
 

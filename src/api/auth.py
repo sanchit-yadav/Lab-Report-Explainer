@@ -179,3 +179,34 @@ def get_optional_current_user(
         return db.query(User).filter(User.id == user_id, User.is_active == True).first()
     except Exception:
         return None
+
+
+def verify_report_access(record: Any, current_user: Optional[User]) -> None:
+    """Enforce strict authorization and prevent Insecure Direct Object References (IDOR).
+
+    Guarantees tenant isolation: patients can only access their own reports,
+    while administrative users can access any report for auditing.
+    """
+    record_user_id = getattr(record, "user_id", None)
+    if not record_user_id:
+        return
+
+    if not current_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required to access this protected patient report.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    if current_user.role != "admin" and current_user.id != record_user_id:
+        from src.security.audit import SecurityAuditLogger
+        SecurityAuditLogger.get_instance().log_event(
+            event_type="IDOR_ATTEMPT_BLOCKED",
+            actor_id=current_user.id,
+            resource_id=getattr(record, "job_id", getattr(record, "id", "unknown")),
+            details={"owner_user_id": record_user_id, "role": current_user.role},
+        )
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied: You do not have permission to access or modify this clinical report.",
+        )

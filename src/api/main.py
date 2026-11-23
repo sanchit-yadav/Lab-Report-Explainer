@@ -28,7 +28,12 @@ from fastapi import (
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 
-from src.api.auth import get_current_user, get_optional_current_user, validate_jwt_security
+from src.api.auth import (
+    get_current_user,
+    get_optional_current_user,
+    validate_jwt_security,
+    verify_report_access,
+)
 from src.api.models import (
     ConfirmReportRequest,
     ConfirmReportResponse,
@@ -47,8 +52,12 @@ from src.db.session import init_db
 from src.health import run_health_check
 from src.monitoring.sentry import init_sentry
 from src.security.audit import SecurityAuditLogger
+from src.security.budget import UserBudgetManager
+from src.security.injection import PromptInjectionDetector
 from src.security.rate_limiter import SlidingWindowRateLimiter
+from src.security.retention import purge_user_data
 from src.security.scanner import FileSecurityScanner
+from src.security.signed_urls import create_signed_token, verify_signed_token
 from src.workers.job_manager import JobManager, JobRecord
 
 logger = logging.getLogger("api")
@@ -185,6 +194,33 @@ async def upload_report(
             detail=f"Unsupported file type '{file_ext}'. Allowed formats: {', '.join(sorted(ALLOWED_EXTENSIONS))}",
         )
 
+    # 1. Prompt Injection Scanning on filename / metadata
+    injection_detector = PromptInjectionDetector()
+    fn_scan = injection_detector.scan(filename)
+    if not fn_scan.is_safe:
+        SecurityAuditLogger.get_instance().log_event(
+            event_type="PROMPT_INJECTION_BLOCKED",
+            actor_id=current_user.id if current_user else "client_upload",
+            resource_id="filename",
+            details={"filename": filename, "threat_category": fn_scan.threat_category},
+        )
+        MetricsRegistry.get_instance().guardrail_blocks_total.inc(reason="prompt_injection_filename")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Filename contains forbidden instruction override or injection patterns.",
+        )
+
+    # 2. Token & Dollar Budget Enforcement
+    user_id_val = current_user.id if current_user else "anonymous"
+    budget_mgr = UserBudgetManager.get_instance()
+    budget_ok, budget_msg = budget_mgr.check_budget(user_id_val, estimated_tokens=1500)
+    if not budget_ok:
+        MetricsRegistry.get_instance().guardrail_blocks_total.inc(reason="budget_exceeded")
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=budget_msg,
+        )
+
     # Read content in memory to validate size and compute SHA-256 fingerprint
     content = await file.read()
     file_size = len(content)
@@ -223,15 +259,20 @@ async def upload_report(
 
     audit.log_event(
         event_type="DOCUMENT_UPLOADED",
-        actor_id="client_upload",
+        actor_id=user_id_val,
         resource_id=file_hash,
         details={"filename": filename, "file_size_bytes": file_size},
     )
 
-    # Save to staging directory using hash for deduplication
-    staged_path = UPLOAD_DIR / f"{file_hash}{file_ext}"
+    # Save to user-isolated staging directory
+    user_upload_dir = UPLOAD_DIR / user_id_val
+    user_upload_dir.mkdir(parents=True, exist_ok=True)
+    staged_path = user_upload_dir / f"{file_hash}{file_ext}"
     if not staged_path.exists():
         staged_path.write_bytes(content)
+
+    # Deduct estimated processing tokens from user budget
+    budget_mgr.record_usage(user_id_val, tokens=1500)
 
     job_mgr = JobManager.get_instance()
     job_record = job_mgr.create_job(
@@ -267,7 +308,10 @@ async def upload_report(
     summary="Get Processing Job Status",
     response_model=JobStatusResponse,
 )
-async def get_job_status(job_id: str) -> JobStatusResponse:
+async def get_job_status(
+    job_id: str,
+    current_user: Optional[User] = Depends(get_optional_current_user),
+) -> JobStatusResponse:
     """Poll pipeline progress, completion percentage, and diagnostics for a job."""
     job_mgr = JobManager.get_instance()
     record = job_mgr.get_job(job_id)
@@ -277,6 +321,8 @@ async def get_job_status(job_id: str) -> JobStatusResponse:
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Job '{job_id}' not found.",
         )
+
+    verify_report_access(record, current_user)
 
     return JobStatusResponse(
         job_id=record.job_id,
@@ -314,7 +360,10 @@ def _clean_float(val: Any) -> Optional[float]:
     summary="Get Extracted Lab Biomarkers For Human Review",
     response_model=ExtractedReportResponse,
 )
-async def get_extracted_report(job_id: str) -> ExtractedReportResponse:
+async def get_extracted_report(
+    job_id: str,
+    current_user: Optional[User] = Depends(get_optional_current_user),
+) -> ExtractedReportResponse:
     """Retrieve raw extracted biomarkers to support human-in-the-loop inspection and editing."""
     job_mgr = JobManager.get_instance()
     record = job_mgr.get_job(job_id)
@@ -324,6 +373,8 @@ async def get_extracted_report(job_id: str) -> ExtractedReportResponse:
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Job '{job_id}' not found.",
         )
+
+    verify_report_access(record, current_user)
 
     if not record.extracted_report:
         raise HTTPException(
@@ -366,6 +417,7 @@ async def confirm_report(
     job_id: str,
     req: ConfirmReportRequest,
     background_tasks: BackgroundTasks,
+    current_user: Optional[User] = Depends(get_optional_current_user),
 ) -> ConfirmReportResponse:
     """Accept verified/corrected parameters and resume explanation generation."""
     job_mgr = JobManager.get_instance()
@@ -376,6 +428,8 @@ async def confirm_report(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Job '{job_id}' not found.",
         )
+
+    verify_report_access(record, current_user)
 
     if not req.tests:
         raise HTTPException(
@@ -443,7 +497,10 @@ async def confirm_report(
     tags=["Reports"],
     summary="Get Report Clinical Explanation",
 )
-async def get_job_explanation(job_id: str) -> Dict[str, Any]:
+async def get_job_explanation(
+    job_id: str,
+    current_user: Optional[User] = Depends(get_optional_current_user),
+) -> Dict[str, Any]:
     """Retrieve the full structured explanation payload once job status is 'ready'."""
     job_mgr = JobManager.get_instance()
     record = job_mgr.get_job(job_id)
@@ -453,6 +510,8 @@ async def get_job_explanation(job_id: str) -> Dict[str, Any]:
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Job '{job_id}' not found.",
         )
+
+    verify_report_access(record, current_user)
 
     if record.status == JobStatus.FAILED:
         raise HTTPException(
@@ -475,7 +534,11 @@ async def get_job_explanation(job_id: str) -> Dict[str, Any]:
     summary="Ask Question About Lab Report",
     response_model=QAResponse,
 )
-async def ask_question_for_job(job_id: str, qa_req: QARequest) -> QAResponse:
+async def ask_question_for_job(
+    job_id: str,
+    qa_req: QARequest,
+    current_user: Optional[User] = Depends(get_optional_current_user),
+) -> QAResponse:
     """Ask an educational clinical question contextualized with the patient's lab report."""
     job_mgr = JobManager.get_instance()
     record = job_mgr.get_job(job_id)
@@ -484,6 +547,41 @@ async def ask_question_for_job(job_id: str, qa_req: QARequest) -> QAResponse:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Job '{job_id}' not found.",
+        )
+
+    verify_report_access(record, current_user)
+
+    # 1. Prompt Injection Scanning
+    injection_detector = PromptInjectionDetector()
+    inj_res = injection_detector.scan(qa_req.question)
+    if not inj_res.is_safe:
+        user_actor = current_user.id if current_user else "client_qa"
+        SecurityAuditLogger.get_instance().log_event(
+            event_type="PROMPT_INJECTION_BLOCKED",
+            actor_id=user_actor,
+            resource_id=job_id,
+            details={"threat_category": inj_res.threat_category, "matches": inj_res.matches},
+        )
+        MetricsRegistry.get_instance().guardrail_blocks_total.inc(reason="prompt_injection_qa")
+        return QAResponse(
+            job_id=job_id,
+            blocked=True,
+            category=f"Security: {inj_res.threat_category}",
+            answer_en="Your question cannot be processed because it contains instructions that attempt to override clinical safety guidelines or system rules.",
+            answer_hi="आपकी पूछताछ संसाधित नहीं की जा सकती क्योंकि इसमें नैदानिक सुरक्षा दिशानिर्देशों या सिस्टम नियमों को अनदेखा करने के प्रयास शामिल हैं।",
+            source_urls=[],
+            disclaimer="Educational information only. System security rules actively enforced.",
+            elapsed_ms=1.0,
+        )
+
+    # 2. Token Budget Enforcement
+    user_id_val = current_user.id if current_user else "anonymous"
+    budget_mgr = UserBudgetManager.get_instance()
+    budget_ok, budget_msg = budget_mgr.check_budget(user_id_val, estimated_tokens=500)
+    if not budget_ok:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=budget_msg,
         )
 
     # Formulate patient context from completed report if available
@@ -508,6 +606,8 @@ async def ask_question_for_job(job_id: str, qa_req: QARequest) -> QAResponse:
         chat_history=qa_req.chat_history,
     )
 
+    budget_mgr.record_usage(user_id_val, tokens=500)
+
     if res.get("blocked", False):
         MetricsRegistry.get_instance().guardrail_blocks_total.inc(
             reason=res.get("category") or "adversarial"
@@ -515,7 +615,7 @@ async def ask_question_for_job(job_id: str, qa_req: QARequest) -> QAResponse:
 
     SecurityAuditLogger.get_instance().log_event(
         event_type="QA_QUERY_PROCESSED",
-        actor_id="client_qa",
+        actor_id=user_id_val,
         resource_id=job_id,
         details={"question_len": len(qa_req.question), "blocked": res.get("blocked", False)},
     )
@@ -537,7 +637,10 @@ async def ask_question_for_job(job_id: str, qa_req: QARequest) -> QAResponse:
     tags=["Reports"],
     summary="Download Doctor Brief PDF",
 )
-async def download_doctor_brief_pdf(job_id: str) -> Response:
+async def download_doctor_brief_pdf(
+    job_id: str,
+    current_user: Optional[User] = Depends(get_optional_current_user),
+) -> Response:
     """Download the Doctor Discussion Brief PDF generated for the patient."""
     job_mgr = JobManager.get_instance()
     record = job_mgr.get_job(job_id)
@@ -547,6 +650,8 @@ async def download_doctor_brief_pdf(job_id: str) -> Response:
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Job '{job_id}' not found.",
         )
+
+    verify_report_access(record, current_user)
 
     if record.status != JobStatus.READY:
         raise HTTPException(
@@ -574,6 +679,107 @@ async def download_doctor_brief_pdf(job_id: str) -> Response:
         actor_id="client_download",
         resource_id=record.job_id,
         details={"filename": clean_filename, "file_hash": record.file_hash},
+    )
+    return Response(
+        content=record.pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{clean_filename}"',
+            "Content-Type": "application/pdf",
+        },
+    )
+
+
+@app.get(
+    "/api/v1/reports/{job_id}/share-link",
+    tags=["Reports"],
+    summary="Generate Time-Limited Signed Share Link",
+)
+async def generate_share_link(
+    job_id: str,
+    ttl_seconds: int = Query(900, ge=60, le=86400, description="Token time-to-live in seconds (default 15m)"),
+    current_user: Optional[User] = Depends(get_optional_current_user),
+) -> Dict[str, Any]:
+    """Generate a time-limited HMAC-SHA256 signed URL to access the Doctor Brief PDF without credentials."""
+    job_mgr = JobManager.get_instance()
+    record = job_mgr.get_job(job_id)
+
+    if not record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Job '{job_id}' not found.",
+        )
+
+    verify_report_access(record, current_user)
+
+    user_id_param = current_user.id if current_user else getattr(record, "user_id", None)
+    token = create_signed_token(job_id=job_id, user_id=user_id_param, ttl_seconds=ttl_seconds)
+
+    SecurityAuditLogger.get_instance().log_event(
+        event_type="SIGNED_URL_GENERATED",
+        actor_id=user_id_param or "anonymous",
+        resource_id=job_id,
+        details={"ttl_seconds": ttl_seconds},
+    )
+
+    return {
+        "job_id": job_id,
+        "token": token,
+        "signed_url": f"/api/v1/reports/{job_id}/signed-pdf?token={token}",
+        "ttl_seconds": ttl_seconds,
+    }
+
+
+@app.get(
+    "/api/v1/reports/{job_id}/signed-pdf",
+    tags=["Reports"],
+    summary="Download Doctor Brief PDF via Signed URL",
+)
+async def download_signed_pdf(
+    job_id: str,
+    token: str = Query(..., description="HMAC-SHA256 signed access token"),
+) -> Response:
+    """Download Doctor Brief PDF using a time-limited cryptographically signed token."""
+    if not verify_signed_token(token, job_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied: Invalid or expired signed URL token.",
+        )
+
+    job_mgr = JobManager.get_instance()
+    record = job_mgr.get_job(job_id)
+
+    if not record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Job '{job_id}' not found.",
+        )
+
+    if record.status != JobStatus.READY:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"PDF for job '{job_id}' is not ready (status: {record.status}).",
+        )
+
+    if not record.pdf_bytes and record.explanation:
+        try:
+            from src.explainer.pdf_export import generate_doctor_brief_pdf
+            record.pdf_bytes = generate_doctor_brief_pdf(record.explanation)
+        except Exception as pdf_gen_err:
+            logger.warning(f"Could not re-generate Doctor Brief PDF for job {job_id}: {pdf_gen_err}")
+
+    if not record.pdf_bytes:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"PDF for job '{job_id}' could not be generated or loaded.",
+        )
+
+    clean_filename = f"doctor_brief_{record.job_id[:8]}.pdf"
+    SecurityAuditLogger.get_instance().log_event(
+        event_type="SIGNED_PDF_ACCESSED",
+        actor_id="signed_url_guest",
+        resource_id=record.job_id,
+        details={"filename": clean_filename},
     )
     return Response(
         content=record.pdf_bytes,
@@ -706,12 +912,46 @@ async def get_audit_logs(limit: int = Query(50, ge=1, le=200)) -> List[Dict[str,
     return [asdict(r) for r in records]
 
 
+@app.delete(
+    "/api/v1/user/delete-my-data",
+    tags=["Security & Compliance"],
+    summary="Purge All User Data (GDPR / HIPAA Right-to-Erasure)",
+    status_code=status.HTTP_200_OK,
+)
+async def delete_my_data(
+    current_user: User = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """Permanently delete all patient reports, biomarkers, embeddings, and uploaded files for current user."""
+    result = purge_user_data(current_user.id)
+    return {
+        "status": "purged",
+        "message": "All clinical records, uploaded files, and vector embeddings were permanently erased.",
+        "details": result,
+    }
+
+
+@app.get(
+    "/api/v1/user/budget",
+    tags=["Security & Compliance"],
+    summary="Get User Token & Cost Usage",
+)
+async def get_user_budget_usage(
+    current_user: User = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """Retrieve current daily LLM token consumption and dollar expenditure for the authenticated user."""
+    usage = UserBudgetManager.get_instance().get_user_usage(current_user.id)
+    return usage
+
+
 @app.get(
     "/api/v1/reports/{job_id}/fhir",
     tags=["Interoperability & EHR"],
     summary="Export Report as HL7 FHIR R4 Bundle",
 )
-async def get_job_fhir_bundle(job_id: str) -> Dict[str, Any]:
+async def get_job_fhir_bundle(
+    job_id: str,
+    current_user: Optional[User] = Depends(get_optional_current_user),
+) -> Dict[str, Any]:
     """Export the laboratory evaluation as an official HL7 FHIR R4 Bundle (DiagnosticReport + Observations)."""
     job_mgr = JobManager.get_instance()
     record = job_mgr.get_job(job_id)
@@ -721,6 +961,8 @@ async def get_job_fhir_bundle(job_id: str) -> Dict[str, Any]:
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Job '{job_id}' not found.",
         )
+
+    verify_report_access(record, current_user)
 
     if record.status != JobStatus.READY or not record.explanation:
         raise HTTPException(

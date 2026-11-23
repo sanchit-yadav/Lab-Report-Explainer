@@ -170,6 +170,9 @@ class ExtractValuesOutput(BaseModel):
     flagged_count: int = 0
     critical_count: int = 0
     extraction_method: str = "pdfplumber"
+    needs_better_upload: bool = False
+    implausible_findings: List[str] = Field(default_factory=list)
+    plausibility_advisory: Optional[str] = None
 
     def to_lab_report(self) -> LabReport:
         """Convert to internal LabReport domain model."""
