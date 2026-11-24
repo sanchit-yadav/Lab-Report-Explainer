@@ -12,7 +12,7 @@ tiers:
   - name: "vision"
     enabled: true
     priority: 3
-    model: "gemini-3.5-flash"
+    model: "gemini-2.5-flash"
 
 header_patterns:
   test_name:

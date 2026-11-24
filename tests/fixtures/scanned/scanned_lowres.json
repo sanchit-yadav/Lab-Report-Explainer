@@ -1,0 +1,32 @@
+{
+  "fixture_id": "scanned_lowres",
+  "condition": "low_resolution_downsampled",
+  "patient_name": "Synthetic Patient E",
+  "total_pages": 1,
+  "tests": [
+    {
+      "test_name": "TSH",
+      "value": 4.8,
+      "unit": "uIU/mL",
+      "ref_low": 0.4,
+      "ref_high": 4.0,
+      "flag": "high"
+    },
+    {
+      "test_name": "Free T4",
+      "value": 1.1,
+      "unit": "ng/dL",
+      "ref_low": 0.8,
+      "ref_high": 1.8,
+      "flag": "normal"
+    },
+    {
+      "test_name": "Total T3",
+      "value": 110.0,
+      "unit": "ng/dL",
+      "ref_low": 80.0,
+      "ref_high": 200.0,
+      "flag": "normal"
+    }
+  ]
+}

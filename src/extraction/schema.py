@@ -32,6 +32,7 @@ class TestResult(BaseModel):
     flag: FlagStatus = Field(default=FlagStatus.UNKNOWN, description="Assigned flag status")
     source_page: int = Field(default=1, description="1-indexed document page number")
     source_bbox_or_line: Optional[str] = Field(default=None, description="Bounding box [x0, y0, x1, y1] or line reference")
+    source_location: Optional[str] = Field(default=None, description="Spatial location, row/column or table reference")
     confidence: float = Field(default=1.0, ge=0.0, le=1.0, description="Extraction confidence score")
     extraction_tier: int = Field(default=1, description="Tier that extracted this record: 1, 2, or 3")
     loinc_code: Optional[str] = Field(default=None, description="Standardized LOINC ontology code (e.g. 2093-3)")

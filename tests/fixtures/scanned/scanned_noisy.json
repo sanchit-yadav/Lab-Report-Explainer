@@ -1,0 +1,40 @@
+{
+  "fixture_id": "scanned_noisy",
+  "condition": "photographed_noisy",
+  "patient_name": "Synthetic Patient B",
+  "total_pages": 1,
+  "tests": [
+    {
+      "test_name": "Total Cholesterol",
+      "value": 225.0,
+      "unit": "mg/dL",
+      "ref_low": 125.0,
+      "ref_high": 200.0,
+      "flag": "high"
+    },
+    {
+      "test_name": "Triglycerides",
+      "value": 160.0,
+      "unit": "mg/dL",
+      "ref_low": 50.0,
+      "ref_high": 150.0,
+      "flag": "high"
+    },
+    {
+      "test_name": "HDL Cholesterol",
+      "value": 45.0,
+      "unit": "mg/dL",
+      "ref_low": 40.0,
+      "ref_high": 60.0,
+      "flag": "normal"
+    },
+    {
+      "test_name": "LDL Cholesterol",
+      "value": 148.0,
+      "unit": "mg/dL",
+      "ref_low": 0.0,
+      "ref_high": 100.0,
+      "flag": "high"
+    }
+  ]
+}

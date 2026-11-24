@@ -1,0 +1,40 @@
+{
+  "fixture_id": "scanned_clean",
+  "condition": "image_only_pdf",
+  "patient_name": "Synthetic Patient A",
+  "total_pages": 1,
+  "tests": [
+    {
+      "test_name": "Hemoglobin",
+      "value": 14.2,
+      "unit": "g/dL",
+      "ref_low": 13.0,
+      "ref_high": 17.0,
+      "flag": "normal"
+    },
+    {
+      "test_name": "White Blood Cell Count",
+      "value": 11.5,
+      "unit": "10^3/uL",
+      "ref_low": 4.0,
+      "ref_high": 10.0,
+      "flag": "high"
+    },
+    {
+      "test_name": "Platelets",
+      "value": 130.0,
+      "unit": "10^3/uL",
+      "ref_low": 150.0,
+      "ref_high": 450.0,
+      "flag": "low"
+    },
+    {
+      "test_name": "Fasting Blood Glucose",
+      "value": 105.0,
+      "unit": "mg/dL",
+      "ref_low": 70.0,
+      "ref_high": 99.0,
+      "flag": "high"
+    }
+  ]
+}

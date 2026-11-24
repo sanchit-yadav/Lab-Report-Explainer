@@ -1,0 +1,40 @@
+{
+  "fixture_id": "scanned_skewed",
+  "condition": "skewed_7_deg",
+  "patient_name": "Synthetic Patient D",
+  "total_pages": 1,
+  "tests": [
+    {
+      "test_name": "ALT",
+      "value": 55.0,
+      "unit": "U/L",
+      "ref_low": 7.0,
+      "ref_high": 56.0,
+      "flag": "normal"
+    },
+    {
+      "test_name": "AST",
+      "value": 68.0,
+      "unit": "U/L",
+      "ref_low": 10.0,
+      "ref_high": 40.0,
+      "flag": "high"
+    },
+    {
+      "test_name": "Total Bilirubin",
+      "value": 1.4,
+      "unit": "mg/dL",
+      "ref_low": 0.2,
+      "ref_high": 1.2,
+      "flag": "high"
+    },
+    {
+      "test_name": "Albumin",
+      "value": 4.2,
+      "unit": "g/dL",
+      "ref_low": 3.5,
+      "ref_high": 5.0,
+      "flag": "normal"
+    }
+  ]
+}

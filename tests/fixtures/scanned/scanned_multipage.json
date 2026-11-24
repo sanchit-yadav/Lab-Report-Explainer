@@ -1,0 +1,40 @@
+{
+  "fixture_id": "scanned_multipage",
+  "condition": "multipage_image_only_pdf",
+  "patient_name": "Synthetic Patient F",
+  "total_pages": 2,
+  "tests": [
+    {
+      "test_name": "Hemoglobin",
+      "value": 13.5,
+      "unit": "g/dL",
+      "ref_low": 12.0,
+      "ref_high": 15.5,
+      "flag": "normal"
+    },
+    {
+      "test_name": "Hematocrit",
+      "value": 41.0,
+      "unit": "%",
+      "ref_low": 36.0,
+      "ref_high": 46.0,
+      "flag": "normal"
+    },
+    {
+      "test_name": "Serum Calcium",
+      "value": 9.4,
+      "unit": "mg/dL",
+      "ref_low": 8.5,
+      "ref_high": 10.2,
+      "flag": "normal"
+    },
+    {
+      "test_name": "Total Protein",
+      "value": 7.1,
+      "unit": "g/dL",
+      "ref_low": 6.4,
+      "ref_high": 8.3,
+      "flag": "normal"
+    }
+  ]
+}

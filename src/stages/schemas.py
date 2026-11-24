@@ -50,6 +50,7 @@ class OCRLine(BaseModel):
     line_num: int
     text: str
     bbox: Optional[List[float]] = None  # [x0, top, x1, bottom]
+    confidence: float = Field(default=1.0, ge=0.0, le=1.0, description="Confidence score")
 
 
 class OCRPage(BaseModel):
@@ -58,6 +59,9 @@ class OCRPage(BaseModel):
     text: str
     lines: List[OCRLine] = Field(default_factory=list)
     tables: List[List[List[str]]] = Field(default_factory=list)
+    confidence: float = Field(default=1.0, ge=0.0, le=1.0)
+    needs_clearer_image: bool = False
+    advisory: Optional[str] = None
 
 
 class OCRParseInput(BaseModel):
@@ -74,6 +78,9 @@ class OCRParseOutput(BaseModel):
     pages: List[OCRPage] = Field(default_factory=list)
     total_pages: int = 0
     parsing_tier: int = 1
+    confidence: float = Field(default=1.0, ge=0.0, le=1.0)
+    needs_clearer_image: bool = False
+    advisory: Optional[str] = None
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
 
@@ -102,6 +109,7 @@ class ExtractionOutputItem(BaseModel):
     ref_high: Optional[float] = None
     flag: FlagStatus = FlagStatus.UNKNOWN
     source_page: int = 1
+    source_location: Optional[str] = None
     source_bbox_or_line: Optional[str] = None
     confidence: float = Field(default=1.0, ge=0.0, le=1.0)
     raw_value: str = ""
