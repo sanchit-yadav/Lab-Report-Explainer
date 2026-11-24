@@ -538,7 +538,7 @@ export function LandingPage({ onNavigate }) {
             Start Understanding Your Lab Reports Today.
           </h2>
           <p className="text-sm text-slate-300 max-w-xl mx-auto">
-            Join patients and clinicians making informed diagnostic conversations possible with intelligent clinical decision support.
+            Join patients making informed diagnostic conversations possible with intelligent clinical decision support.
           </p>
           <button
             onClick={() => onNavigate('register')}

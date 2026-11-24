@@ -29,7 +29,6 @@ class UserRegisterRequest(BaseModel):
     email: str = Field(..., description="Unique email address")
     password: str = Field(..., min_length=8, max_length=128, description="Account password (min 8 characters)")
     full_name: Optional[str] = Field(None, max_length=255, description="Full name of the user")
-    role: str = Field("patient", pattern="^(patient|clinician|admin)$", description="Role: patient, clinician, or admin")
 
     @field_validator("email")
     @classmethod
@@ -59,7 +58,6 @@ class UserResponse(BaseModel):
     id: str
     email: str
     full_name: Optional[str] = None
-    role: str
     is_active: bool
     created_at: datetime
 

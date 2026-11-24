@@ -7,7 +7,6 @@ export function AuthPage({ initialMode = 'login', onNavigate, onAuthSuccess, cli
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [fullName, setFullName] = useState('')
-  const [role, setRole] = useState('patient')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -38,7 +37,7 @@ export function AuthPage({ initialMode = 'login', onNavigate, onAuthSuccess, cli
       if (isLogin) {
         data = await client.login(email.trim(), password)
       } else {
-        data = await client.register(email.trim(), password, fullName.trim() || null, role)
+        data = await client.register(email.trim(), password, fullName.trim() || null)
       }
       onAuthSuccess(data.user, data.access_token)
     } catch (err) {
@@ -134,21 +133,9 @@ export function AuthPage({ initialMode = 'login', onNavigate, onAuthSuccess, cli
                       type="text"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      placeholder="Dr. Jane Doe / John Smith"
+                      placeholder="Jane Doe"
                       className="w-full text-xs bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 transition"
                     />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Account Role</label>
-                    <select
-                      value={role}
-                      onChange={(e) => setRole(e.target.value)}
-                      className="w-full text-xs bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 transition font-medium"
-                    >
-                      <option value="patient">Patient (Personal / Family Lab Reports)</option>
-                      <option value="clinician">Clinician (Healthcare Professional)</option>
-                    </select>
                   </div>
                 </>
               )}

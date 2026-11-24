@@ -29,7 +29,6 @@ def test_create_user(test_db_session):
         email="patient@example.com",
         hashed_password="hashed_pw_secret_123",
         full_name="John Doe",
-        role="patient",
     )
     test_db_session.add(user)
     test_db_session.commit()
@@ -38,19 +37,17 @@ def test_create_user(test_db_session):
     assert user.id is not None
     assert len(user.id) == 36  # Canonical UUID v4
     assert user.email == "patient@example.com"
-    assert user.role == "patient"
     assert user.is_active is True
     assert user.created_at is not None
-    assert str(user) == f"<User(id={user.id}, email=patient@example.com, role=patient)>"
+    assert str(user) == f"<User(id={user.id}, email=patient@example.com)>"
 
 
 def test_create_report_with_user_relationship(test_db_session):
     """Verify report persistence and foreign key association with user."""
     user = User(
-        email="clinician@example.com",
+        email="patient2@example.com",
         hashed_password="hashed_pw_secret_456",
-        full_name="Dr. Smith",
-        role="clinician",
+        full_name="Jane Smith",
     )
     test_db_session.add(user)
     test_db_session.commit()
@@ -72,7 +69,7 @@ def test_create_report_with_user_relationship(test_db_session):
 
     assert report.id is not None
     assert report.user_id == user.id
-    assert report.user.email == "clinician@example.com"
+    assert report.user.email == "patient2@example.com"
     assert len(user.reports) == 1
     assert user.reports[0].filename == "cbc_report_nov.pdf"
 

@@ -387,11 +387,11 @@ def test_delete_report_workflow(client, tmp_path):
     # Create test user
     uid = str(uuid.uuid4())
     with SessionLocal() as db:
-        user = User(id=uid, email=f"del_{uid[:6]}@example.com", hashed_password="pw", role="patient")
+        user = User(id=uid, email=f"del_{uid[:6]}@example.com", hashed_password="pw")
         db.add(user)
         db.commit()
 
-    token = create_access_token(subject=uid, role="patient")
+    token = create_access_token(subject=uid)
     headers = {"Authorization": f"Bearer {token}"}
 
     jm = JobManager.get_instance()
@@ -425,11 +425,11 @@ def test_delete_report_unauthorized(client, tmp_path):
     uid1 = str(uuid.uuid4())
     uid2 = str(uuid.uuid4())
     with SessionLocal() as db:
-        db.add(User(id=uid1, email=f"u1_{uid1[:6]}@example.com", hashed_password="pw", role="patient"))
-        db.add(User(id=uid2, email=f"u2_{uid2[:6]}@example.com", hashed_password="pw", role="patient"))
+        db.add(User(id=uid1, email=f"u1_{uid1[:6]}@example.com", hashed_password="pw"))
+        db.add(User(id=uid2, email=f"u2_{uid2[:6]}@example.com", hashed_password="pw"))
         db.commit()
 
-    token_user2 = create_access_token(subject=uid2, role="patient")
+    token_user2 = create_access_token(subject=uid2)
     headers_user2 = {"Authorization": f"Bearer {token_user2}"}
 
     jm = JobManager.get_instance()
@@ -451,10 +451,10 @@ def test_history_persistence_across_memory_clear(client, tmp_path):
 
     uid = str(uuid.uuid4())
     with SessionLocal() as db:
-        db.add(User(id=uid, email=f"persist_{uid[:6]}@example.com", hashed_password="pw", role="patient"))
+        db.add(User(id=uid, email=f"persist_{uid[:6]}@example.com", hashed_password="pw"))
         db.commit()
 
-    token = create_access_token(subject=uid, role="patient")
+    token = create_access_token(subject=uid)
     headers = {"Authorization": f"Bearer {token}"}
 
     jm = JobManager.get_instance()

@@ -49,7 +49,6 @@ def test_legacy_user_now_logs_in_and_upgrades_to_bcrypt():
             email=test_email,
             hashed_password=legacy_hash,
             full_name="Pre-Existing User",
-            role="patient",
             is_active=True,
         )
         db.add(user)

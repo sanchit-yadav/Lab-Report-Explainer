@@ -54,7 +54,6 @@ def register(
         email=normalized_email,
         hashed_password=hashed_pw,
         full_name=req.full_name.strip() if req.full_name else None,
-        role=req.role,
         is_active=True,
     )
     db.add(user)
@@ -65,10 +64,10 @@ def register(
         event_type="USER_REGISTERED",
         actor_id=user.id,
         resource_id=user.id,
-        details={"email": user.email, "role": user.role},
+        details={"email": user.email},
     )
 
-    token = create_access_token(subject=user.id, role=user.role)
+    token = create_access_token(subject=user.id)
     return TokenResponse(
         access_token=token,
         token_type="bearer",
@@ -137,10 +136,10 @@ def login(
         event_type="LOGIN_SUCCESS",
         actor_id=user.id,
         resource_id=user.id,
-        details={"email": user.email, "role": user.role},
+        details={"email": user.email},
     )
 
-    token = create_access_token(subject=user.id, role=user.role)
+    token = create_access_token(subject=user.id)
     return TokenResponse(
         access_token=token,
         token_type="bearer",

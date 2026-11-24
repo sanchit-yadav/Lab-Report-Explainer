@@ -856,13 +856,13 @@ async def delete_report(
         )
 
     # Authorization check
-    if current_user.role != "admin" and record.user_id and record.user_id != current_user.id:
+    if record.user_id and record.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have permission to delete this report.",
         )
 
-    target_user_id = None if current_user.role == "admin" else current_user.id
+    target_user_id = current_user.id
     success = job_mgr.delete_job(job_id=job_id, user_id=target_user_id)
 
     if not success:

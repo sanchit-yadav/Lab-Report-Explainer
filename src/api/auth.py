@@ -142,10 +142,9 @@ def verify_and_migrate_password(
 
 def create_access_token(
     subject: str,
-    role: str = "patient",
     expires_delta: Optional[timedelta] = None,
 ) -> str:
-    """Create a signed JWT access token containing subject ID, role, and expiration."""
+    """Create a signed JWT access token containing subject ID and expiration."""
     now = datetime.now(timezone.utc)
     if expires_delta:
         expire = now + expires_delta
@@ -154,7 +153,6 @@ def create_access_token(
 
     payload = {
         "sub": subject,
-        "role": role,
         "iat": int(now.timestamp()),
         "exp": int(expire.timestamp()),
     }
@@ -257,13 +255,13 @@ def verify_report_access(record: Any, current_user: Optional[User]) -> None:
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    if current_user.role != "admin" and current_user.id != record_user_id:
+    if current_user.id != record_user_id:
         from src.security.audit import SecurityAuditLogger
         SecurityAuditLogger.get_instance().log_event(
             event_type="IDOR_ATTEMPT_BLOCKED",
             actor_id=current_user.id,
             resource_id=getattr(record, "job_id", getattr(record, "id", "unknown")),
-            details={"owner_user_id": record_user_id, "role": current_user.role},
+            details={"owner_user_id": record_user_id},
         )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

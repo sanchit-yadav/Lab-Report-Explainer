@@ -747,9 +747,8 @@ def render_register_page(client: CDSAPIClient):
             unsafe_allow_html=True,
         )
 
-        full_name = st.text_input("Full Name", key="reg_field_name", placeholder="Dr. Jane Doe / John Smith")
+        full_name = st.text_input("Full Name", key="reg_field_name", placeholder="John Smith / Jane Doe")
         email = st.text_input("Email Address", key="reg_field_email", placeholder="name@example.com")
-        role = st.selectbox("I am using this as a:", ["patient", "clinician"], key="reg_field_role")
         show_pw = st.checkbox("Show passwords", key="reg_show_pw")
         password = st.text_input("Password (min 8 characters)", type="default" if show_pw else "password", key="reg_field_pw", placeholder="••••••••")
         confirm_pw = st.text_input("Confirm Password", type="default" if show_pw else "password", key="reg_field_confirm_pw", placeholder="••••••••")
@@ -769,7 +768,6 @@ def render_register_page(client: CDSAPIClient):
                             email=email.strip(),
                             password=password,
                             full_name=full_name.strip() if full_name else None,
-                            role=role,
                         )
                         st.session_state["access_token"] = res.get("access_token")
                         st.session_state["current_user"] = res.get("user")
@@ -1462,7 +1460,7 @@ def render_auth_sidebar(client: CDSAPIClient):
     user = st.session_state.get("current_user")
     if user:
         st.sidebar.markdown(f"👤 **{user.get('full_name') or user.get('email')}**")
-        st.sidebar.caption(f"Role: **{user.get('role', 'patient').capitalize()}** | Status: Active 🟢")
+        st.sidebar.caption("Status: Active 🟢")
         if st.sidebar.button("🚪 Sign Out", use_container_width=True, key="btn_signout"):
             st.session_state["access_token"] = None
             st.session_state["current_user"] = None
@@ -1570,8 +1568,7 @@ def render_authenticated_workspace(client: CDSAPIClient, backend_online: bool):
 
     # Dashboard Header
     user = st.session_state.get("current_user") or {}
-    user_name = user.get("full_name") or user.get("email") or "Clinician"
-    role_tag = user.get("role", "patient").capitalize()
+    user_name = user.get("full_name") or user.get("email") or "Patient"
     lang = st.session_state["language"]
 
     header_col_left, header_col_right = st.columns([3, 1])
@@ -1584,7 +1581,7 @@ def render_authenticated_workspace(client: CDSAPIClient, backend_online: bool):
                     🧬 {greeting_text}
                 </h1>
                 <p style="font-size: 14px; color: #64748b; margin: 4px 0 0 0;">
-                    Clinical Decision Support • Deterministic Flagging & MedlinePlus Medical Grounding
+                    Patient Health Companion • Educational Explanations & MedlinePlus Medical Grounding
                 </p>
             </div>
             """,
@@ -1592,10 +1589,10 @@ def render_authenticated_workspace(client: CDSAPIClient, backend_online: bool):
         )
     with header_col_right:
         st.markdown(
-            f"""
+            """
             <div style="text-align: right; padding-top: 8px;">
                 <span class="badge" style="background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; font-size: 12px;">
-                    👤 {role_tag} Mode
+                    🟢 Educational
                 </span>
             </div>
             """,

@@ -322,7 +322,7 @@ export function Dashboard({ user, client, onLogout }) {
                     {user?.full_name || user?.email}
                   </div>
                   <div className="text-[10px] uppercase font-bold text-teal-400 tracking-wider">
-                    {user?.role || 'patient'}
+                    Patient
                   </div>
                 </div>
               </div>
@@ -452,7 +452,7 @@ export function Dashboard({ user, client, onLogout }) {
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-              {language === 'hi' ? `नमस्ते, ${user?.full_name || 'उपयोगकर्ता'}` : `Welcome back, ${user?.full_name || 'Clinician'}`}
+              {language === 'hi' ? `नमस्ते, ${user?.full_name || 'उपयोगकर्ता'}` : `Welcome back, ${user?.full_name || 'Patient'}`}
             </h1>
             <p className="text-xs text-slate-500 mt-1">
               Clinical Decision Support • Deterministic Reference Range Flagging & MedlinePlus Grounding
@@ -461,7 +461,7 @@ export function Dashboard({ user, client, onLogout }) {
 
           <div className="flex items-center gap-3">
             <span className="text-xs font-bold px-3 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200 uppercase tracking-wider">
-              {user?.role || 'patient'} Mode
+              Patient Portal
             </span>
             <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />

@@ -85,14 +85,13 @@ export const api = {
     return data
   },
 
-  async register(email, password, fullName, role = 'patient') {
+  async register(email, password, fullName) {
     const data = await request('/api/v1/auth/register', {
       method: 'POST',
       body: JSON.stringify({
         email,
         password,
         full_name: fullName,
-        role,
       }),
     })
     if (data.access_token) {

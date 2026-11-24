@@ -32,7 +32,7 @@ def utc_now() -> datetime:
 
 
 class User(Base):
-    """User account model supporting patient, clinician, and admin roles."""
+    """User account model for patient accounts."""
 
     __tablename__ = "users"
 
@@ -40,7 +40,6 @@ class User(Base):
     email = Column(String(255), unique=True, index=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
     full_name = Column(String(255), nullable=True)
-    role = Column(String(50), default="patient", nullable=False)  # "patient", "clinician", "admin"
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
     updated_at = Column(DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False)
@@ -50,7 +49,7 @@ class User(Base):
     test_records = relationship("TestRecord", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self) -> str:
-        return f"<User(id={self.id}, email={self.email}, role={self.role})>"
+        return f"<User(id={self.id}, email={self.email})>"
 
 
 class Report(Base):

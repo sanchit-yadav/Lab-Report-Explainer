@@ -68,7 +68,6 @@ def test_register_then_login():
             email=email,
             password=password,
             full_name="Step 1 Test",
-            role="patient",
         )
         reg_token = register(reg_req, db=db)
         assert reg_token.access_token is not None
@@ -90,7 +89,7 @@ def test_login_after_restart():
 
     # 1. Register in session 1
     with SessionLocal() as db1:
-        reg_req = UserRegisterRequest(email=email, password=password, full_name="Restart User", role="patient")
+        reg_req = UserRegisterRequest(email=email, password=password, full_name="Restart User")
         register(reg_req, db=db1)
 
     # 2. Simulate complete restart (new session, new DB connection)
@@ -108,7 +107,7 @@ def test_wrong_password_rejected():
     wrong_password = "WrongPassword999!"
 
     with SessionLocal() as db:
-        reg_req = UserRegisterRequest(email=email, password=correct_password, role="patient")
+        reg_req = UserRegisterRequest(email=email, password=correct_password)
         register(reg_req, db=db)
 
     with SessionLocal() as db:
@@ -125,7 +124,7 @@ def test_case_insensitive_and_whitespace_email():
     password = "CasePassword789!"
 
     with SessionLocal() as db:
-        reg_req = UserRegisterRequest(email="  Case.User@Example.COM  ", password=password, role="patient")
+        reg_req = UserRegisterRequest(email="  Case.User@Example.COM  ", password=password)
         register(reg_req, db=db)
 
     # Log in with different case variations and whitespace
@@ -141,7 +140,6 @@ def test_token_expiration_enforcement():
     # Token expired 1 hour ago
     expired_token = create_access_token(
         subject="expired-uuid",
-        role="patient",
         expires_delta=timedelta(hours=-1),
     )
     with pytest.raises(HTTPException) as exc_info:
@@ -162,7 +160,6 @@ def test_legacy_sha256_hash_migration_on_login():
             email=email,
             hashed_password=legacy_sha256,
             full_name="Legacy User",
-            role="patient",
             is_active=True,
         )
         db.add(user)
@@ -192,7 +189,7 @@ def test_security_audit_log_never_contains_passwords():
     secret_password = "TopSecretPasswordNeverLog!"
 
     with SessionLocal() as db:
-        reg_req = UserRegisterRequest(email=email, password=secret_password, role="patient")
+        reg_req = UserRegisterRequest(email=email, password=secret_password)
         register(reg_req, db=db)
 
     with SessionLocal() as db:

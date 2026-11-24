@@ -55,7 +55,6 @@ class CDSAPIClient:
         email: str,
         password: str,
         full_name: Optional[str] = None,
-        role: str = "patient",
     ) -> Dict[str, Any]:
         """Register a new user account."""
         url = f"{self.base_url}/api/v1/auth/register"
@@ -63,7 +62,6 @@ class CDSAPIClient:
             "email": email,
             "password": password,
             "full_name": full_name,
-            "role": role,
         }
         with httpx.Client(timeout=10.0) as client:
             resp = client.post(url, json=payload)

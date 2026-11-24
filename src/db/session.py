@@ -68,7 +68,7 @@ def init_db() -> None:
 
     try:
         Base.metadata.create_all(bind=engine)
-        # Safe backward-compatible schema migration for new columns
+        # Safe backward-compatible schema migration for new columns and dropped roles
         with engine.connect() as conn:
             from sqlalchemy import text
             try:
@@ -76,6 +76,12 @@ def init_db() -> None:
                 conn.commit()
             except Exception:
                 pass  # Column already exists or table was freshly created with it
+            try:
+                # Step 2: Safe schema migration to drop unused role column
+                conn.execute(text("ALTER TABLE users DROP COLUMN role"))
+                conn.commit()
+            except Exception:
+                pass  # SQLite <3.35 or column already dropped
         logger.info(f"Database schema initialized successfully using engine: {engine.url.drivername}")
     except Exception as exc:
         logger.error(f"Failed to initialize database schema: {exc}")

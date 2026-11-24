@@ -62,7 +62,7 @@ export function Navbar({ view, onNavigate, user, onLogout, backendOnline }) {
               <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
                 <div className="text-right hidden sm:block">
                   <div className="text-xs font-bold text-slate-900">{user.full_name || user.email}</div>
-                  <div className="text-[10px] uppercase font-semibold text-teal-600">{user.role || 'patient'}</div>
+                  <div className="text-[10px] uppercase font-semibold text-teal-600">Patient</div>
                 </div>
                 <button
                   onClick={onLogout}

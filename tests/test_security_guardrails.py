@@ -262,17 +262,13 @@ def test_idor_protection_blocks_unauthorized_user():
         user_id = "user_patient_original"
         job_id = "job_secure_123"
 
-    user_a = User(id="user_patient_original", email="a@example.com", role="patient", is_active=True)
-    user_b = User(id="user_attacker", email="b@example.com", role="patient", is_active=True)
-    admin = User(id="user_admin", email="admin@example.com", role="admin", is_active=True)
+    user_a = User(id="user_patient_original", email="a@example.com", is_active=True)
+    user_b = User(id="user_attacker", email="b@example.com", is_active=True)
 
     record = DummyRecord()
 
     # Owner can access
     verify_report_access(record, user_a)
-
-    # Admin can access
-    verify_report_access(record, admin)
 
     # Attacker is rejected with 403 Forbidden
     with pytest.raises(HTTPException) as exc_info:
@@ -403,8 +399,8 @@ def test_security_prompt_injection_sanitization():
     assert "</untrusted_clinical_report_data>" not in scan_res.sanitized_text
 
 
-def test_security_audit_logging_and_verification():
-    audit = SecurityAuditLogger.get_instance()
+def test_security_audit_logging_and_verification(tmp_path):
+    audit = SecurityAuditLogger(log_file_path=tmp_path / "test_audit.jsonl")
     actor_id = "test_sec_actor"
     resource_id = f"test_res_{int(time.time() * 1000)}"
 

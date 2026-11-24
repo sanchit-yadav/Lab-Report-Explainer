@@ -51,12 +51,10 @@ def test_password_hashing():
 def test_jwt_token_creation_and_decoding():
     """Valid token encoding and payload claims extraction."""
     user_id = "test-uuid-1234"
-    role = "patient"
-    token = create_access_token(subject=user_id, role=role, expires_delta=timedelta(minutes=15))
+    token = create_access_token(subject=user_id, expires_delta=timedelta(minutes=15))
 
     payload = decode_access_token(token)
     assert payload["sub"] == user_id
-    assert payload["role"] == role
     assert "exp" in payload
     assert "iat" in payload
 
@@ -90,7 +88,6 @@ def test_user_registration_success(client):
         "email": "clinical.user@example.com",
         "password": "SecurePassword123!",
         "full_name": "Alice Smith",
-        "role": "patient",
     }
     response = client.post("/api/v1/auth/register", json=payload)
     assert response.status_code == 201
@@ -101,7 +98,6 @@ def test_user_registration_success(client):
     user_info = data["user"]
     assert user_info["email"] == "clinical.user@example.com"
     assert user_info["full_name"] == "Alice Smith"
-    assert user_info["role"] == "patient"
     assert user_info["is_active"] is True
     assert "id" in user_info
 
