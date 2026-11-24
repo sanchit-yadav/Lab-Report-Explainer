@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import {
   Upload, Trash2, RefreshCw, AlertTriangle, 
   Download, Send, Search, Languages, Sparkles, 
@@ -58,15 +58,7 @@ export function Dashboard({ user, client, onLogout }) {
   // Incrementing this triggers the polling effect to restart (e.g. after HITL confirm)
   const [pollingTrigger, setPollingTrigger] = useState(0)
 
-  // Fetch report history on mount
-  useEffect(() => {
-    fetchHistory()
-    return () => {
-      if (pollingTimerRef.current) clearInterval(pollingTimerRef.current)
-    }
-  }, [])
-
-  const fetchHistory = async () => {
+  const fetchHistory = useCallback(async () => {
     try {
       setLoadingHistory(true)
       const data = await client.listReports(25)
@@ -76,7 +68,35 @@ export function Dashboard({ user, client, onLogout }) {
     } finally {
       setLoadingHistory(false)
     }
-  }
+  }, [client])
+
+  const loadExplanation = useCallback(async (jobId) => {
+    try {
+      const exp = await client.getExplanation(jobId)
+      setExplanation(exp)
+    } catch (err) {
+      setUploadError(err.message)
+    }
+  }, [client])
+
+  const loadExtractedForReview = useCallback(async (jobId) => {
+    try {
+      const ext = await client.getExtractedReport(jobId)
+      setExtractedData(ext)
+      setPatientNameInput(ext.patient_name || 'Patient')
+      setEditableTests(ext.tests || [])
+    } catch (err) {
+      setUploadError(err.message)
+    }
+  }, [client])
+
+  // Fetch report history on mount
+  useEffect(() => {
+    fetchHistory()
+    return () => {
+      if (pollingTimerRef.current) clearInterval(pollingTimerRef.current)
+    }
+  }, [fetchHistory])
 
   // Poll Job Status when activeJobId is in-progress
   useEffect(() => {
@@ -102,7 +122,7 @@ export function Dashboard({ user, client, onLogout }) {
           clearInterval(pollingTimerRef.current)
           setUploadError(res.error || 'Pipeline execution failed.')
         }
-      } catch (err) {
+      } catch {
         consecutiveErrors++
         if (consecutiveErrors >= 5) {
           clearInterval(pollingTimerRef.current)
@@ -117,27 +137,7 @@ export function Dashboard({ user, client, onLogout }) {
     return () => {
       if (pollingTimerRef.current) clearInterval(pollingTimerRef.current)
     }
-  }, [activeJobId, pollingTrigger])
-
-  const loadExplanation = async (jobId) => {
-    try {
-      const exp = await client.getExplanation(jobId)
-      setExplanation(exp)
-    } catch (err) {
-      setUploadError(err.message)
-    }
-  }
-
-  const loadExtractedForReview = async (jobId) => {
-    try {
-      const ext = await client.getExtractedReport(jobId)
-      setExtractedData(ext)
-      setPatientNameInput(ext.patient_name || 'Patient')
-      setEditableTests(ext.tests || [])
-    } catch (err) {
-      setUploadError(err.message)
-    }
-  }
+  }, [activeJobId, pollingTrigger, client, fetchHistory, loadExplanation, loadExtractedForReview])
 
   const handleStartAnalysis = async () => {
     setUploadError(null)

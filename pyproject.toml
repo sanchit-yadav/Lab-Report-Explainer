@@ -36,3 +36,31 @@ dependencies = [
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes (unused imports, unused vars)
+    "I",   # isort (import sorting)
+]
+ignore = [
+    "E501", # line-too-long (handled by ruff format)
+    "E402", # module import not at top of file (sys.path configuration)
+    "W291", # trailing whitespace in multi-line templates
+    "W293", # blank line whitespace
+]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
