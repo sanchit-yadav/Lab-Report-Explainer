@@ -66,17 +66,19 @@ class DocumentIndexer:
                     meta = json.load(f)
 
             doc_id = txt_file.stem
-            docs.append({
-                "id": doc_id,
-                "content": content,
-                "metadata": {
-                    "test_name": meta.get("test_name", doc_id),
-                    "category": meta.get("category", "General"),
-                    "source_name": meta.get("source_name", "Clinical Guideline"),
-                    "source_url": meta.get("source_url", ""),
-                    "language": meta.get("language", "en"),
-                },
-            })
+            docs.append(
+                {
+                    "id": doc_id,
+                    "content": content,
+                    "metadata": {
+                        "test_name": meta.get("test_name", doc_id),
+                        "category": meta.get("category", "General"),
+                        "source_name": meta.get("source_name", "Clinical Guideline"),
+                        "source_url": meta.get("source_url", ""),
+                        "language": meta.get("language", "en"),
+                    },
+                }
+            )
         return docs
 
     def index_all(self, force_reindex: bool = False) -> int:
@@ -85,7 +87,9 @@ class DocumentIndexer:
         existing_count = collection.count()
 
         if existing_count > 0 and not force_reindex:
-            logger.info(f"ChromaDB collection already contains {existing_count} documents. Skipping re-indexing.")
+            logger.info(
+                f"ChromaDB collection already contains {existing_count} documents. Skipping re-indexing."
+            )
             return existing_count
 
         docs = self.load_documents()
@@ -107,7 +111,9 @@ class DocumentIndexer:
             documents=texts,
             metadatas=metadatas,
         )
-        logger.info(f"Successfully indexed {len(doc_ids)} documents into ChromaDB collection '{self.collection_name}'.")
+        logger.info(
+            f"Successfully indexed {len(doc_ids)} documents into ChromaDB collection '{self.collection_name}'."
+        )
         return len(doc_ids)
 
 

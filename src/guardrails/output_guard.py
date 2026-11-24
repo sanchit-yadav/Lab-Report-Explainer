@@ -32,10 +32,7 @@ class OutputGuard:
             self.drug_pattern = None
 
         # Compile unsafe diagnostic regex patterns
-        self.unsafe_patterns = [
-            re.compile(p, re.IGNORECASE)
-            for p in self.config.unsafe_patterns
-        ]
+        self.unsafe_patterns = [re.compile(p, re.IGNORECASE) for p in self.config.unsafe_patterns]
 
     def sanitize_text(self, text: str, lang: str = "en") -> Tuple[str, int]:
         """Scan a text block and replace unsafe clinical assertions.
@@ -70,9 +67,13 @@ class OutputGuard:
         sanitized_hi, v_hi = self.sanitize_text(explanation.explanation_hi, lang="hi")
 
         if v_en > 0:
-            logger.warning(f"Output guard redacted {v_en} unsafe assertion(s) in English explanation for '{explanation.test_name}'.")
+            logger.warning(
+                f"Output guard redacted {v_en} unsafe assertion(s) in English explanation for '{explanation.test_name}'."
+            )
         if v_hi > 0:
-            logger.warning(f"Output guard redacted {v_hi} unsafe assertion(s) in Hindi explanation for '{explanation.test_name}'.")
+            logger.warning(
+                f"Output guard redacted {v_hi} unsafe assertion(s) in Hindi explanation for '{explanation.test_name}'."
+            )
 
         explanation.explanation_en = sanitized_en
         explanation.explanation_hi = sanitized_hi

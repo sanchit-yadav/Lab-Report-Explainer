@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-
 from redteam.cases import get_all_attack_cases
 from redteam.harness import RedTeamHarness
 from redteam.models import AttackCategory

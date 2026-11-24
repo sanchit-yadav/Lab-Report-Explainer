@@ -129,7 +129,11 @@ class ExplanationGenerator:
         """Deterministic, grounded concise explanation generator for offline and testing environments."""
         flag_str = test.flag.value
         val_str = f"{test.value} {test.unit}" if test.value is not None else test.raw_value
-        ref_str = test.ref_raw or (f"{test.ref_low} - {test.ref_high}" if test.ref_low is not None and test.ref_high is not None else "standard reference interval")
+        ref_str = test.ref_raw or (
+            f"{test.ref_low} - {test.ref_high}"
+            if test.ref_low is not None and test.ref_high is not None
+            else "standard reference interval"
+        )
 
         name_lower = test.test_name.lower()
         matched = None
@@ -149,17 +153,13 @@ class ExplanationGenerator:
             finding_hi = f"आपका परिणाम {val_str} है, जो संदर्भ सीमा ({ref_str}) के अनुसार {flag_str.upper()} की श्रेणी में आता है। कृपया अपने चिकित्सक से चर्चा करें।"
 
         summary_en = (
-            f"• What It Measures: {purpose_en}\n"
-            f"• What This Finding Indicates: {finding_en}"
+            f"• What It Measures: {purpose_en}\n• What This Finding Indicates: {finding_en}"
         )
-        summary_hi = (
-            f"• यह जांच क्या मापती है: {purpose_hi}\n"
-            f"• आपके परिणाम का क्या अर्थ है: {finding_hi}"
-        )
+        summary_hi = f"• यह जांच क्या मापती है: {purpose_hi}\n• आपके परिणाम का क्या अर्थ है: {finding_hi}"
 
         doctor_q = [
             f"What clinical factors might be contributing to my {test.test_name} result being {flag_str}?",
-            f"Are any follow-up tests, monitoring intervals, or lifestyle modifications recommended?",
+            "Are any follow-up tests, monitoring intervals, or lifestyle modifications recommended?",
         ]
 
         return TestExplanation(
@@ -196,7 +196,11 @@ class ExplanationGenerator:
                 system_prompt = get_system_prompt()
 
                 models_to_try = [self.model_name]
-                for fb in getattr(self.config.models, "fallback_models", ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]):
+                for fb in getattr(
+                    self.config.models,
+                    "fallback_models",
+                    ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"],
+                ):
                     if fb not in models_to_try:
                         models_to_try.append(fb)
 
@@ -204,11 +208,25 @@ class ExplanationGenerator:
                     try:
                         # For single biomarker definitions, skip thinking tokens by default unless explicitly configured,
                         # avoiding 2-4 seconds of unnecessary reasoning latency per analyte.
-                        test_thinking = os.environ.get("EXPLANATION_THINKING_TEST", "").lower() in ("1", "true", "yes")
+                        test_thinking = os.environ.get("EXPLANATION_THINKING_TEST", "").lower() in (
+                            "1",
+                            "true",
+                            "yes",
+                        )
                         thinking_config = None
-                        if test_thinking and self.thinking_level and ("flash-lite" in cand_model.lower() or "gemini-3" in cand_model.lower() or "2.5" in cand_model.lower()):
+                        if (
+                            test_thinking
+                            and self.thinking_level
+                            and (
+                                "flash-lite" in cand_model.lower()
+                                or "gemini-3" in cand_model.lower()
+                                or "2.5" in cand_model.lower()
+                            )
+                        ):
                             try:
-                                thinking_config = types.ThinkingConfig(thinking_level=self.thinking_level.upper())
+                                thinking_config = types.ThinkingConfig(
+                                    thinking_level=self.thinking_level.upper()
+                                )
                             except Exception:
                                 pass
 
@@ -247,11 +265,15 @@ class ExplanationGenerator:
                             time.sleep(0.5)
                             continue
                         else:
-                            logger.warning(f"Gemini API model '{cand_model}' call error: {model_err}")
+                            logger.warning(
+                                f"Gemini API model '{cand_model}' call error: {model_err}"
+                            )
                             break
 
             except Exception as e:
-                logger.warning(f"Gemini API explanation generation failed: {e}. Falling back to offline generator.")
+                logger.warning(
+                    f"Gemini API explanation generation failed: {e}. Falling back to offline generator."
+                )
 
         # Offline / fallback mode
         return self._generate_mock_explanation(test, context_chunks, source_urls)
@@ -280,16 +302,26 @@ class ExplanationGenerator:
                 )
 
                 models_to_try = [self.model_name]
-                for fb in getattr(self.config.models, "fallback_models", ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]):
+                for fb in getattr(
+                    self.config.models,
+                    "fallback_models",
+                    ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"],
+                ):
                     if fb not in models_to_try:
                         models_to_try.append(fb)
 
                 for cand_model in models_to_try:
                     try:
                         thinking_config = None
-                        if self.thinking_level and ("flash-lite" in cand_model.lower() or "gemini-3" in cand_model.lower() or "2.5" in cand_model.lower()):
+                        if self.thinking_level and (
+                            "flash-lite" in cand_model.lower()
+                            or "gemini-3" in cand_model.lower()
+                            or "2.5" in cand_model.lower()
+                        ):
                             try:
-                                thinking_config = types.ThinkingConfig(thinking_level=self.thinking_level.upper())
+                                thinking_config = types.ThinkingConfig(
+                                    thinking_level=self.thinking_level.upper()
+                                )
                             except Exception:
                                 pass
 
@@ -326,21 +358,29 @@ class ExplanationGenerator:
                             time.sleep(0.5)
                             continue
                         else:
-                            logger.warning(f"Gemini Q&A generation failed with '{cand_model}': {model_err}")
+                            logger.warning(
+                                f"Gemini Q&A generation failed with '{cand_model}': {model_err}"
+                            )
                             break
 
             except Exception as e:
-                logger.warning(f"Gemini Q&A generation failed: {e}. Falling back to offline synthesis.")
+                logger.warning(
+                    f"Gemini Q&A generation failed: {e}. Falling back to offline synthesis."
+                )
 
         # Offline synthesis using retrieved context
-        top_context = context_chunks[0] if context_chunks else "Laboratory tests provide objective physiological indicators."
+        top_context = (
+            context_chunks[0]
+            if context_chunks
+            else "Laboratory tests provide objective physiological indicators."
+        )
         clean_context = " ".join(top_context.split()[:50]) + "..."
         ans_en = (
             f"Based on clinical education guidelines: {clean_context} "
             "Please consult your primary care doctor for guidance tailored to your overall health."
         )
         ans_hi = (
-            f"चिकित्सीय दिशानिर्देशों के आधार पर: यह जांच शारीरिक स्वास्थ्य और संतुलन को दर्शाती है। "
+            "चिकित्सीय दिशानिर्देशों के आधार पर: यह जांच शारीरिक स्वास्थ्य और संतुलन को दर्शाती है। "
             "कृपया अपने संपूर्ण स्वास्थ्य और उपचार के लिए अपने डॉक्टर से परामर्श अवश्य करें।"
         )
         return ans_en, ans_hi
@@ -362,12 +402,26 @@ class ExplanationGenerator:
 
         corr_list = correlations or []
         elevated_corrs = sum(1 for c in corr_list if c.severity != "normal")
-        corr_note_en = f" Additionally, {len(corr_list)} clinical ratio pattern(s) were analyzed ({elevated_corrs} flagged for discussion)." if corr_list else ""
-        corr_note_hi = f" इसके अलावा, {len(corr_list)} नैदानिक अनुपातों का विश्लेषण किया गया है।" if corr_list else ""
+        corr_note_en = (
+            f" Additionally, {len(corr_list)} clinical ratio pattern(s) were analyzed ({elevated_corrs} flagged for discussion)."
+            if corr_list
+            else ""
+        )
+        corr_note_hi = (
+            f" इसके अलावा, {len(corr_list)} नैदानिक अनुपातों का विश्लेषण किया गया है।" if corr_list else ""
+        )
 
         panic_list = panic_alerts or []
-        panic_prefix_en = f"🚨 URGENT: {len(panic_list)} parameter(s) crossed critical medical panic thresholds requiring prompt clinician consultation. " if panic_list else ""
-        panic_prefix_hi = f"🚨 तत्काल ध्यान: {len(panic_list)} परीक्षण परिणाम गंभीर आपातकालीन सीमा पार कर चुके हैं। " if panic_list else ""
+        panic_prefix_en = (
+            f"🚨 URGENT: {len(panic_list)} parameter(s) crossed critical medical panic thresholds requiring prompt clinician consultation. "
+            if panic_list
+            else ""
+        )
+        panic_prefix_hi = (
+            f"🚨 तत्काल ध्यान: {len(panic_list)} परीक्षण परिणाम गंभीर आपातकालीन सीमा पार कर चुके हैं। "
+            if panic_list
+            else ""
+        )
 
         summary_en = (
             f"{panic_prefix_en}Laboratory report summary for {report.patient_name or 'the patient'}. "

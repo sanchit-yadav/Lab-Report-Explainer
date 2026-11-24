@@ -12,7 +12,9 @@ def test_history_tracker_delta_and_improving_trajectory(tmp_path):
         patient_name="Ramesh Kumar",
         report_date="15-Jan-2026",
         tests=[
-            TestResult(test_name="Total Cholesterol", value=250.0, unit="mg/dL", flag=FlagStatus.HIGH),
+            TestResult(
+                test_name="Total Cholesterol", value=250.0, unit="mg/dL", flag=FlagStatus.HIGH
+            ),
             TestResult(test_name="Hemoglobin", value=13.5, unit="g/dL", flag=FlagStatus.NORMAL),
         ],
     )
@@ -22,7 +24,9 @@ def test_history_tracker_delta_and_improving_trajectory(tmp_path):
         patient_name="Ramesh Kumar",
         report_date="15-Apr-2026",
         tests=[
-            TestResult(test_name="Total Cholesterol", value=210.0, unit="mg/dL", flag=FlagStatus.HIGH),
+            TestResult(
+                test_name="Total Cholesterol", value=210.0, unit="mg/dL", flag=FlagStatus.HIGH
+            ),
             TestResult(test_name="Hemoglobin", value=13.6, unit="g/dL", flag=FlagStatus.NORMAL),
         ],
     )

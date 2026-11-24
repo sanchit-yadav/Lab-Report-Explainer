@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-
 from src.extraction.schema import LabReport, TestResult
 from src.flagging.demographics import DemographicContext, DemographicIntervalEngine
 
@@ -52,7 +51,9 @@ def test_demographic_stratification_pediatric_alp():
     )
     demo_child = DemographicContext(age_years=9.0, sex="M", is_pediatric=True)
 
-    low_p, high_p, note_p = DemographicIntervalEngine.refine_analyte_range(test_child_alp, demo_child)
+    low_p, high_p, note_p = DemographicIntervalEngine.refine_analyte_range(
+        test_child_alp, demo_child
+    )
     assert high_p == 390.0  # Child upper limit is 390 U/L
     assert "bone-growth" in note_p.lower()
 
@@ -64,8 +65,12 @@ def test_apply_demographic_stratification_to_report():
         patient_age="8 Months",
         patient_gender="Male",
         tests=[
-            TestResult(test_name="Hemoglobin", value=11.0, unit="g/dL"),  # Normal for infant (10.0-14.0)
-            TestResult(test_name="Serum Creatinine", value=0.4, unit="mg/dL"),  # Normal for child (0.3-0.7)
+            TestResult(
+                test_name="Hemoglobin", value=11.0, unit="g/dL"
+            ),  # Normal for infant (10.0-14.0)
+            TestResult(
+                test_name="Serum Creatinine", value=0.4, unit="mg/dL"
+            ),  # Normal for child (0.3-0.7)
         ],
     )
 

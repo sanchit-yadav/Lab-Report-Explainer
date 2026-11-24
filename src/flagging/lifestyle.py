@@ -45,9 +45,20 @@ LIFESTYLE_PROTOCOLS = [
             "ट्राइग्लिसराइड्स कम करने के लिए मीठी चीजें और शराब पूरी तरह बंद करें।",
             "सप्ताह में कम से कम 150 मिनट तेज चलना या व्यायाम करें, जिससे सुरक्षात्मक HDL कोलेस्ट्रॉल बढ़ता है।",
         ],
-        "favor_en": ["Oats & Barley", "Psyllium Husk", "Almonds & Walnuts", "Lentils & Chickpeas", "Extra Virgin Olive Oil"],
+        "favor_en": [
+            "Oats & Barley",
+            "Psyllium Husk",
+            "Almonds & Walnuts",
+            "Lentils & Chickpeas",
+            "Extra Virgin Olive Oil",
+        ],
         "favor_hi": ["जई (ओट्स)", "ईसबगोल", "बादाम और अखरोट", "दालें और छोले", "जैतून व सरसों का तेल"],
-        "limit_en": ["Deep-fried savories (Samosa, Pakora)", "Commercial baked goods", "Processed meats", "Sugary sodas"],
+        "limit_en": [
+            "Deep-fried savories (Samosa, Pakora)",
+            "Commercial baked goods",
+            "Processed meats",
+            "Sugary sodas",
+        ],
         "limit_hi": ["तले हुए पकवान व समोसे", "बेकरी बिस्कुट व पेस्ट्री", "प्रोसेस्ड मीट", "मीठे कोल्ड ड्रिंक्स"],
         "evidence": "American Heart Association (AHA) & European Society of Cardiology (ESC) Dyslipidemia Guidelines",
     },
@@ -68,9 +79,20 @@ LIFESTYLE_PROTOCOLS = [
             "भोजन के बाद 10-15 मिनट टहलें, जिससे मांसपेशियां बिना इंसुलिन के भी अतिरिक्त ग्लूकोज सोख लेती हैं।",
             "फलों के डिब्बाबंद जूस और मीठी चाय से पूरी तरह बचें।",
         ],
-        "favor_en": ["Fenugreek (Methi) seeds", "Bitter Gourd (Karela)", "Chia / Flax seeds", "Brown rice / Quinoa", "Green leafy vegetables"],
+        "favor_en": [
+            "Fenugreek (Methi) seeds",
+            "Bitter Gourd (Karela)",
+            "Chia / Flax seeds",
+            "Brown rice / Quinoa",
+            "Green leafy vegetables",
+        ],
         "favor_hi": ["मेथी दाना", "करेला", "अलसी के बीज", "ब्राउन राइस / बाजरा", "हरी पत्तेदार सब्जियां"],
-        "limit_en": ["Refined white flour (Maida)", "White bread & refined pasta", "Fruit juices", "Sweets & Jaggery excess"],
+        "limit_en": [
+            "Refined white flour (Maida)",
+            "White bread & refined pasta",
+            "Fruit juices",
+            "Sweets & Jaggery excess",
+        ],
         "limit_hi": ["मैदा और सफेद ब्रेड", "सफेद चीनी और मिठाई", "फलों के जूस", "सफेद चावल की अधिक मात्रा"],
         "evidence": "American Diabetes Association (ADA) Standards of Care in Diabetes",
     },
@@ -91,10 +113,26 @@ LIFESTYLE_PROTOCOLS = [
             "अतिरिक्त फ्रुक्टोज और कोल्ड ड्रिंक्स से बचें जो सीधे लिवर में फैट बनाते हैं।",
             "बिना चीनी की हल्की ब्लैक कॉफी लिवर की कोशिकाओं की रक्षा करने में मददगार मानी जाती है।",
         ],
-        "favor_en": ["Black coffee (sugar-free)", "Turmeric (Curcumin)", "Garlic", "Cruciferous veggies (Broccoli, Cauliflower)", "Green tea"],
+        "favor_en": [
+            "Black coffee (sugar-free)",
+            "Turmeric (Curcumin)",
+            "Garlic",
+            "Cruciferous veggies (Broccoli, Cauliflower)",
+            "Green tea",
+        ],
         "favor_hi": ["बिना चीनी की ब्लैक कॉफी", "हल्दी", "लहसुन", "ब्रोकोली और गोभी", "ग्रीन टी"],
-        "limit_en": ["Alcoholic beverages", "High-fructose corn syrup", "Heavy animal fats", "Ultra-processed packaged snacks"],
-        "limit_hi": ["शराब और बीयर", "पैकेज्ड मीठे स्नैक्स", "डालडा व ट्रांस फैट", "अत्यधिक मसालेदार व बासी खाना"],
+        "limit_en": [
+            "Alcoholic beverages",
+            "High-fructose corn syrup",
+            "Heavy animal fats",
+            "Ultra-processed packaged snacks",
+        ],
+        "limit_hi": [
+            "शराब और बीयर",
+            "पैकेज्ड मीठे स्नैक्स",
+            "डालडा व ट्रांस फैट",
+            "अत्यधिक मसालेदार व बासी खाना",
+        ],
         "evidence": "European Association for the Study of the Liver (EASL) MASLD/NAFLD Guidelines",
     },
     {
@@ -114,9 +152,19 @@ LIFESTYLE_PROTOCOLS = [
             "दूध या कैल्शियम की गोली को आयरन युक्त भोजन के तुरंत साथ न लें।",
             "लोहे की कड़ाही में खाना पकाने से भोजन में प्राकृतिक आयरन की मात्रा बढ़ती है।",
         ],
-        "favor_en": ["Spinach & Moringa (Sahjan)", "Lentils & Kidney Beans", "Pomegranate & Beetroot", "Indian Gooseberry (Amla)", "Dates & Raisins"],
+        "favor_en": [
+            "Spinach & Moringa (Sahjan)",
+            "Lentils & Kidney Beans",
+            "Pomegranate & Beetroot",
+            "Indian Gooseberry (Amla)",
+            "Dates & Raisins",
+        ],
         "favor_hi": ["पालक और सहजन", "दालें और राजमा", "अनार और चुकंदर", "आंवला", "खजूर और किशमिश"],
-        "limit_en": ["Tea/Coffee close to meals", "Excess calcium antacids with food", "Refined cereal empty calories"],
+        "limit_en": [
+            "Tea/Coffee close to meals",
+            "Excess calcium antacids with food",
+            "Refined cereal empty calories",
+        ],
         "limit_hi": ["खाने के साथ चाय/कॉफी", "खाने के तुरंत बाद कैल्शियम सप्लीमेंट", "खाली पेट अधिक कैफीन"],
         "evidence": "World Health Organization (WHO) Nutritional Anaemias Guidelines",
     },
@@ -130,10 +178,7 @@ class LifestyleEngine:
         """Examine out-of-range analytes and return targeted nutrition and lifestyle protocols."""
         guidance_list: List[LifestyleGuidance] = []
 
-        flagged_tests = [
-            t for t in tests
-            if t.flag not in (FlagStatus.NORMAL, FlagStatus.UNKNOWN)
-        ]
+        flagged_tests = [t for t in tests if t.flag not in (FlagStatus.NORMAL, FlagStatus.UNKNOWN)]
 
         for proto in LIFESTYLE_PROTOCOLS:
             matched_analytes = []

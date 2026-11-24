@@ -13,12 +13,12 @@ import io
 import time
 from typing import List
 
-from PIL import Image
 import pdfplumber
 import pypdfium2 as pdfium
+from PIL import Image
 
-from src.stages.logger import get_stage_logger
 from src.extraction.preprocessing import DocumentPreprocessor
+from src.stages.logger import get_stage_logger
 from src.stages.schemas import OCRLine, OCRPage, OCRParseInput, OCRParseOutput
 
 logger = get_stage_logger("ocr_parse")
@@ -37,6 +37,23 @@ class OCRParseStage:
         t0 = time.perf_counter()
         pages: List[OCRPage] = []
         full_text_chunks: List[str] = []
+
+        if inp.filename.lower().endswith(".txt"):
+            text = inp.file_bytes.decode("utf-8", errors="ignore")
+            lines = [
+                OCRLine(line_num=i, text=line_str.strip(), confidence=1.0)
+                for i, line_str in enumerate(text.split("\n"), start=1)
+                if line_str.strip()
+            ]
+            pages = [OCRPage(page_num=1, text=text, lines=lines, confidence=1.0)]
+            return OCRParseOutput(
+                request_id=inp.request_id,
+                full_text=text,
+                pages=pages,
+                total_pages=1,
+                parsing_tier=1,
+                confidence=1.0,
+            )
 
         is_pdf = inp.filename.lower().endswith(".pdf") or inp.file_bytes.startswith(b"%PDF-")
         has_digital_text = False
@@ -99,7 +116,9 @@ class OCRParseStage:
                         pil_img = pdf[page_idx].render(scale=300.0 / 72.0).to_pil()
                         page_images.append(pil_img)
                 except Exception as exc:
-                    logger.error("Failed to rasterize PDF pages", inp.request_id, {"error": str(exc)})
+                    logger.error(
+                        "Failed to rasterize PDF pages", inp.request_id, {"error": str(exc)}
+                    )
             else:
                 try:
                     direct_img = Image.open(io.BytesIO(inp.file_bytes))
@@ -118,6 +137,7 @@ class OCRParseStage:
                 # 1. Check local Tesseract OCR if available
                 try:
                     import pytesseract
+
                     data = pytesseract.image_to_data(clean_img, output_type=pytesseract.Output.DICT)
                     words = data.get("text", [])
                     confs = [float(c) for c in data.get("conf", []) if float(c) > 0]
@@ -135,7 +155,11 @@ class OCRParseStage:
                     for l_idx, (num, w_list) in enumerate(sorted(line_dict.items()), start=1):
                         l_text = " ".join(w_list)
                         page_text_lines.append(l_text)
-                        ocr_lines.append(OCRLine(line_num=l_idx, text=l_text, confidence=round(avg_confidence, 2)))
+                        ocr_lines.append(
+                            OCRLine(
+                                line_num=l_idx, text=l_text, confidence=round(avg_confidence, 2)
+                            )
+                        )
                 except Exception:
                     pass
 
@@ -143,6 +167,7 @@ class OCRParseStage:
                 if not ocr_lines or avg_confidence < 0.60:
                     try:
                         from src.extraction.vision_parser import VisionExtractor
+
                         vision = VisionExtractor()
                         page_report = vision.extract_from_image(clean_img, page_idx=page_idx)
 
@@ -150,7 +175,11 @@ class OCRParseStage:
                             ocr_lines = []
                             page_text_lines = []
                             for t_idx, t in enumerate(page_report.tests, start=1):
-                                ref_str = f"({t.ref_raw})" if t.ref_raw else f"({t.ref_low} - {t.ref_high})"
+                                ref_str = (
+                                    f"({t.ref_raw})"
+                                    if t.ref_raw
+                                    else f"({t.ref_low} - {t.ref_high})"
+                                )
                                 line_str = f"{t.test_name}  {t.raw_value or t.value}  {t.unit}  {ref_str}".strip()
                                 page_text_lines.append(line_str)
                                 ocr_lines.append(
@@ -160,7 +189,9 @@ class OCRParseStage:
                                         confidence=t.confidence,
                                     )
                                 )
-                            avg_confidence = sum(t.confidence for t in page_report.tests) / len(page_report.tests)
+                            avg_confidence = sum(t.confidence for t in page_report.tests) / len(
+                                page_report.tests
+                            )
                     except Exception as exc:
                         logger.warning(
                             f"Vision OCR fallback warning on page {page_idx}",

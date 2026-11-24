@@ -7,10 +7,10 @@ and vector database embeddings to satisfy healthcare privacy regulations.
 from __future__ import annotations
 
 import datetime
-from datetime import timezone
 import logging
-from pathlib import Path
 import shutil
+from datetime import timezone
+from pathlib import Path
 from typing import Any, Dict
 
 logger = logging.getLogger("security.retention")
@@ -26,8 +26,8 @@ def purge_user_data(user_id: str) -> Dict[str, Any]:
 
     # 1. Purge from Relational Database
     try:
-        from src.db.session import SessionLocal
         from src.db.models import Report, TestRecord
+        from src.db.session import SessionLocal
 
         with SessionLocal() as db:
             reports = db.query(Report).filter(Report.user_id == user_id).all()
@@ -53,6 +53,7 @@ def purge_user_data(user_id: str) -> Dict[str, Any]:
     # 2. Purge from Job Manager in-memory cache
     try:
         from src.workers.job_manager import JobManager
+
         jm = JobManager.get_instance()
         with jm._lock:
             to_del = [jid for jid, rec in jm._jobs.items() if rec.user_id == user_id]
@@ -73,6 +74,7 @@ def purge_user_data(user_id: str) -> Dict[str, Any]:
     # 4. Purge from ChromaDB Vector Store
     try:
         from src.rag.retriever import ChromaRetriever
+
         retriever = ChromaRetriever()
         # Delete entries matching user_id
         retriever.collection.delete(where={"user_id": user_id})
@@ -82,6 +84,7 @@ def purge_user_data(user_id: str) -> Dict[str, Any]:
     # 5. Log GDPR / HIPAA Right-to-Erasure Audit Event
     try:
         from src.security.audit import SecurityAuditLogger
+
         SecurityAuditLogger.get_instance().log_event(
             event_type="RIGHT_TO_ERASURE_COMPLETED",
             actor_id=user_id,
@@ -110,8 +113,8 @@ def enforce_retention_policy(max_age_days: int = 30) -> int:
     purged_count = 0
 
     try:
-        from src.db.session import SessionLocal
         from src.db.models import Report, TestResultRecord
+        from src.db.session import SessionLocal
 
         with SessionLocal() as db:
             expired_reports = db.query(Report).filter(Report.created_at < cutoff).all()

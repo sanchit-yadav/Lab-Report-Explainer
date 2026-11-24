@@ -116,7 +116,9 @@ def login(
         user.hashed_password = upgraded_hash
         db.commit()
         db.refresh(user)
-        logger.info(f"User '{user.id}' password hash upgraded to standard bcrypt upon successful authentication.")
+        logger.info(
+            f"User '{user.id}' password hash upgraded to standard bcrypt upon successful authentication."
+        )
 
     if not user.is_active:
         audit.log_event(

@@ -48,8 +48,7 @@ def test_deidentify_emails_and_phones(deidentifier):
 def test_deidentify_mrn_and_identifiers(deidentifier):
     """Hospital accession numbers, MRNs, and sample IDs are redacted."""
     text = (
-        "Hospital ID: MRN-98241A, UHID: 1004829, Sample ID: SMP-84920. "
-        "Glucose Fasting: 110 mg/dL."
+        "Hospital ID: MRN-98241A, UHID: 1004829, Sample ID: SMP-84920. Glucose Fasting: 110 mg/dL."
     )
     res = deidentifier.anonymize_text(text)
 

@@ -86,7 +86,9 @@ class ValidateUploadStage:
                 detected_mime = "image/webp"
 
         if not detected_mime:
-            logger.warning("Invalid magic byte signature", inp.request_id, {"filename": inp.filename})
+            logger.warning(
+                "Invalid magic byte signature", inp.request_id, {"filename": inp.filename}
+            )
             return ValidateUploadOutput(
                 request_id=inp.request_id,
                 is_valid=False,
@@ -139,10 +141,13 @@ class ValidateUploadStage:
             # 2. Page count determination & parser structure validation
             try:
                 import pdfplumber
+
                 with pdfplumber.open(io.BytesIO(raw_bytes)) as pdf:
                     page_count = len(pdf.pages)
             except Exception as pdf_err:
-                logger.warning("Corrupt PDF structure rejected", inp.request_id, {"error": str(pdf_err)})
+                logger.warning(
+                    "Corrupt PDF structure rejected", inp.request_id, {"error": str(pdf_err)}
+                )
                 return ValidateUploadOutput(
                     request_id=inp.request_id,
                     is_valid=False,

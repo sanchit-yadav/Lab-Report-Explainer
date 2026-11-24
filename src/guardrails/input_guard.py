@@ -18,6 +18,7 @@ logger = logging.getLogger("input_guard")
 
 class GuardrailResult(BaseModel):
     """Result of an input guardrail security inspection."""
+
     __test__ = False
     blocked: bool = False
     violation_category: Optional[str] = None
@@ -35,12 +36,10 @@ class InputGuard:
 
         # Precompile pattern blocklist regexes
         self.en_patterns = [
-            re.compile(p, re.IGNORECASE)
-            for p in self.config.pattern_blocklist.get("en", [])
+            re.compile(p, re.IGNORECASE) for p in self.config.pattern_blocklist.get("en", [])
         ]
         self.hi_patterns = [
-            re.compile(p, re.IGNORECASE)
-            for p in self.config.pattern_blocklist.get("hi", [])
+            re.compile(p, re.IGNORECASE) for p in self.config.pattern_blocklist.get("hi", [])
         ]
 
     def _matches_keywords(self, text: str, keywords: List[str]) -> Optional[str]:
@@ -146,12 +145,20 @@ class InputGuard:
                     if not parsed.get("is_safe", True):
                         return GuardrailResult(
                             blocked=True,
-                            violation_category=parsed.get("violation_category", "unsafe_clinical_query"),
+                            violation_category=parsed.get(
+                                "violation_category", "unsafe_clinical_query"
+                            ),
                             matched_pattern=parsed.get("reason", "Soliciting clinical advice"),
-                            safe_response_en=self.config.safe_refusal.get("en", "Please consult your doctor."),
-                            safe_response_hi=self.config.safe_refusal.get("hi", "कृपया अपने डॉक्टर से परामर्श करें।"),
+                            safe_response_en=self.config.safe_refusal.get(
+                                "en", "Please consult your doctor."
+                            ),
+                            safe_response_hi=self.config.safe_refusal.get(
+                                "hi", "कृपया अपने डॉक्टर से परामर्श करें।"
+                            ),
                         )
             except Exception as e:
-                logger.warning(f"LLM safety classifier call failed ({e}); falling back to heuristic passes.")
+                logger.warning(
+                    f"LLM safety classifier call failed ({e}); falling back to heuristic passes."
+                )
 
         return GuardrailResult(blocked=False)

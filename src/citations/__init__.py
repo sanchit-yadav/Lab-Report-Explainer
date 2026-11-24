@@ -4,6 +4,8 @@ Provides structured claim extraction, source registration (report fields + KB ch
 programmatic and semantic verification, and interactive UI rendering.
 """
 
+from src.citations.formatter import CitationFormatter
+from src.citations.manifest import KBManifest, KBManifestManager, get_kb_manifest
 from src.citations.models import (
     AttributedClaim,
     CitationRegistry,
@@ -12,9 +14,7 @@ from src.citations.models import (
     SourceKind,
     VerificationStatus,
 )
-from src.citations.manifest import KBManifest, KBManifestManager, get_kb_manifest
 from src.citations.verifier import CitationVerifier
-from src.citations.formatter import CitationFormatter
 
 __all__ = [
     "AttributedClaim",

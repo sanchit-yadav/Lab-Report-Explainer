@@ -1,6 +1,7 @@
 """Unit tests for explanation generator and prompt construction."""
 
 import pytest
+
 from src.explainer.generator import ExplanationGenerator
 from src.explainer.prompts import build_explanation_prompt, get_system_prompt
 from src.explainer.schema import ReportExplanation, TestExplanation
@@ -67,7 +68,9 @@ def test_explain_test_returns_valid_schema(generator):
     assert "• What It Measures:" in explanation.explanation_en
     assert "• What This Finding Indicates:" in explanation.explanation_en
     assert "• यह जांच क्या मापती है:" in explanation.explanation_hi
-    assert not any("medication" in q.lower() or "drug" in q.lower() for q in explanation.doctor_questions)
+    assert not any(
+        "medication" in q.lower() or "drug" in q.lower() for q in explanation.doctor_questions
+    )
 
 
 def test_concise_clinical_format_and_zero_medication_mention(generator):

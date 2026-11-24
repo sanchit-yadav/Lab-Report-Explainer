@@ -11,7 +11,6 @@ from typing import Dict, List, Optional, Tuple
 
 from src.config import get_config
 
-
 # Regex patterns compiled for performance
 RE_CLEAN_TEXT = re.compile(r"\s+")
 RE_NUMBER_SIMPLE = re.compile(r"^[+-]?\d+(?:\.\d+)?$")
@@ -33,11 +32,23 @@ RE_RANGE_GREATER = re.compile(
 RE_RANGE_LABEL_PREFIX = re.compile(r"^[A-Za-z][A-Za-z\s./]*:\s*")
 
 # Non-numeric sentinel words that should return None
-_NON_NUMERIC_SENTINELS = frozenset([
-    "nil", "absent", "trace", "nd", "bdl", "not done", "see note",
-    "positive", "negative", "reactive", "non-reactive", "detected",
-    "not detected",
-])
+_NON_NUMERIC_SENTINELS = frozenset(
+    [
+        "nil",
+        "absent",
+        "trace",
+        "nd",
+        "bdl",
+        "not done",
+        "see note",
+        "positive",
+        "negative",
+        "reactive",
+        "non-reactive",
+        "detected",
+        "not detected",
+    ]
+)
 
 # Range-like heuristic — does a cell contain a numeric range pattern?
 RE_RANGE_HINT = re.compile(r"\d\s*[-\u2013\u2014]\s*\d|[<>]\s*\d|up\s*to\s*\d", re.IGNORECASE)
@@ -73,8 +84,8 @@ def parse_numeric_value(raw_val: str) -> Optional[float]:
 
     # Strip common visual flags like '*', 'H', 'L', '(H)', '(L)' at the end
     cleaned = re.sub(r"[\s*]+$", "", cleaned)
-    cleaned = re.sub(r"\s*\([A-Za-z]+\)\s*$", "", cleaned)   # (H), (L), (High), etc.
-    cleaned = re.sub(r"\s*\[[A-Za-z]+\]\s*$", "", cleaned)   # [H], [L], etc.
+    cleaned = re.sub(r"\s*\([A-Za-z]+\)\s*$", "", cleaned)  # (H), (L), (High), etc.
+    cleaned = re.sub(r"\s*\[[A-Za-z]+\]\s*$", "", cleaned)  # [H], [L], etc.
     cleaned = re.sub(r"\s+[HLhl]$", "", cleaned)
 
     # Re-check sentinels after stripping (edge case: "NIL ()")

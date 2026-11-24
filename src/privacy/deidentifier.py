@@ -8,9 +8,9 @@ before transmitting prompt tokens to external model APIs.
 from __future__ import annotations
 
 import copy
-from dataclasses import dataclass, field
 import logging
 import re
+from dataclasses import dataclass, field
 from typing import Dict, List, Tuple
 
 from src.extraction.schema import LabReport
@@ -19,16 +19,44 @@ logger = logging.getLogger("privacy.deidentifier")
 
 
 RESERVED_CLINICAL_TERMS = {
-    "dob", "date", "age", "sex", "gender", "id", "mrn", "uhid", "sample",
-    "status", "test", "result", "ref", "reference", "unit", "units", "range",
-    "normal", "high", "low", "abnormal", "critical", "serum", "plasma",
-    "blood", "urine", "doctor", "physician", "consultant", "pathology", "lab",
+    "dob",
+    "date",
+    "age",
+    "sex",
+    "gender",
+    "id",
+    "mrn",
+    "uhid",
+    "sample",
+    "status",
+    "test",
+    "result",
+    "ref",
+    "reference",
+    "unit",
+    "units",
+    "range",
+    "normal",
+    "high",
+    "low",
+    "abnormal",
+    "critical",
+    "serum",
+    "plasma",
+    "blood",
+    "urine",
+    "doctor",
+    "physician",
+    "consultant",
+    "pathology",
+    "lab",
 }
 
 
 @dataclass
 class DetectedEntity:
     """Represents an identified Protected Health Information (PHI) instance."""
+
     entity_type: str
     original_value: str
     surrogate_token: str
@@ -40,6 +68,7 @@ class DetectedEntity:
 @dataclass
 class AnonymizationResult:
     """Output of de-identification containing sanitized text and surrogate mapping."""
+
     sanitized_text: str
     entity_mapping: Dict[str, str] = field(default_factory=dict)
     detected_entities: List[DetectedEntity] = field(default_factory=list)
@@ -62,7 +91,7 @@ class PHIDeidentifier:
 
         # 2. Phone Numbers (US & Indian national/international formats)
         self.phone_pattern = re.compile(
-            r"(?:(?:\+91[\-\s]?)?[6789]\d{9})|"                     # Indian mobile
+            r"(?:(?:\+91[\-\s]?)?[6789]\d{9})|"  # Indian mobile
             r"(?:\+?1[\-\s]?)?\(?\d{3}\)?[\-\s]?\d{3}[\-\s]?\d{4}|"  # US format
             r"\b\d{3}[\-\.]\d{3}[\-\.]\d{4}\b",
         )
@@ -126,7 +155,9 @@ class PHIDeidentifier:
             # If already assigned, reuse token
             for tok, orig in entity_mapping.items():
                 if orig.lower() == clean_val.lower() and ent_type in tok:
-                    return re.sub(r"(?<!\[)\b" + re.escape(clean_val) + r"\b(?!\])", tok, current_text)
+                    return re.sub(
+                        r"(?<!\[)\b" + re.escape(clean_val) + r"\b(?!\])", tok, current_text
+                    )
 
             idx = counter[ent_type]
             counter[ent_type] += 1
@@ -230,7 +261,10 @@ class PHIDeidentifier:
                 sanitized.patient_age = "90+"
 
         # 3. Lab / Clinic Name (Replace with neutral surrogate to prevent geographic inference)
-        if sanitized.lab_name and sanitized.lab_name.lower() not in {"diagnostic laboratory", "clinical lab"}:
+        if sanitized.lab_name and sanitized.lab_name.lower() not in {
+            "diagnostic laboratory",
+            "clinical lab",
+        }:
             token = "[CLINICAL_LAB_1]"
             mapping[token] = sanitized.lab_name
             sanitized.lab_name = token

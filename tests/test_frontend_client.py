@@ -74,7 +74,11 @@ def test_api_client_report_workflow_methods():
         # Get Extracted
         mock_get.return_value = MagicMock(
             status_code=200,
-            json=lambda: {"job_id": "job-abc", "total_tests": 1, "tests": [{"test_name": "Hemoglobin"}]},
+            json=lambda: {
+                "job_id": "job-abc",
+                "total_tests": 1,
+                "tests": [{"test_name": "Hemoglobin"}],
+            },
             raise_for_status=lambda: None,
         )
         res_ext = client.get_extracted_report("job-abc")
@@ -111,6 +115,7 @@ def test_api_client_report_workflow_methods():
 def test_api_client_confirm_report_sanitizes_nan_and_na():
     """Verify confirm_report cleanly sanitizes float('nan'), inf, and pandas NA before HTTP POST."""
     import pandas as pd
+
     client = CDSAPIClient(base_url="http://testserver", token="tok123")
 
     with patch("httpx.Client.post") as mock_post:
@@ -120,7 +125,12 @@ def test_api_client_confirm_report_sanitizes_nan_and_na():
             raise_for_status=lambda: None,
         )
         tests_with_nan = [
-            {"test_name": "Test1", "value": float("nan"), "ref_low": None, "ref_high": float("inf")},
+            {
+                "test_name": "Test1",
+                "value": float("nan"),
+                "ref_low": None,
+                "ref_high": float("inf"),
+            },
             {"test_name": "Test2", "value": 15.0, "ref_low": pd.NA, "ref_high": float("nan")},
         ]
         res = client.confirm_report("job-nan", tests=tests_with_nan)

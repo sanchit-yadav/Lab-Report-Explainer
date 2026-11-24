@@ -6,10 +6,10 @@ to the Prometheus exposition format v0.0.4 without external runtime dependencies
 
 from __future__ import annotations
 
-from collections import defaultdict
 import math
 import threading
 import time
+from collections import defaultdict
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -18,13 +18,22 @@ from starlette.responses import Response
 
 # Default Prometheus latency histogram buckets (in seconds)
 DEFAULT_LATENCY_BUCKETS: Tuple[float, ...] = (
-    0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, float("inf")
+    0.005,
+    0.01,
+    0.025,
+    0.05,
+    0.1,
+    0.25,
+    0.5,
+    1.0,
+    2.5,
+    5.0,
+    10.0,
+    float("inf"),
 )
 
 # Test count histogram buckets (number of tests per report)
-DEFAULT_COUNT_BUCKETS: Tuple[float, ...] = (
-    1.0, 5.0, 10.0, 20.0, 35.0, 50.0, 100.0, float("inf")
-)
+DEFAULT_COUNT_BUCKETS: Tuple[float, ...] = (1.0, 5.0, 10.0, 20.0, 35.0, 50.0, 100.0, float("inf"))
 
 
 def _format_labels(labels: Dict[str, str]) -> str:
@@ -181,9 +190,7 @@ class PrometheusHistogram:
                         le = "+Inf" if math.isinf(b) else str(b)
                         lbl_with_le = dict(lbl_dict)
                         lbl_with_le["le"] = le
-                        lines.append(
-                            f"{self.name}_bucket{_format_labels(lbl_with_le)} {b_dict[b]}"
-                        )
+                        lines.append(f"{self.name}_bucket{_format_labels(lbl_with_le)} {b_dict[b]}")
                     lines.append(f"{self.name}_sum{_format_labels(lbl_dict)} {self._sums[key]:.6f}")
                     lines.append(f"{self.name}_count{_format_labels(lbl_dict)} {self._totals[key]}")
         return lines

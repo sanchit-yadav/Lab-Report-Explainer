@@ -6,10 +6,10 @@ Protects against resource exhaustion, API quota drains, and denial-of-wallet att
 from __future__ import annotations
 
 import datetime
-from datetime import timezone
 import logging
 import os
 import threading
+from datetime import timezone
 from typing import Any, Dict, Optional, Tuple
 
 logger = logging.getLogger("security.budget")
@@ -77,7 +77,11 @@ class UserBudgetManager:
         with self._map_lock:
             entry = self._usage_map.get(user_id)
             if not entry or entry.get("date") != today:
-                self._usage_map[user_id] = {"date": today, "tokens": tokens, "cost_usd": computed_cost}
+                self._usage_map[user_id] = {
+                    "date": today,
+                    "tokens": tokens,
+                    "cost_usd": computed_cost,
+                }
             else:
                 entry["tokens"] += tokens
                 entry["cost_usd"] += computed_cost
@@ -97,5 +101,7 @@ class UserBudgetManager:
                 "cost_usd": round(entry["cost_usd"], 5),
                 "max_cost_usd": self.max_daily_cost_usd,
                 "remaining_tokens": max(0, self.max_daily_tokens - entry["tokens"]),
-                "remaining_cost_usd": max(0.0, round(self.max_daily_cost_usd - entry["cost_usd"], 5)),
+                "remaining_cost_usd": max(
+                    0.0, round(self.max_daily_cost_usd - entry["cost_usd"], 5)
+                ),
             }

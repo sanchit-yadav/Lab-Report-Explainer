@@ -94,10 +94,14 @@ def test_scrub_phi_from_event_structure():
     exc_val = cleaned["exception"]["values"][0]["value"]
     assert "(555) 019-2834" not in exc_val
     assert "[REDACTED_PHONE]" in exc_val
-    frame_var = cleaned["exception"]["values"][0]["stacktrace"]["frames"][0]["vars"]["patient_email"]
+    frame_var = cleaned["exception"]["values"][0]["stacktrace"]["frames"][0]["vars"][
+        "patient_email"
+    ]
     assert "jane.doe@sample.com" not in frame_var
     assert "[REDACTED_EMAIL]" in frame_var
-    assert cleaned["exception"]["values"][0]["stacktrace"]["frames"][0]["vars"]["clean_metric"] == 14.5
+    assert (
+        cleaned["exception"]["values"][0]["stacktrace"]["frames"][0]["vars"]["clean_metric"] == 14.5
+    )
 
     # Breadcrumb scrubbing
     assert "482109" not in cleaned["breadcrumbs"]["values"][0]["message"]

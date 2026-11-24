@@ -1,6 +1,7 @@
 """Tests for authentication, JWT lifecycle, password hashing, and multi-user isolation."""
 
 from datetime import timedelta
+
 import pytest
 from starlette.testclient import TestClient
 

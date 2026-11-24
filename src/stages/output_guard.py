@@ -65,11 +65,12 @@ class OutputGuardStage:
         # 2. Sanitize summary prose
         clean_sum_en, v1 = self.guard.sanitize_text(inp.explanation.summary_en, "en")
         clean_sum_hi, v2 = self.guard.sanitize_text(inp.explanation.summary_hi, "hi")
-        violations += (v1 + v2)
+        violations += v1 + v2
 
         # 3. Hard-coded critical-value escalation banner if any analyte is critical
         has_critical = any(
-            "critical" in (item.flag.value.lower() if hasattr(item.flag, "value") else str(item.flag).lower())
+            "critical"
+            in (item.flag.value.lower() if hasattr(item.flag, "value") else str(item.flag).lower())
             for item in inp.extracted_items
         )
         if has_critical:
@@ -94,13 +95,15 @@ class OutputGuardStage:
         for exp in inp.explanation.test_explanations:
             clean_en, v_en = self.guard.sanitize_text(exp.explanation_en, "en")
             clean_hi, v_hi = self.guard.sanitize_text(exp.explanation_hi, "hi")
-            violations += (v_en + v_hi)
+            violations += v_en + v_hi
 
             # Numerical verification: verify all numbers in explanation prose exist in ground truth
             found_numbers = NUMBER_PATTERN.findall(clean_en)
             for num in found_numbers:
                 if num not in known_numbers and float(num) > 10.0:  # Ignore trivial indices/counts
-                    discrepancy = f"Unverified number '{num}' detected in explanation for '{exp.test_name}'"
+                    discrepancy = (
+                        f"Unverified number '{num}' detected in explanation for '{exp.test_name}'"
+                    )
                     numerical_discrepancies.append(discrepancy)
 
             # Reconstruct CitationRegistry from exp.sources or extracted items
@@ -126,7 +129,8 @@ class OutputGuardStage:
                             test_name=item.test_name,
                             value=item.value,
                             unit=item.unit,
-                            ref_range=item.ref_raw or (
+                            ref_range=item.ref_raw
+                            or (
                                 f"{item.ref_low} - {item.ref_high}"
                                 if item.ref_low is not None and item.ref_high is not None
                                 else ""
@@ -164,7 +168,9 @@ class OutputGuardStage:
                 total_claims_count += 1
 
             # Enforce citation requirement: ensure references exist
-            sources = list(exp.source_urls) if exp.source_urls else ["https://medlineplus.gov/lab-tests/"]
+            sources = (
+                list(exp.source_urls) if exp.source_urls else ["https://medlineplus.gov/lab-tests/"]
+            )
 
             sanitized_explanations.append(
                 TestExplanationItem(
@@ -178,7 +184,9 @@ class OutputGuardStage:
                     claims=verified_claims,
                     sources=exp.sources,
                     citation_accuracy_score=item_citation_accuracy,
-                    grounding_status="FULLY_GROUNDED" if item_citation_accuracy == 1.0 else "PARTIAL",
+                    grounding_status="FULLY_GROUNDED"
+                    if item_citation_accuracy == 1.0
+                    else "PARTIAL",
                     bibliography=exp.bibliography,
                     ui_citation_payload=exp.ui_citation_payload,
                 )

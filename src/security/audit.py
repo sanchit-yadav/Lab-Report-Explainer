@@ -6,15 +6,15 @@ PHI de-identification events, model inferences, and report exports.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
 import hashlib
 import json
 import logging
-from pathlib import Path
 import threading
-from typing import Any, Dict, List, Optional, Tuple
 import uuid
+from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger("security.audit")
 
@@ -24,6 +24,7 @@ GENESIS_HASH = "0" * 64
 @dataclass
 class AuditRecord:
     """Immutable audit entry cryptographically bound to its predecessor."""
+
     entry_id: str
     timestamp: str
     event_type: str
@@ -125,7 +126,9 @@ class SecurityAuditLogger:
             except Exception as e:
                 logger.error(f"Failed to persist audit log record {entry_id}: {e}")
 
-        logger.info(f"AUDIT [{event_type}] resource={resource_id} actor={actor_id} hash={record.entry_hash[:8]}...")
+        logger.info(
+            f"AUDIT [{event_type}] resource={resource_id} actor={actor_id} hash={record.entry_hash[:8]}..."
+        )
         return record
 
     def verify_integrity(self) -> Tuple[bool, Optional[str]]:

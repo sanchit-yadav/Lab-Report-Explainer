@@ -10,7 +10,7 @@ import hashlib
 import logging
 import math
 import os
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from src.config import EmbeddingsConfig, get_config
 
@@ -58,7 +58,7 @@ class EmbeddingManager:
 
             # Bigram influence
             if i > 0:
-                bigram = f"{words[i-1]}_{word}"
+                bigram = f"{words[i - 1]}_{word}"
                 bh = int(hashlib.md5(bigram.encode("utf-8")).hexdigest(), 16)
                 b_idx = bh % self.dimensions
                 vec[b_idx] += weight * 0.75
@@ -100,7 +100,9 @@ class EmbeddingManager:
 
                 return embeddings
             except Exception as e:
-                logger.warning(f"Gemini API embedding call failed ({e}); using offline fallback embedder.")
+                logger.warning(
+                    f"Gemini API embedding call failed ({e}); using offline fallback embedder."
+                )
 
         return [self._fallback_embed(t) for t in texts]
 
@@ -124,6 +126,8 @@ class EmbeddingManager:
                 if vec:
                     return vec
             except Exception as e:
-                logger.warning(f"Gemini API query embedding failed ({e}); using offline fallback embedder.")
+                logger.warning(
+                    f"Gemini API query embedding failed ({e}); using offline fallback embedder."
+                )
 
         return self._fallback_embed(query)

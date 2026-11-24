@@ -17,7 +17,6 @@ from src.stages.extract import ExtractValuesStage
 from src.stages.ocr import OCRParseStage
 from src.stages.schemas import ExtractValuesInput, OCRParseInput
 
-
 FIXTURES_DIR = Path(__file__).parent / "fixtures" / "scanned"
 
 
@@ -31,7 +30,9 @@ def test_scanned_pdf_rasterization_fixes_raw_binary_leak():
     parsed = stage.parse(OCRParseInput(file_bytes=file_bytes, filename="scanned_clean.pdf"))
 
     # Verify no raw bytecode leakage
-    assert "%PDF-" not in parsed.full_text, "Raw binary bytecode must not leak into OCR text output!"
+    assert "%PDF-" not in parsed.full_text, (
+        "Raw binary bytecode must not leak into OCR text output!"
+    )
     # Verify clinical parameters extracted
     assert "Hemoglobin" in parsed.full_text
     assert "Platelets" in parsed.full_text

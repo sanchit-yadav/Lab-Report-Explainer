@@ -44,7 +44,9 @@ class ExtractionRouter:
 
         # Direct fast-path for image files (JPG, PNG, WebP)
         if is_image_bytes(pdf_bytes):
-            logger.info("Detected raw image format (JPEG/PNG/WebP). Routing directly to Tier 3 Vision OCR.")
+            logger.info(
+                "Detected raw image format (JPEG/PNG/WebP). Routing directly to Tier 3 Vision OCR."
+            )
             try:
                 report = self.tier3.extract(pdf_bytes)
                 if len(report.tests) > 0:
@@ -67,34 +69,49 @@ class ExtractionRouter:
                 if tier.name == "pdfplumber":
                     report = self.tier1.extract(pdf_bytes)
                     if len(report.tests) > 0:
-                        logger.info(f"Tier 1 (pdfplumber) succeeded: extracted {len(report.tests)} tests.")
+                        logger.info(
+                            f"Tier 1 (pdfplumber) succeeded: extracted {len(report.tests)} tests."
+                        )
                         return report
-                    logger.warning("Tier 1 (pdfplumber) yielded 0 tests; attempting Tier 2 fallback.")
+                    logger.warning(
+                        "Tier 1 (pdfplumber) yielded 0 tests; attempting Tier 2 fallback."
+                    )
 
                 elif tier.name == "camelot":
                     # Fast check: Camelot only parses vector text streams and fails on image-based PDFs.
                     # If the document has no text layer, skip Camelot directly to Tier 3 Vision.
                     has_text = False
                     try:
-                        import pdfplumber, io
+                        import io
+
+                        import pdfplumber
+
                         with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
-                            has_text = any(len((p.extract_text() or "").strip()) > 30 for p in pdf.pages)
+                            has_text = any(
+                                len((p.extract_text() or "").strip()) > 30 for p in pdf.pages
+                            )
                     except Exception:
                         pass
                     if not has_text:
-                        logger.info("PDF has no text layer; skipping Camelot directly to Tier 3 Vision OCR.")
+                        logger.info(
+                            "PDF has no text layer; skipping Camelot directly to Tier 3 Vision OCR."
+                        )
                         continue
 
                     report = self.tier2.extract(pdf_bytes)
                     if len(report.tests) > 0:
-                        logger.info(f"Tier 2 (camelot) succeeded: extracted {len(report.tests)} tests.")
+                        logger.info(
+                            f"Tier 2 (camelot) succeeded: extracted {len(report.tests)} tests."
+                        )
                         return report
                     logger.warning("Tier 2 (camelot) yielded 0 tests; attempting Tier 3 fallback.")
 
                 elif tier.name == "vision":
                     report = self.tier3.extract(pdf_bytes)
                     if len(report.tests) > 0:
-                        logger.info(f"Tier 3 (vision) succeeded: extracted {len(report.tests)} tests.")
+                        logger.info(
+                            f"Tier 3 (vision) succeeded: extracted {len(report.tests)} tests."
+                        )
                         return report
                     logger.warning("Tier 3 (vision) yielded 0 tests.")
 

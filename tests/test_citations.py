@@ -11,7 +11,6 @@ Verifies:
 
 from __future__ import annotations
 
-
 from src.citations.formatter import CitationFormatter
 from src.citations.manifest import KBManifestManager
 from src.citations.models import (
@@ -24,23 +23,23 @@ from src.citations.models import (
 )
 from src.citations.verifier import CitationVerifier
 from src.extraction.schema import FlagStatus
+from src.stages.explain import ExplainStage
+from src.stages.output_guard import OutputGuardStage
 from src.stages.schemas import (
     ExplainInput,
     ExplainOutput,
-    ExtractValuesOutput,
     ExtractionOutputItem,
+    ExtractValuesOutput,
     OutputGuardInput,
     OutputGuardOutput,
     RetrievedChunk,
     RetrieveOutput,
 )
-from src.stages.explain import ExplainStage
-from src.stages.output_guard import OutputGuardStage
-
 
 # ==============================================================================
 # 1. Models & Registry Tests
 # ==============================================================================
+
 
 def test_citation_models_and_schema():
     """Verify pydantic schemas for ReportFieldSource, KBChunkSource, and AttributedClaim."""
@@ -113,6 +112,7 @@ def test_citation_registry_registration():
 # 2. Knowledge Base Manifest Tests
 # ==============================================================================
 
+
 def test_kb_manifest_manager_document_catalog():
     """Verify KB manifest contains all 30 authoritative clinical reference documents."""
     manager = KBManifestManager()
@@ -139,6 +139,7 @@ def test_kb_manifest_manager_document_catalog():
 # ==============================================================================
 # 3. Citation Verifier Tests (Programmatic & Semantic)
 # ==============================================================================
+
 
 def test_citation_verifier_programmatic_check():
     """Verify programmatic source existence checks."""
@@ -266,8 +267,10 @@ def test_citation_verifier_batch_accuracy_scoring():
 
     claims = [
         AttributedClaim(claim="ALT result is 65.0 U/L.", source_ids=[src.source_id]),
-        AttributedClaim(claim="ALT result is 999.0 U/L.", source_ids=[src.source_id]),  # Unsupported
-        AttributedClaim(claim="Uncited statement.", source_ids=[]),                      # Missing
+        AttributedClaim(
+            claim="ALT result is 999.0 U/L.", source_ids=[src.source_id]
+        ),  # Unsupported
+        AttributedClaim(claim="Uncited statement.", source_ids=[]),  # Missing
     ]
 
     verifier = CitationVerifier()
@@ -284,6 +287,7 @@ def test_citation_verifier_batch_accuracy_scoring():
 # ==============================================================================
 # 4. Formatter & UI Presentation Tests
 # ==============================================================================
+
 
 def test_citation_formatter_inline_and_bibliography():
     """Verify inline anchor insertion and enumerated bibliography generation."""
@@ -365,6 +369,7 @@ def test_citation_formatter_ui_payload():
 # ==============================================================================
 # 5. Pipeline Stages Integration Tests
 # ==============================================================================
+
 
 def test_pipeline_stages_citation_grounding():
     """Verify end-to-end citation emission in ExplainStage and verification in OutputGuardStage."""

@@ -92,4 +92,3 @@ def test_generate_doctor_brief_pdf_with_correlations():
     assert isinstance(pdf_bytes, bytes)
     assert len(pdf_bytes) > 1000
     assert pdf_bytes.startswith(b"%PDF-")
-

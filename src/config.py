@@ -14,7 +14,6 @@ import yaml
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
 # Project Root Directory Resolution
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 CONFIG_DIR = PROJECT_ROOT / "config"
@@ -40,6 +39,7 @@ def _load_text_file(file_path: Path) -> str:
 # ==============================================================================
 # 1. App Configuration Models (app_config.yaml)
 # ==============================================================================
+
 
 class ModelsConfig(BaseModel):
     explanation_llm: str = Field(default="gemini-3.5-flash-lite")
@@ -72,6 +72,7 @@ class TracingConfig(BaseModel):
 # ==============================================================================
 # 2. Extraction Configuration Models (extraction_config.yaml)
 # ==============================================================================
+
 
 class ExtractionTier(BaseModel):
     name: str
@@ -109,6 +110,7 @@ class ExtractionConfig(BaseModel):
 # ==============================================================================
 # 3. RAG Configuration Models (rag_config.yaml)
 # ==============================================================================
+
 
 class EmbeddingsConfig(BaseModel):
     model: str = Field(default="gemini-embedding-2")
@@ -150,6 +152,7 @@ class RAGConfig(BaseModel):
 # 4. Guardrails Configuration Models (guardrails_config.yaml)
 # ==============================================================================
 
+
 class InputGuardConfig(BaseModel):
     enabled: bool = True
     use_llm_classifier: bool = True
@@ -175,6 +178,7 @@ class GuardrailsConfig(BaseModel):
 # ==============================================================================
 # 5. Evaluation Configuration Models (eval_config.yaml)
 # ==============================================================================
+
 
 class ExtractionEvalTargets(BaseModel):
     f1_min: float = 0.90
@@ -232,6 +236,7 @@ class EvalConfig(BaseModel):
 # 6. Prompts & Knowledge Assets
 # ==============================================================================
 
+
 class Prompts(BaseModel):
     system_prompt: str
     explainer_prompt: str
@@ -243,6 +248,7 @@ class Prompts(BaseModel):
 # ==============================================================================
 # 7. Unified Master Settings
 # ==============================================================================
+
 
 class Settings(BaseSettings):
     """Unified application settings combining YAML files and environment variables."""
@@ -302,9 +308,7 @@ def get_config() -> Settings:
     if drug_file.exists():
         with open(drug_file, "r", encoding="utf-8") as f:
             drug_names = [
-                line.strip().lower()
-                for line in f
-                if line.strip() and not line.startswith("#")
+                line.strip().lower() for line in f if line.strip() and not line.startswith("#")
             ]
 
     prompts = Prompts(

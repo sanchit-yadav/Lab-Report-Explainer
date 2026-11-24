@@ -7,9 +7,9 @@ and clinical panel categories.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import logging
 import re
+from dataclasses import dataclass
 from typing import Dict, Optional
 
 from src.extraction.schema import LabReport, TestResult
@@ -20,6 +20,7 @@ logger = logging.getLogger("extraction.loinc_mapper")
 @dataclass
 class LOINCRecord:
     """Canonical LOINC observation record with ontology metadata."""
+
     code: str
     display_name: str
     common_name: str
@@ -33,91 +34,420 @@ LOINC_CATALOG: Dict[str, LOINCRecord] = {
     # --------------------------------------------------------------------------
     # 1. Lipid Panel
     # --------------------------------------------------------------------------
-    "2093-3": LOINCRecord("2093-3", "Cholesterol [Mass/volume] in Serum or Plasma", "Total Cholesterol", "Lipid Panel", "mg/dL"),
-    "2085-9": LOINCRecord("2085-9", "Cholesterol in HDL [Mass/volume] in Serum or Plasma", "HDL Cholesterol", "Lipid Panel", "mg/dL"),
-    "13457-7": LOINCRecord("13457-7", "Cholesterol in LDL [Mass/volume] in Serum or Plasma by calculation", "LDL Cholesterol", "Lipid Panel", "mg/dL"),
-    "2571-8": LOINCRecord("2571-8", "Triglyceride [Mass/volume] in Serum or Plasma", "Triglycerides", "Lipid Panel", "mg/dL"),
-    "13458-5": LOINCRecord("13458-5", "Cholesterol in VLDL [Mass/volume] in Serum or Plasma by calculation", "VLDL Cholesterol", "Lipid Panel", "mg/dL"),
-    "43396-1": LOINCRecord("43396-1", "Non-HDL Cholesterol [Mass/volume] in Serum or Plasma", "Non-HDL Cholesterol", "Lipid Panel", "mg/dL"),
-
+    "2093-3": LOINCRecord(
+        "2093-3",
+        "Cholesterol [Mass/volume] in Serum or Plasma",
+        "Total Cholesterol",
+        "Lipid Panel",
+        "mg/dL",
+    ),
+    "2085-9": LOINCRecord(
+        "2085-9",
+        "Cholesterol in HDL [Mass/volume] in Serum or Plasma",
+        "HDL Cholesterol",
+        "Lipid Panel",
+        "mg/dL",
+    ),
+    "13457-7": LOINCRecord(
+        "13457-7",
+        "Cholesterol in LDL [Mass/volume] in Serum or Plasma by calculation",
+        "LDL Cholesterol",
+        "Lipid Panel",
+        "mg/dL",
+    ),
+    "2571-8": LOINCRecord(
+        "2571-8",
+        "Triglyceride [Mass/volume] in Serum or Plasma",
+        "Triglycerides",
+        "Lipid Panel",
+        "mg/dL",
+    ),
+    "13458-5": LOINCRecord(
+        "13458-5",
+        "Cholesterol in VLDL [Mass/volume] in Serum or Plasma by calculation",
+        "VLDL Cholesterol",
+        "Lipid Panel",
+        "mg/dL",
+    ),
+    "43396-1": LOINCRecord(
+        "43396-1",
+        "Non-HDL Cholesterol [Mass/volume] in Serum or Plasma",
+        "Non-HDL Cholesterol",
+        "Lipid Panel",
+        "mg/dL",
+    ),
     # --------------------------------------------------------------------------
     # 2. Complete Blood Count (CBC) & Hematology
     # --------------------------------------------------------------------------
-    "718-7": LOINCRecord("718-7", "Hemoglobin [Mass/volume] in Blood", "Hemoglobin", "Hematology", "g/dL", "Whole Blood"),
-    "4544-3": LOINCRecord("4544-3", "Hematocrit [Volume Fraction] of Blood", "Hematocrit", "Hematology", "%", "Whole Blood"),
-    "789-8": LOINCRecord("789-8", "Erythrocytes [#/volume] in Blood", "RBC Count", "Hematology", "10^6/uL", "Whole Blood"),
-    "6690-2": LOINCRecord("6690-2", "Leukocytes [#/volume] in Blood", "WBC Count", "Hematology", "10^3/uL", "Whole Blood"),
-    "777-3": LOINCRecord("777-3", "Platelets [#/volume] in Blood", "Platelet Count", "Hematology", "10^3/uL", "Whole Blood"),
-    "787-2": LOINCRecord("787-2", "Erythrocyte mean corpuscular volume [Entitic volume]", "Mean Corpuscular Volume (MCV)", "Hematology", "fL", "RBCs"),
-    "785-6": LOINCRecord("785-6", "Erythrocyte mean corpuscular hemoglobin [Entitic mass]", "Mean Corpuscular Hemoglobin (MCH)", "Hematology", "pg", "RBCs"),
-    "786-4": LOINCRecord("786-4", "Erythrocyte mean corpuscular hemoglobin concentration [Mass/volume]", "MCHC", "Hematology", "g/dL", "RBCs"),
-    "21000-5": LOINCRecord("21000-5", "Erythrocyte distribution width [Ratio]", "RDW", "Hematology", "%", "RBCs"),
-    "770-8": LOINCRecord("770-8", "Neutrophils/100 leukocytes in Blood", "Neutrophils %", "Hematology", "%", "Whole Blood"),
-    "736-9": LOINCRecord("736-9", "Lymphocytes/100 leukocytes in Blood", "Lymphocytes %", "Hematology", "%", "Whole Blood"),
-    "742-7": LOINCRecord("742-7", "Monocytes/100 leukocytes in Blood", "Monocytes %", "Hematology", "%", "Whole Blood"),
-    "711-2": LOINCRecord("711-2", "Eosinophils/100 leukocytes in Blood", "Eosinophils %", "Hematology", "%", "Whole Blood"),
-    "704-7": LOINCRecord("704-7", "Basophils/100 leukocytes in Blood", "Basophils %", "Hematology", "%", "Whole Blood"),
-    "4537-7": LOINCRecord("4537-7", "Erythrocyte sedimentation rate", "ESR", "Hematology", "mm/hr", "Whole Blood"),
-
+    "718-7": LOINCRecord(
+        "718-7",
+        "Hemoglobin [Mass/volume] in Blood",
+        "Hemoglobin",
+        "Hematology",
+        "g/dL",
+        "Whole Blood",
+    ),
+    "4544-3": LOINCRecord(
+        "4544-3",
+        "Hematocrit [Volume Fraction] of Blood",
+        "Hematocrit",
+        "Hematology",
+        "%",
+        "Whole Blood",
+    ),
+    "789-8": LOINCRecord(
+        "789-8",
+        "Erythrocytes [#/volume] in Blood",
+        "RBC Count",
+        "Hematology",
+        "10^6/uL",
+        "Whole Blood",
+    ),
+    "6690-2": LOINCRecord(
+        "6690-2",
+        "Leukocytes [#/volume] in Blood",
+        "WBC Count",
+        "Hematology",
+        "10^3/uL",
+        "Whole Blood",
+    ),
+    "777-3": LOINCRecord(
+        "777-3",
+        "Platelets [#/volume] in Blood",
+        "Platelet Count",
+        "Hematology",
+        "10^3/uL",
+        "Whole Blood",
+    ),
+    "787-2": LOINCRecord(
+        "787-2",
+        "Erythrocyte mean corpuscular volume [Entitic volume]",
+        "Mean Corpuscular Volume (MCV)",
+        "Hematology",
+        "fL",
+        "RBCs",
+    ),
+    "785-6": LOINCRecord(
+        "785-6",
+        "Erythrocyte mean corpuscular hemoglobin [Entitic mass]",
+        "Mean Corpuscular Hemoglobin (MCH)",
+        "Hematology",
+        "pg",
+        "RBCs",
+    ),
+    "786-4": LOINCRecord(
+        "786-4",
+        "Erythrocyte mean corpuscular hemoglobin concentration [Mass/volume]",
+        "MCHC",
+        "Hematology",
+        "g/dL",
+        "RBCs",
+    ),
+    "21000-5": LOINCRecord(
+        "21000-5", "Erythrocyte distribution width [Ratio]", "RDW", "Hematology", "%", "RBCs"
+    ),
+    "770-8": LOINCRecord(
+        "770-8",
+        "Neutrophils/100 leukocytes in Blood",
+        "Neutrophils %",
+        "Hematology",
+        "%",
+        "Whole Blood",
+    ),
+    "736-9": LOINCRecord(
+        "736-9",
+        "Lymphocytes/100 leukocytes in Blood",
+        "Lymphocytes %",
+        "Hematology",
+        "%",
+        "Whole Blood",
+    ),
+    "742-7": LOINCRecord(
+        "742-7",
+        "Monocytes/100 leukocytes in Blood",
+        "Monocytes %",
+        "Hematology",
+        "%",
+        "Whole Blood",
+    ),
+    "711-2": LOINCRecord(
+        "711-2",
+        "Eosinophils/100 leukocytes in Blood",
+        "Eosinophils %",
+        "Hematology",
+        "%",
+        "Whole Blood",
+    ),
+    "704-7": LOINCRecord(
+        "704-7",
+        "Basophils/100 leukocytes in Blood",
+        "Basophils %",
+        "Hematology",
+        "%",
+        "Whole Blood",
+    ),
+    "4537-7": LOINCRecord(
+        "4537-7", "Erythrocyte sedimentation rate", "ESR", "Hematology", "mm/hr", "Whole Blood"
+    ),
     # --------------------------------------------------------------------------
     # 3. Glycemic & Metabolic Panel
     # --------------------------------------------------------------------------
-    "1558-6": LOINCRecord("1558-6", "Fasting Glucose [Mass/volume] in Serum or Plasma", "Fasting Blood Glucose", "Metabolic Panel", "mg/dL"),
-    "2345-7": LOINCRecord("2345-7", "Glucose [Mass/volume] in Serum or Plasma", "Random Blood Glucose", "Metabolic Panel", "mg/dL"),
-    "1521-4": LOINCRecord("1521-4", "Glucose [Mass/volume] in Serum or Plasma --2 hours post meal", "Postprandial Blood Glucose", "Metabolic Panel", "mg/dL"),
-    "4548-4": LOINCRecord("4548-4", "Hemoglobin A1c/Hemoglobin.total in Blood", "HbA1c", "Metabolic Panel", "%", "Whole Blood"),
-    "20448-7": LOINCRecord("20448-7", "Insulin [Units/volume] in Serum or Plasma", "Fasting Insulin", "Metabolic Panel", "uIU/mL"),
-
+    "1558-6": LOINCRecord(
+        "1558-6",
+        "Fasting Glucose [Mass/volume] in Serum or Plasma",
+        "Fasting Blood Glucose",
+        "Metabolic Panel",
+        "mg/dL",
+    ),
+    "2345-7": LOINCRecord(
+        "2345-7",
+        "Glucose [Mass/volume] in Serum or Plasma",
+        "Random Blood Glucose",
+        "Metabolic Panel",
+        "mg/dL",
+    ),
+    "1521-4": LOINCRecord(
+        "1521-4",
+        "Glucose [Mass/volume] in Serum or Plasma --2 hours post meal",
+        "Postprandial Blood Glucose",
+        "Metabolic Panel",
+        "mg/dL",
+    ),
+    "4548-4": LOINCRecord(
+        "4548-4",
+        "Hemoglobin A1c/Hemoglobin.total in Blood",
+        "HbA1c",
+        "Metabolic Panel",
+        "%",
+        "Whole Blood",
+    ),
+    "20448-7": LOINCRecord(
+        "20448-7",
+        "Insulin [Units/volume] in Serum or Plasma",
+        "Fasting Insulin",
+        "Metabolic Panel",
+        "uIU/mL",
+    ),
     # --------------------------------------------------------------------------
     # 4. Renal Function Panel (KFT)
     # --------------------------------------------------------------------------
-    "2160-0": LOINCRecord("2160-0", "Creatinine [Mass/volume] in Serum or Plasma", "Serum Creatinine", "Renal Function", "mg/dL"),
-    "3094-0": LOINCRecord("3094-0", "Blood Urea Nitrogen [Mass/volume] in Serum or Plasma", "Blood Urea Nitrogen (BUN)", "Renal Function", "mg/dL"),
-    "22707-4": LOINCRecord("22707-4", "Urea [Mass/volume] in Serum or Plasma", "Blood Urea", "Renal Function", "mg/dL"),
-    "33914-3": LOINCRecord("33914-3", "Glomerular filtration rate/1.73 sq M.predicted", "Estimated GFR (eGFR)", "Renal Function", "mL/min/1.73m2"),
-    "3084-1": LOINCRecord("3084-1", "Urate [Mass/volume] in Serum or Plasma", "Uric Acid", "Renal Function", "mg/dL"),
-
+    "2160-0": LOINCRecord(
+        "2160-0",
+        "Creatinine [Mass/volume] in Serum or Plasma",
+        "Serum Creatinine",
+        "Renal Function",
+        "mg/dL",
+    ),
+    "3094-0": LOINCRecord(
+        "3094-0",
+        "Blood Urea Nitrogen [Mass/volume] in Serum or Plasma",
+        "Blood Urea Nitrogen (BUN)",
+        "Renal Function",
+        "mg/dL",
+    ),
+    "22707-4": LOINCRecord(
+        "22707-4", "Urea [Mass/volume] in Serum or Plasma", "Blood Urea", "Renal Function", "mg/dL"
+    ),
+    "33914-3": LOINCRecord(
+        "33914-3",
+        "Glomerular filtration rate/1.73 sq M.predicted",
+        "Estimated GFR (eGFR)",
+        "Renal Function",
+        "mL/min/1.73m2",
+    ),
+    "3084-1": LOINCRecord(
+        "3084-1", "Urate [Mass/volume] in Serum or Plasma", "Uric Acid", "Renal Function", "mg/dL"
+    ),
     # --------------------------------------------------------------------------
     # 5. Liver Function Panel (LFT)
     # --------------------------------------------------------------------------
-    "1742-6": LOINCRecord("1742-6", "Alanine aminotransferase [Enzymatic activity/volume] in Serum or Plasma", "SGPT (ALT)", "Liver Function", "U/L"),
-    "1920-8": LOINCRecord("1920-8", "Aspartate aminotransferase [Enzymatic activity/volume] in Serum or Plasma", "SGOT (AST)", "Liver Function", "U/L"),
-    "6768-6": LOINCRecord("6768-6", "Alkaline phosphatase [Enzymatic activity/volume] in Serum or Plasma", "Alkaline Phosphatase (ALP)", "Liver Function", "U/L"),
-    "1975-2": LOINCRecord("1975-2", "Bilirubin.total [Mass/volume] in Serum or Plasma", "Total Bilirubin", "Liver Function", "mg/dL"),
-    "1968-7": LOINCRecord("1968-7", "Bilirubin.direct [Mass/volume] in Serum or Plasma", "Direct Bilirubin", "Liver Function", "mg/dL"),
-    "1971-1": LOINCRecord("1971-1", "Bilirubin.indirect [Mass/volume] in Serum or Plasma", "Indirect Bilirubin", "Liver Function", "mg/dL"),
-    "2885-2": LOINCRecord("2885-2", "Protein.total [Mass/volume] in Serum or Plasma", "Total Protein", "Liver Function", "g/dL"),
-    "1751-7": LOINCRecord("1751-7", "Albumin [Mass/volume] in Serum or Plasma", "Serum Albumin", "Liver Function", "g/dL"),
-    "2339-0": LOINCRecord("2339-0", "Globulin [Mass/volume] in Serum or Plasma by calculation", "Serum Globulin", "Liver Function", "g/dL"),
-    "2324-2": LOINCRecord("2324-2", "Gamma glutamyl transferase [Enzymatic activity/volume] in Serum or Plasma", "GGT", "Liver Function", "U/L"),
-
+    "1742-6": LOINCRecord(
+        "1742-6",
+        "Alanine aminotransferase [Enzymatic activity/volume] in Serum or Plasma",
+        "SGPT (ALT)",
+        "Liver Function",
+        "U/L",
+    ),
+    "1920-8": LOINCRecord(
+        "1920-8",
+        "Aspartate aminotransferase [Enzymatic activity/volume] in Serum or Plasma",
+        "SGOT (AST)",
+        "Liver Function",
+        "U/L",
+    ),
+    "6768-6": LOINCRecord(
+        "6768-6",
+        "Alkaline phosphatase [Enzymatic activity/volume] in Serum or Plasma",
+        "Alkaline Phosphatase (ALP)",
+        "Liver Function",
+        "U/L",
+    ),
+    "1975-2": LOINCRecord(
+        "1975-2",
+        "Bilirubin.total [Mass/volume] in Serum or Plasma",
+        "Total Bilirubin",
+        "Liver Function",
+        "mg/dL",
+    ),
+    "1968-7": LOINCRecord(
+        "1968-7",
+        "Bilirubin.direct [Mass/volume] in Serum or Plasma",
+        "Direct Bilirubin",
+        "Liver Function",
+        "mg/dL",
+    ),
+    "1971-1": LOINCRecord(
+        "1971-1",
+        "Bilirubin.indirect [Mass/volume] in Serum or Plasma",
+        "Indirect Bilirubin",
+        "Liver Function",
+        "mg/dL",
+    ),
+    "2885-2": LOINCRecord(
+        "2885-2",
+        "Protein.total [Mass/volume] in Serum or Plasma",
+        "Total Protein",
+        "Liver Function",
+        "g/dL",
+    ),
+    "1751-7": LOINCRecord(
+        "1751-7",
+        "Albumin [Mass/volume] in Serum or Plasma",
+        "Serum Albumin",
+        "Liver Function",
+        "g/dL",
+    ),
+    "2339-0": LOINCRecord(
+        "2339-0",
+        "Globulin [Mass/volume] in Serum or Plasma by calculation",
+        "Serum Globulin",
+        "Liver Function",
+        "g/dL",
+    ),
+    "2324-2": LOINCRecord(
+        "2324-2",
+        "Gamma glutamyl transferase [Enzymatic activity/volume] in Serum or Plasma",
+        "GGT",
+        "Liver Function",
+        "U/L",
+    ),
     # --------------------------------------------------------------------------
     # 6. Electrolytes & Minerals
     # --------------------------------------------------------------------------
-    "2951-2": LOINCRecord("2951-2", "Sodium [Moles/volume] in Serum or Plasma", "Serum Sodium", "Electrolytes", "mEq/L"),
-    "2823-3": LOINCRecord("2823-3", "Potassium [Moles/volume] in Serum or Plasma", "Serum Potassium", "Electrolytes", "mEq/L"),
-    "2075-0": LOINCRecord("2075-0", "Chloride [Moles/volume] in Serum or Plasma", "Serum Chloride", "Electrolytes", "mEq/L"),
-    "17861-6": LOINCRecord("17861-6", "Calcium [Mass/volume] in Serum or Plasma", "Serum Calcium", "Electrolytes", "mg/dL"),
-    "19123-9": LOINCRecord("19123-9", "Magnesium [Mass/volume] in Serum or Plasma", "Serum Magnesium", "Electrolytes", "mg/dL"),
-    "2777-1": LOINCRecord("2777-1", "Phosphate [Mass/volume] in Serum or Plasma", "Serum Phosphorus", "Electrolytes", "mg/dL"),
-
+    "2951-2": LOINCRecord(
+        "2951-2",
+        "Sodium [Moles/volume] in Serum or Plasma",
+        "Serum Sodium",
+        "Electrolytes",
+        "mEq/L",
+    ),
+    "2823-3": LOINCRecord(
+        "2823-3",
+        "Potassium [Moles/volume] in Serum or Plasma",
+        "Serum Potassium",
+        "Electrolytes",
+        "mEq/L",
+    ),
+    "2075-0": LOINCRecord(
+        "2075-0",
+        "Chloride [Moles/volume] in Serum or Plasma",
+        "Serum Chloride",
+        "Electrolytes",
+        "mEq/L",
+    ),
+    "17861-6": LOINCRecord(
+        "17861-6",
+        "Calcium [Mass/volume] in Serum or Plasma",
+        "Serum Calcium",
+        "Electrolytes",
+        "mg/dL",
+    ),
+    "19123-9": LOINCRecord(
+        "19123-9",
+        "Magnesium [Mass/volume] in Serum or Plasma",
+        "Serum Magnesium",
+        "Electrolytes",
+        "mg/dL",
+    ),
+    "2777-1": LOINCRecord(
+        "2777-1",
+        "Phosphate [Mass/volume] in Serum or Plasma",
+        "Serum Phosphorus",
+        "Electrolytes",
+        "mg/dL",
+    ),
     # --------------------------------------------------------------------------
     # 7. Thyroid Function Panel
     # --------------------------------------------------------------------------
-    "3016-3": LOINCRecord("3016-3", "Thyrotropin [Units/volume] in Serum or Plasma", "TSH", "Thyroid Function", "uIU/mL"),
-    "3024-7": LOINCRecord("3024-7", "Thyroxine (T4) free [Mass/volume] in Serum or Plasma", "Free T4", "Thyroid Function", "ng/dL"),
-    "3051-0": LOINCRecord("3051-0", "Triiodothyronine (T3) free [Mass/volume] in Serum or Plasma", "Free T3", "Thyroid Function", "pg/mL"),
-    "3026-2": LOINCRecord("3026-2", "Thyroxine (T4) total [Mass/volume] in Serum or Plasma", "Total T4", "Thyroid Function", "ug/dL"),
-    "3053-6": LOINCRecord("3053-6", "Triiodothyronine (T3) total [Mass/volume] in Serum or Plasma", "Total T3", "Thyroid Function", "ng/dL"),
-
+    "3016-3": LOINCRecord(
+        "3016-3",
+        "Thyrotropin [Units/volume] in Serum or Plasma",
+        "TSH",
+        "Thyroid Function",
+        "uIU/mL",
+    ),
+    "3024-7": LOINCRecord(
+        "3024-7",
+        "Thyroxine (T4) free [Mass/volume] in Serum or Plasma",
+        "Free T4",
+        "Thyroid Function",
+        "ng/dL",
+    ),
+    "3051-0": LOINCRecord(
+        "3051-0",
+        "Triiodothyronine (T3) free [Mass/volume] in Serum or Plasma",
+        "Free T3",
+        "Thyroid Function",
+        "pg/mL",
+    ),
+    "3026-2": LOINCRecord(
+        "3026-2",
+        "Thyroxine (T4) total [Mass/volume] in Serum or Plasma",
+        "Total T4",
+        "Thyroid Function",
+        "ug/dL",
+    ),
+    "3053-6": LOINCRecord(
+        "3053-6",
+        "Triiodothyronine (T3) total [Mass/volume] in Serum or Plasma",
+        "Total T3",
+        "Thyroid Function",
+        "ng/dL",
+    ),
     # --------------------------------------------------------------------------
     # 8. Vitamins, Iron & Inflammatory Markers
     # --------------------------------------------------------------------------
-    "62292-8": LOINCRecord("62292-8", "25-hydroxyvitamin D3 + 25-hydroxyvitamin D2 [Mass/volume] in Serum or Plasma", "Vitamin D (25-OH)", "Vitamins", "ng/mL"),
-    "2132-9": LOINCRecord("2132-9", "Cobalamin (Vitamin B12) [Mass/volume] in Serum or Plasma", "Vitamin B12", "Vitamins", "pg/mL"),
-    "2276-4": LOINCRecord("2276-4", "Ferritin [Mass/volume] in Serum or Plasma", "Serum Ferritin", "Iron Studies", "ng/mL"),
-    "2498-4": LOINCRecord("2498-4", "Iron [Mass/volume] in Serum or Plasma", "Serum Iron", "Iron Studies", "ug/dL"),
-    "1988-5": LOINCRecord("1988-5", "C reactive protein [Mass/volume] in Serum or Plasma", "C-Reactive Protein (CRP)", "Inflammatory", "mg/L"),
+    "62292-8": LOINCRecord(
+        "62292-8",
+        "25-hydroxyvitamin D3 + 25-hydroxyvitamin D2 [Mass/volume] in Serum or Plasma",
+        "Vitamin D (25-OH)",
+        "Vitamins",
+        "ng/mL",
+    ),
+    "2132-9": LOINCRecord(
+        "2132-9",
+        "Cobalamin (Vitamin B12) [Mass/volume] in Serum or Plasma",
+        "Vitamin B12",
+        "Vitamins",
+        "pg/mL",
+    ),
+    "2276-4": LOINCRecord(
+        "2276-4",
+        "Ferritin [Mass/volume] in Serum or Plasma",
+        "Serum Ferritin",
+        "Iron Studies",
+        "ng/mL",
+    ),
+    "2498-4": LOINCRecord(
+        "2498-4", "Iron [Mass/volume] in Serum or Plasma", "Serum Iron", "Iron Studies", "ug/dL"
+    ),
+    "1988-5": LOINCRecord(
+        "1988-5",
+        "C reactive protein [Mass/volume] in Serum or Plasma",
+        "C-Reactive Protein (CRP)",
+        "Inflammatory",
+        "mg/L",
+    ),
 }
 
 
@@ -148,7 +478,6 @@ SYNONYM_MAP: Dict[str, str] = {
     "vldlcholesterol": "13458-5",
     "nonhdl": "43396-1",
     "nonhdlcholesterol": "43396-1",
-
     # CBC / Hematology
     "hemoglobin": "718-7",
     "hb": "718-7",
@@ -182,7 +511,6 @@ SYNONYM_MAP: Dict[str, str] = {
     "eosinophils": "711-2",
     "basophils": "704-7",
     "esr": "4537-7",
-
     # Glycemic
     "fastingbloodglucose": "1558-6",
     "fastingglucose": "1558-6",
@@ -199,7 +527,6 @@ SYNONYM_MAP: Dict[str, str] = {
     "glycohemoglobin": "4548-4",
     "insulin": "20448-7",
     "fastinginsulin": "20448-7",
-
     # Renal
     "creatinine": "2160-0",
     "serumcreatinine": "2160-0",
@@ -213,7 +540,6 @@ SYNONYM_MAP: Dict[str, str] = {
     "estimatedgfr": "33914-3",
     "uricacid": "3084-1",
     "serumurate": "3084-1",
-
     # Hepatic
     "sgpt": "1742-6",
     "alt": "1742-6",
@@ -238,7 +564,6 @@ SYNONYM_MAP: Dict[str, str] = {
     "serumalbumin": "1751-7",
     "globulin": "2339-0",
     "ggt": "2324-2",
-
     # Electrolytes
     "sodium": "2951-2",
     "serumsodium": "2951-2",
@@ -254,7 +579,6 @@ SYNONYM_MAP: Dict[str, str] = {
     "ca": "17861-6",
     "magnesium": "19123-9",
     "phosphorus": "2777-1",
-
     # Thyroid
     "tsh": "3016-3",
     "thyroidstimulatinghormone": "3016-3",
@@ -266,7 +590,6 @@ SYNONYM_MAP: Dict[str, str] = {
     "t4": "3026-2",
     "totalt3": "3053-6",
     "t3": "3053-6",
-
     # Vitamins & Iron
     "vitamind": "62292-8",
     "vitamind25oh": "62292-8",
@@ -296,7 +619,11 @@ class LOINCMapper:
         # Remove parentheticals, e.g. "(serum)", "(calc)", "[fasting]"
         clean = re.sub(r"\(.*?\)|\[.*?\]", "", clean)
         # Remove common lab boilerplate words
-        clean = re.sub(r"\b(serum|plasma|blood|level|levels|test|panel|rate|estimated|calculated|total|fasting)\b", "", clean)
+        clean = re.sub(
+            r"\b(serum|plasma|blood|level|levels|test|panel|rate|estimated|calculated|total|fasting)\b",
+            "",
+            clean,
+        )
         # Keep only alphanumeric characters
         clean = re.sub(r"[^a-z0-9]", "", clean)
         return clean

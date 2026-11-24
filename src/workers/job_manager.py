@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timezone
 import logging
-from pathlib import Path
 import threading
-from typing import Any, Dict, List, Optional
 import uuid
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 from src.api.models import JobStatus
 from src.explainer.pdf_export import generate_doctor_brief_pdf
@@ -90,8 +90,8 @@ class JobRecord:
     def _persist_to_db(self) -> None:
         """Persist or update state in relational database."""
         try:
-            from src.db.session import SessionLocal
             from src.db.models import Report, TestRecord
+            from src.db.session import SessionLocal
 
             with SessionLocal() as db:
                 db_report = db.query(Report).filter(Report.id == self.job_id).first()
@@ -102,7 +102,9 @@ class JobRecord:
                         filename=self.filename,
                         file_hash=self.file_hash,
                         file_size_bytes=self.file_size_bytes,
-                        status=self.status.value if hasattr(self.status, "value") else str(self.status),
+                        status=self.status.value
+                        if hasattr(self.status, "value")
+                        else str(self.status),
                         progress_pct=self.progress_pct,
                         current_step=self.current_step,
                         patient_name=self.patient_name,
@@ -110,7 +112,9 @@ class JobRecord:
                     )
                     db.add(db_report)
                 else:
-                    db_report.status = self.status.value if hasattr(self.status, "value") else str(self.status)
+                    db_report.status = (
+                        self.status.value if hasattr(self.status, "value") else str(self.status)
+                    )
                     db_report.progress_pct = self.progress_pct
                     db_report.current_step = self.current_step
                     db_report.patient_name = self.patient_name
@@ -223,14 +227,20 @@ class JobManager:
         try:
             rec.status = JobStatus(db_report.status)
         except Exception:
-            rec.status = JobStatus.READY if str(db_report.status).lower() == "ready" else JobStatus.QUEUED
+            rec.status = (
+                JobStatus.READY if str(db_report.status).lower() == "ready" else JobStatus.QUEUED
+            )
 
         rec.progress_pct = db_report.progress_pct or (100 if rec.status == JobStatus.READY else 0)
         if getattr(db_report, "current_step", None):
             rec.current_step = db_report.current_step
         rec.patient_name = db_report.patient_name
         rec.error = db_report.error
-        rec.created_at = db_report.created_at.isoformat() if db_report.created_at else datetime.now(timezone.utc).isoformat()
+        rec.created_at = (
+            db_report.created_at.isoformat()
+            if db_report.created_at
+            else datetime.now(timezone.utc).isoformat()
+        )
         rec.completed_at = db_report.updated_at.isoformat() if db_report.updated_at else None
 
         if db_report.extracted_data:
@@ -246,7 +256,9 @@ class JobManager:
                 rec.flagged_count = rec.explanation.flagged_count
                 rec.panic_count = len(rec.explanation.panic_alerts)
             except Exception as e:
-                logger.warning(f"Failed to deserialize explanation_data for job {db_report.id}: {e}")
+                logger.warning(
+                    f"Failed to deserialize explanation_data for job {db_report.id}: {e}"
+                )
 
         if db_report.pdf_path and Path(db_report.pdf_path).exists():
             try:
@@ -264,8 +276,8 @@ class JobManager:
                 return rec
 
         try:
-            from src.db.session import SessionLocal
             from src.db.models import Report
+            from src.db.session import SessionLocal
 
             with SessionLocal() as db:
                 db_report = db.query(Report).filter(Report.id == job_id).first()
@@ -285,8 +297,8 @@ class JobManager:
 
         # 1. Query database for persistent historical records
         try:
-            from src.db.session import SessionLocal
             from src.db.models import Report
+            from src.db.session import SessionLocal
 
             with SessionLocal() as db:
                 query = db.query(Report)
@@ -330,8 +342,8 @@ class JobManager:
 
         # 2. Remove from relational database (cascade removes test_records)
         try:
-            from src.db.session import SessionLocal
             from src.db.models import Report
+            from src.db.session import SessionLocal
 
             with SessionLocal() as db:
                 query = db.query(Report).filter(Report.id == job_id)
@@ -377,7 +389,9 @@ class JobManager:
 
         try:
             logger.info(f"Starting execution for job {job_id} (auto_confirm={auto_confirm})")
-            record.update_progress(JobStatus.EXTRACTING, 15, "Extracting text and tables from document...")
+            record.update_progress(
+                JobStatus.EXTRACTING, 15, "Extracting text and tables from document..."
+            )
 
             if not auto_confirm:
                 # Stage 1: Extraction & initial deterministic flagging only
@@ -386,7 +400,9 @@ class JobManager:
                     record.file_path,
                 )
                 if not extracted_report:
-                    record.mark_failed("Document extraction returned no readable data. The file may be corrupt or empty.")
+                    record.mark_failed(
+                        "Document extraction returned no readable data. The file may be corrupt or empty."
+                    )
                     return
 
                 extracted_report = LOINCMapper.enrich_report(extracted_report)
@@ -404,11 +420,15 @@ class JobManager:
                     "Extraction complete. Review parameters before generating explanations.",
                 )
                 record._persist_to_db()
-                logger.info(f"Job {job_id} awaiting user review with {record.total_tests} parameters.")
+                logger.info(
+                    f"Job {job_id} awaiting user review with {record.total_tests} parameters."
+                )
                 return
 
             # Auto-confirm mode: Full end-to-end execution
-            record.update_progress(JobStatus.FLAGGING, 35, "Evaluating clinical reference ranges & panic values...")
+            record.update_progress(
+                JobStatus.FLAGGING, 35, "Evaluating clinical reference ranges & panic values..."
+            )
 
             explanation: ReportExplanation = await asyncio.to_thread(
                 self.pipeline.process_report,
@@ -417,7 +437,9 @@ class JobManager:
                 explain_all,
             )
 
-            record.update_progress(JobStatus.GENERATING, 90, "Assembling Doctor Discussion Brief PDF...")
+            record.update_progress(
+                JobStatus.GENERATING, 90, "Assembling Doctor Discussion Brief PDF..."
+            )
             pdf_bytes = await asyncio.to_thread(
                 generate_doctor_brief_pdf,
                 explanation,
@@ -484,18 +506,24 @@ class JobManager:
             record.total_tests = len(confirmed_report.tests)
 
             # Show FLAGGING immediately so the UI knows work has started
-            record.update_progress(JobStatus.FLAGGING, 50, "Evaluating clinical reference ranges & panic values...")
+            record.update_progress(
+                JobStatus.FLAGGING, 50, "Evaluating clinical reference ranges & panic values..."
+            )
 
             # Run explanation pipeline in a thread so the event loop stays free
             # for status polling requests while this CPU/IO-bound work runs
-            record.update_progress(JobStatus.RAG_RETRIEVAL, 60, "Querying clinical guidelines via MedlinePlus RAG...")
+            record.update_progress(
+                JobStatus.RAG_RETRIEVAL, 60, "Querying clinical guidelines via MedlinePlus RAG..."
+            )
             explanation = await asyncio.to_thread(
                 self.pipeline.explain_lab_report,
                 confirmed_report,
                 explain_all,
             )
 
-            record.update_progress(JobStatus.GENERATING, 92, "Assembling Doctor Discussion Brief PDF...")
+            record.update_progress(
+                JobStatus.GENERATING, 92, "Assembling Doctor Discussion Brief PDF..."
+            )
             pdf_bytes = await asyncio.to_thread(
                 generate_doctor_brief_pdf,
                 explanation,

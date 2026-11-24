@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import re
 from typing import Dict, List, Optional, Tuple
+
 from pydantic import BaseModel, Field
 
 from src.extraction.schema import LabReport
@@ -74,6 +75,7 @@ def parse_numeric_age(age_str: Optional[str]) -> Optional[int]:
 
 class PatientMatchResult(BaseModel):
     """Result of patient identity verification across documents."""
+
     is_single_patient: bool = True
     distinct_patients: List[str] = Field(default_factory=list)
     patient_groups: Dict[str, List[LabReport]] = Field(default_factory=dict)

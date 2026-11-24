@@ -78,7 +78,9 @@ def test_job_manager_async_execution_success(tmp_path):
     mock_pipeline.process_report.return_value = mock_exp
     jm.set_pipeline(mock_pipeline)
 
-    with patch("src.workers.job_manager.generate_doctor_brief_pdf", return_value=b"%PDF-Doctor-Brief"):
+    with patch(
+        "src.workers.job_manager.generate_doctor_brief_pdf", return_value=b"%PDF-Doctor-Brief"
+    ):
         asyncio.run(jm.run_pipeline_job(record.job_id))
 
     updated = jm.get_job(record.job_id)
@@ -122,8 +124,10 @@ def test_run_pipeline_sync_worker_task(tmp_path):
         flagged_count=1,
     )
 
-    with patch("src.workers.tasks.LabReportPipeline") as MockPipelineCls, \
-         patch("src.workers.tasks.generate_doctor_brief_pdf", return_value=b"%PDF-BRIEF"):
+    with (
+        patch("src.workers.tasks.LabReportPipeline") as MockPipelineCls,
+        patch("src.workers.tasks.generate_doctor_brief_pdf", return_value=b"%PDF-BRIEF"),
+    ):
         mock_instance = MagicMock()
         mock_instance.process_report.return_value = mock_exp
         MockPipelineCls.return_value = mock_instance

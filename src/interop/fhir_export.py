@@ -7,10 +7,10 @@ for direct integration into Electronic Health Record (EHR) systems (Epic, Cerner
 from __future__ import annotations
 
 import base64
-from datetime import datetime, timezone
 import logging
-from typing import Any, Dict, List, Optional
 import uuid
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
 from src.explainer.schema import ReportExplanation
 from src.extraction.loinc_mapper import LOINCMapper
@@ -51,7 +51,9 @@ class FHIRExporter:
         if not test.loinc_code:
             LOINCMapper.enrich_test_result(test)
 
-        obs_id = cls._generate_deterministic_id("Observation", patient_id, test.test_name, str(test.value))
+        obs_id = cls._generate_deterministic_id(
+            "Observation", patient_id, test.test_name, str(test.value)
+        )
         loinc_code = test.loinc_code or "unknown"
         loinc_display = test.loinc_name or test.test_name
 
@@ -136,7 +138,9 @@ class FHIRExporter:
     ) -> Dict[str, Any]:
         """Generate a complete FHIR R4 Bundle containing DiagnosticReport and Observations."""
         patient_name = report.patient_name or "Anonymous Patient"
-        patient_id = cls._generate_deterministic_id("Patient", patient_name, str(report.patient_age or ""))
+        patient_id = cls._generate_deterministic_id(
+            "Patient", patient_name, str(report.patient_age or "")
+        )
         effective_time = report.report_date or datetime.now(timezone.utc).isoformat()
         issued_time = datetime.now(timezone.utc).isoformat()
 
@@ -215,10 +219,12 @@ class FHIRExporter:
         ]
 
         for obs in observations:
-            bundle_entries.append({
-                "fullUrl": f"urn:uuid:{obs['id']}",
-                "resource": obs,
-            })
+            bundle_entries.append(
+                {
+                    "fullUrl": f"urn:uuid:{obs['id']}",
+                    "resource": obs,
+                }
+            )
 
         fhir_bundle = {
             "resourceType": "Bundle",

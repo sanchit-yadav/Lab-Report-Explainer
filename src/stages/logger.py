@@ -77,7 +77,9 @@ class StageLogger:
             payload.update(sanitize_value(extra))
         return json.dumps(payload)
 
-    def debug(self, event: str, request_id: str = "internal", extra: Optional[Dict[str, Any]] = None) -> None:
+    def debug(
+        self, event: str, request_id: str = "internal", extra: Optional[Dict[str, Any]] = None
+    ) -> None:
         self.logger.debug(self._format(event, request_id, extra))
 
     def info(self, event: str, request_id: str, extra: Optional[Dict[str, Any]] = None) -> None:

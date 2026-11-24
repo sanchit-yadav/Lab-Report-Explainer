@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-
 from src.extraction.loinc_mapper import LOINCMapper
 from src.extraction.schema import LabReport, TestResult
 

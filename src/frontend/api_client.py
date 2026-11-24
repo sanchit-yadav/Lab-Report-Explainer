@@ -25,6 +25,7 @@ def _sanitize_for_json(data: Any) -> Any:
 
     try:
         import pandas as pd
+
         if pd.isna(data):
             return None
     except Exception:

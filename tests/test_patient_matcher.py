@@ -49,12 +49,30 @@ def test_are_reports_same_patient_age_divergence():
 
 
 def test_group_reports_by_patient_multi_cohort():
-    r1 = LabReport(patient_name="Mr. Ramesh Kumar", patient_gender="Male", patient_age="52 Y", report_date="10-Jan-2026")
-    r2 = LabReport(patient_name="Priya Sharma", patient_gender="Female", patient_age="31 Y", report_date="15-Jan-2026")
-    r3 = LabReport(patient_name="Ramesh Kumar", patient_gender="Male", patient_age="52 Y", report_date="20-Feb-2026")
+    r1 = LabReport(
+        patient_name="Mr. Ramesh Kumar",
+        patient_gender="Male",
+        patient_age="52 Y",
+        report_date="10-Jan-2026",
+    )
+    r2 = LabReport(
+        patient_name="Priya Sharma",
+        patient_gender="Female",
+        patient_age="31 Y",
+        report_date="15-Jan-2026",
+    )
+    r3 = LabReport(
+        patient_name="Ramesh Kumar",
+        patient_gender="Male",
+        patient_age="52 Y",
+        report_date="20-Feb-2026",
+    )
 
     match_res = group_reports_by_patient([r1, r2, r3])
     assert match_res.is_single_patient is False
     assert len(match_res.patient_groups) == 2
-    assert "Cross-contamination" in match_res.warning_message_en or "Patient Mismatch Detected" in match_res.warning_message_en
+    assert (
+        "Cross-contamination" in match_res.warning_message_en
+        or "Patient Mismatch Detected" in match_res.warning_message_en
+    )
     assert match_res.warning_message_hi is not None

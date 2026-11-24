@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import uuid
+from datetime import datetime, timezone
 
 from sqlalchemy import (
     Boolean,
@@ -57,7 +57,9 @@ class Report(Base):
     __tablename__ = "reports"
 
     id = Column(String(36), primary_key=True, default=generate_uuid, index=True)
-    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=True)
+    user_id = Column(
+        String(36), ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=True
+    )
     filename = Column(String(255), nullable=False)
     file_hash = Column(String(64), index=True, nullable=False)
     file_size_bytes = Column(Integer, nullable=False)
@@ -71,9 +73,9 @@ class Report(Base):
     lab_name = Column(String(255), nullable=True)
 
     # Serialized JSON representations
-    extracted_data = Column(Text, nullable=True)     # Raw extracted LabReport JSON
-    explanation_data = Column(Text, nullable=True)   # Complete ReportExplanation JSON
-    pdf_path = Column(String(500), nullable=True)     # Path on disk or blob URL
+    extracted_data = Column(Text, nullable=True)  # Raw extracted LabReport JSON
+    explanation_data = Column(Text, nullable=True)  # Complete ReportExplanation JSON
+    pdf_path = Column(String(500), nullable=True)  # Path on disk or blob URL
     error = Column(Text, nullable=True)
 
     created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
@@ -94,8 +96,12 @@ class TestRecord(Base):
     __tablename__ = "test_records"
 
     id = Column(String(36), primary_key=True, default=generate_uuid, index=True)
-    report_id = Column(String(36), ForeignKey("reports.id", ondelete="CASCADE"), index=True, nullable=False)
-    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=True)
+    report_id = Column(
+        String(36), ForeignKey("reports.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    user_id = Column(
+        String(36), ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=True
+    )
 
     test_name = Column(String(255), nullable=False, index=True)
     value = Column(Float, nullable=True)
@@ -118,4 +124,6 @@ class TestRecord(Base):
     user = relationship("User", back_populates="test_records")
 
     def __repr__(self) -> str:
-        return f"<TestRecord(test={self.test_name}, val={self.value} {self.unit}, flag={self.flag})>"
+        return (
+            f"<TestRecord(test={self.test_name}, val={self.value} {self.unit}, flag={self.flag})>"
+        )

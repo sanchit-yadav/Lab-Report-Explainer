@@ -1,7 +1,8 @@
 """Smoke tests for the Streamlit application configuration and constants."""
 
 from pathlib import Path
-from app import SAMPLE_OPTIONS, FLAG_BADGES, FLAG_COLORS
+
+from app import FLAG_BADGES, FLAG_COLORS, SAMPLE_OPTIONS
 from src.extraction.schema import FlagStatus
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent

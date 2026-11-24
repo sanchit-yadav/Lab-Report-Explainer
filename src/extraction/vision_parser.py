@@ -12,19 +12,19 @@ import io
 import json
 import logging
 import os
-from pathlib import Path
 import re
+from pathlib import Path
 from typing import BinaryIO, List, Union
 
-from PIL import Image
 import pypdfium2 as pdfium
 from google import genai
 from google.genai import types
+from PIL import Image
 
 from src.config import get_config
+from src.extraction.preprocessing import DocumentPreprocessor
 from src.extraction.schema import LabReport, TestResult
 from src.flagging.flagger import Flagger
-from src.extraction.preprocessing import DocumentPreprocessor
 
 logger = logging.getLogger("vision_parser")
 
@@ -56,10 +56,10 @@ def is_image_bytes(data: bytes) -> bool:
         return False
     return (
         data.startswith(b"\xff\xd8\xff")  # JPEG
-        or data.startswith(b"\x89PNG")    # PNG
+        or data.startswith(b"\x89PNG")  # PNG
         or (data.startswith(b"RIFF") and len(data) > 12 and data[8:12] == b"WEBP")  # WebP
-        or data.startswith(b"MM\x00*")    # TIFF big-endian
-        or data.startswith(b"II*\x00")    # TIFF little-endian
+        or data.startswith(b"MM\x00*")  # TIFF big-endian
+        or data.startswith(b"II*\x00")  # TIFF little-endian
     )
 
 
@@ -123,7 +123,9 @@ class VisionExtractor:
                 if response.text:
                     return response.text.strip()
             except Exception as e:
-                logger.warning(f"Vision model '{model_name}' encountered error: {e}. Trying next model.")
+                logger.warning(
+                    f"Vision model '{model_name}' encountered error: {e}. Trying next model."
+                )
                 last_err = e
 
         raise RuntimeError(f"All vision models failed. Last error: {last_err}")
@@ -141,7 +143,9 @@ class VisionExtractor:
         client = self._get_genai_client()
         content_part = types.Part.from_bytes(data=raw_bytes, mime_type="image/jpeg")
 
-        raw_response_text = self._call_model_with_fallback(client, content_part, VISION_EXTRACTION_PROMPT)
+        raw_response_text = self._call_model_with_fallback(
+            client, content_part, VISION_EXTRACTION_PROMPT
+        )
 
         clean_text = raw_response_text
         if clean_text.startswith("```"):
@@ -155,7 +159,8 @@ class VisionExtractor:
             test_obj = TestResult(
                 test_name=t.get("test_name", ""),
                 value=t.get("value"),
-                raw_value=t.get("raw_value", "") or (str(t.get("value")) if t.get("value") is not None else ""),
+                raw_value=t.get("raw_value", "")
+                or (str(t.get("value")) if t.get("value") is not None else ""),
                 unit=t.get("unit", "") or "",
                 ref_low=t.get("ref_low"),
                 ref_high=t.get("ref_high"),

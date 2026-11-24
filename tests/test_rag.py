@@ -1,6 +1,7 @@
 """Unit tests for RAG pipeline components."""
 
 import pytest
+
 from src.rag.embeddings import EmbeddingManager
 from src.rag.indexer import DocumentIndexer
 from src.rag.reranker import CrossEncoderReranker
@@ -55,9 +56,18 @@ def test_reranker_reorders_candidates(reranker):
     """Verify CrossEncoderReranker ranks the most relevant chunk first."""
     query = "What does high creatinine mean for kidney function?"
     mock_candidates = [
-        {"id": "lipid_panel", "text": "Cholesterol and triglycerides are lipids stored in fat cells."},
-        {"id": "serum_creatinine", "text": "Creatinine is a waste product filtered by the kidneys. High creatinine indicates kidney dysfunction."},
-        {"id": "hemoglobin", "text": "Hemoglobin is an iron-rich protein in red blood cells that carries oxygen."},
+        {
+            "id": "lipid_panel",
+            "text": "Cholesterol and triglycerides are lipids stored in fat cells.",
+        },
+        {
+            "id": "serum_creatinine",
+            "text": "Creatinine is a waste product filtered by the kidneys. High creatinine indicates kidney dysfunction.",
+        },
+        {
+            "id": "hemoglobin",
+            "text": "Hemoglobin is an iron-rich protein in red blood cells that carries oxygen.",
+        },
     ]
     reranked = reranker.rerank(query, mock_candidates, top_n=3)
     assert len(reranked) == 3

@@ -45,7 +45,7 @@ class CamelotExtractor:
         try:
             # 1. Attempt primary method (lattice or configured method)
             tables = camelot.read_pdf(pdf_path, pages="all", flavor=self.method)
-            
+
             # If lattice yielded no tables, try stream as fallback
             if len(tables) == 0 and self.method == "lattice":
                 tables = camelot.read_pdf(pdf_path, pages="all", flavor="stream")
@@ -71,7 +71,7 @@ class CamelotExtractor:
                 if header_idx == -1:
                     continue
 
-                for row in raw_rows[header_idx + 1:]:
+                for row in raw_rows[header_idx + 1 :]:
                     if not row or all(clean_text(c) == "" for c in row):
                         continue
 

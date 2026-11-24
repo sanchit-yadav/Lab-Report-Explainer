@@ -54,7 +54,9 @@ class CitationVerifier:
 
         # Extract numerical tokens from claim (excluding small cosmetic numbers like 1, 2)
         raw_numbers = re.findall(r"\b\d+(?:\.\d+)?\b", claim_text)
-        substantive_numbers = [n for n in raw_numbers if n not in {"1", "2", "3", "4", "5", "10", "24", "100"}]
+        substantive_numbers = [
+            n for n in raw_numbers if n not in {"1", "2", "3", "4", "5", "10", "24", "100"}
+        ]
 
         supported_by_at_least_one = False
         rejection_reasons: List[str] = []
@@ -91,7 +93,10 @@ class CitationVerifier:
                 name_tokens = [t.lower() for t in source.test_name.split() if len(t) > 2]
                 if not any(token in claim_lower for token in name_tokens):
                     # Check if synonym or acronym matches
-                    if not any(char in claim_lower for char in ("test", "level", "result", "finding", "value")):
+                    if not any(
+                        char in claim_lower
+                        for char in ("test", "level", "result", "finding", "value")
+                    ):
                         rejection_reasons.append(
                             f"Claim lacks relevance to cited analyte '{source.test_name}'."
                         )
@@ -110,7 +115,7 @@ class CitationVerifier:
                 # 1. Ensure basic domain semantic relevance (either test name or concepts present)
                 title_tokens = [t for t in doc_title.split() if len(t) > 3]
                 title_relevant = any(t in claim_lower for t in title_tokens)
-                
+
                 # Check keyword overlap between claim and source excerpt
                 claim_words = {w for w in re.findall(r"\b[a-z]{4,}\b", claim_lower)}
                 source_words = {w for w in re.findall(r"\b[a-z]{4,}\b", source_excerpt)}
@@ -119,12 +124,20 @@ class CitationVerifier:
                 # Direct concept match
                 if title_relevant or len(overlap) >= 2 or source.section.lower() in claim_lower:
                     # Check for direct contradictions (e.g., claiming elevated when section is purely low)
-                    if "elevated" in claim_lower and "what low values mean" in source.section.lower() and "high" not in source_excerpt:
+                    if (
+                        "elevated" in claim_lower
+                        and "what low values mean" in source.section.lower()
+                        and "high" not in source_excerpt
+                    ):
                         rejection_reasons.append(
                             f"Section '{source.section}' discusses low values, but claim asserts elevated findings."
                         )
                         continue
-                    if ("low" in claim_lower or "decreased" in claim_lower) and "what elevated / high values mean" in source.section.lower() and "low" not in source_excerpt:
+                    if (
+                        ("low" in claim_lower or "decreased" in claim_lower)
+                        and "what elevated / high values mean" in source.section.lower()
+                        and "low" not in source_excerpt
+                    ):
                         rejection_reasons.append(
                             f"Section '{source.section}' discusses elevated values, but claim asserts low findings."
                         )
@@ -140,7 +153,11 @@ class CitationVerifier:
         if supported_by_at_least_one:
             return True, "Claim is semantically supported by cited source(s)."
         else:
-            reason = "; ".join(rejection_reasons) if rejection_reasons else "Cited sources do not substantiate claim."
+            reason = (
+                "; ".join(rejection_reasons)
+                if rejection_reasons
+                else "Cited sources do not substantiate claim."
+            )
             return False, reason
 
     def verify_claim(

@@ -32,10 +32,11 @@ class ExplainStage:
 
     def explain(self, inp: ExplainInput) -> ExplainOutput:
         t0 = time.perf_counter()
-        lab_report = inp.extraction.to_lab_report()
+        inp.extraction.to_lab_report()
 
         tests_to_explain = [
-            item for item in inp.extraction.items
+            item
+            for item in inp.extraction.items
             if (item.flag not in (FlagStatus.NORMAL, FlagStatus.UNKNOWN)) or inp.explain_all
         ]
 
@@ -43,7 +44,7 @@ class ExplainStage:
         for item in tests_to_explain:
             query = f"{item.test_name} {item.flag.value} lab test meaning"
             relevant_chunks = inp.retrieved_knowledge.chunks_by_query.get(query, [])
-            
+
             # Setup session citation registry for this biomarker
             registry = CitationRegistry()
             ref_str = item.ref_raw or (
@@ -65,12 +66,14 @@ class ExplainStage:
             evidence = []
             kb_source_ids = []
             for c in relevant_chunks:
-                evidence.append({
-                    "id": c.chunk_id,
-                    "text": c.text,
-                    "source_url": c.source_url,
-                    "score": c.score,
-                })
+                evidence.append(
+                    {
+                        "id": c.chunk_id,
+                        "text": c.text,
+                        "source_url": c.source_url,
+                        "score": c.score,
+                    }
+                )
                 kb_src = registry.register_kb_chunk(
                     doc_id=c.doc_id,
                     title=c.title,
@@ -84,7 +87,9 @@ class ExplainStage:
             exp = self.generator.explain_test(test_res, evidence)
 
             # Construct structured attributed claims: {claim, source_ids[]}
-            val_display = f"{item.value} {item.unit}".strip() if item.value is not None else item.raw_value
+            val_display = (
+                f"{item.value} {item.unit}".strip() if item.value is not None else item.raw_value
+            )
             claims: List[AttributedClaim] = []
 
             # Claim 1: Biological role / measurement claim (grounded in KB chunk)

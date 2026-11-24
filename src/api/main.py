@@ -6,12 +6,12 @@ conversational Q&A with guardrails, and Doctor Brief PDF downloads.
 
 from __future__ import annotations
 
-from contextlib import asynccontextmanager
-from datetime import datetime, timezone
 import hashlib
 import logging
 import math
 import os
+from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -34,6 +34,7 @@ from src.api.auth import (
     validate_jwt_security,
     verify_report_access,
 )
+from src.api.metrics import MetricsRegistry, PrometheusMiddleware
 from src.api.models import (
     ConfirmReportRequest,
     ConfirmReportResponse,
@@ -45,7 +46,6 @@ from src.api.models import (
     QAResponse,
     UploadResponse,
 )
-from src.api.metrics import MetricsRegistry, PrometheusMiddleware
 from src.api.routes.auth import router as auth_router
 from src.db.models import User
 from src.db.session import init_db
@@ -74,7 +74,9 @@ UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 # 50MB file size ceiling (overridable via MAX_FILE_SIZE_MB env var)
 MAX_FILE_SIZE_BYTES = int(os.environ.get("MAX_FILE_SIZE_MB", "50")) * 1024 * 1024
-ALLOWED_EXTENSIONS = set(os.environ.get("ALLOWED_EXTENSIONS", ".pdf,.png,.jpg,.jpeg,.webp").split(","))
+ALLOWED_EXTENSIONS = set(
+    os.environ.get("ALLOWED_EXTENSIONS", ".pdf,.png,.jpg,.jpeg,.webp").split(",")
+)
 
 
 @asynccontextmanager
@@ -174,10 +176,12 @@ async def upload_report(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(..., description="Laboratory report document (PDF, PNG, JPG, WEBP)"),
     explain_all: bool = Query(
-        False, description="Whether to generate LLM explanations for normal biomarkers in addition to abnormal ones"
+        False,
+        description="Whether to generate LLM explanations for normal biomarkers in addition to abnormal ones",
     ),
     auto_confirm: bool = Query(
-        True, description="Whether to automatically confirm and explain immediately without pausing for review"
+        True,
+        description="Whether to automatically confirm and explain immediately without pausing for review",
     ),
     current_user: Optional[User] = Depends(get_optional_current_user),
 ) -> UploadResponse:
@@ -204,7 +208,9 @@ async def upload_report(
             resource_id="filename",
             details={"filename": filename, "threat_category": fn_scan.threat_category},
         )
-        MetricsRegistry.get_instance().guardrail_blocks_total.inc(reason="prompt_injection_filename")
+        MetricsRegistry.get_instance().guardrail_blocks_total.inc(
+            reason="prompt_injection_filename"
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Filename contains forbidden instruction override or injection patterns.",
@@ -250,7 +256,11 @@ async def upload_report(
             event_type="MALWARE_SCAN_FAILED",
             actor_id="client_upload",
             resource_id=file_hash,
-            details={"threat_type": scan_res.threat_type, "details": scan_res.details, "risk_score": scan_res.risk_score},
+            details={
+                "threat_type": scan_res.threat_type,
+                "details": scan_res.details,
+                "risk_score": scan_res.risk_score,
+            },
         )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -466,7 +476,12 @@ async def confirm_report(
             unit=p.unit or "",
             ref_low=ref_low_clean,
             ref_high=ref_high_clean,
-            ref_raw=p.ref_raw or (f"{ref_low_clean} - {ref_high_clean}" if ref_low_clean is not None and ref_high_clean is not None else ""),
+            ref_raw=p.ref_raw
+            or (
+                f"{ref_low_clean} - {ref_high_clean}"
+                if ref_low_clean is not None and ref_high_clean is not None
+                else ""
+            ),
             flag=flag_val,
         )
         updated_tests.append(test_res)
@@ -477,7 +492,9 @@ async def confirm_report(
     )
 
     # Synchronously advance status to FLAGGING before response so UI polling reflects active progress
-    record.update_progress(JobStatus.FLAGGING, 50, "Evaluating clinical reference ranges & panic values...")
+    record.update_progress(
+        JobStatus.FLAGGING, 50, "Evaluating clinical reference ranges & panic values..."
+    )
 
     # Dispatch to background tasks to resume explanation generation
     background_tasks.add_task(
@@ -666,9 +683,12 @@ async def download_doctor_brief_pdf(
     if not record.pdf_bytes and record.explanation:
         try:
             from src.explainer.pdf_export import generate_doctor_brief_pdf
+
             record.pdf_bytes = generate_doctor_brief_pdf(record.explanation)
         except Exception as pdf_gen_err:
-            logger.warning(f"Could not re-generate Doctor Brief PDF for job {job_id}: {pdf_gen_err}")
+            logger.warning(
+                f"Could not re-generate Doctor Brief PDF for job {job_id}: {pdf_gen_err}"
+            )
 
     if not record.pdf_bytes:
         raise HTTPException(
@@ -700,7 +720,9 @@ async def download_doctor_brief_pdf(
 )
 async def generate_share_link(
     job_id: str,
-    ttl_seconds: int = Query(900, ge=60, le=86400, description="Token time-to-live in seconds (default 15m)"),
+    ttl_seconds: int = Query(
+        900, ge=60, le=86400, description="Token time-to-live in seconds (default 15m)"
+    ),
     current_user: Optional[User] = Depends(get_optional_current_user),
 ) -> Dict[str, Any]:
     """Generate a time-limited HMAC-SHA256 signed URL to access the Doctor Brief PDF without credentials."""
@@ -767,9 +789,12 @@ async def download_signed_pdf(
     if not record.pdf_bytes and record.explanation:
         try:
             from src.explainer.pdf_export import generate_doctor_brief_pdf
+
             record.pdf_bytes = generate_doctor_brief_pdf(record.explanation)
         except Exception as pdf_gen_err:
-            logger.warning(f"Could not re-generate Doctor Brief PDF for job {job_id}: {pdf_gen_err}")
+            logger.warning(
+                f"Could not re-generate Doctor Brief PDF for job {job_id}: {pdf_gen_err}"
+            )
 
     if not record.pdf_bytes:
         raise HTTPException(
@@ -910,6 +935,7 @@ async def verify_audit_trail() -> Dict[str, Any]:
 async def get_audit_logs(limit: int = Query(50, ge=1, le=200)) -> List[Dict[str, Any]]:
     """Query recent immutable audit trail records for HIPAA compliance inspection."""
     from dataclasses import asdict
+
     audit = SecurityAuditLogger.get_instance()
     records = audit.get_records(limit=limit)
     return [asdict(r) for r in records]
@@ -976,7 +1002,9 @@ async def get_job_fhir_bundle(
     from src.extraction.schema import LabReport, TestResult
     from src.interop.fhir_export import FHIRExporter
 
-    report_obj = record.extracted_report or (record.explanation.raw_report if record.explanation else None)
+    report_obj = record.extracted_report or (
+        record.explanation.raw_report if record.explanation else None
+    )
     if not report_obj:
         tests_list = [
             TestResult(
@@ -1010,6 +1038,5 @@ _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 frontend_dist = _PROJECT_ROOT / "frontend" / "dist"
 if frontend_dist.exists() and (frontend_dist / "index.html").exists():
     from fastapi.staticfiles import StaticFiles
+
     app.mount("/", StaticFiles(directory=str(frontend_dist), html=True), name="frontend")
-
-

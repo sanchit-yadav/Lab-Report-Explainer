@@ -12,6 +12,7 @@ import json
 import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger("kb_manifest")
@@ -23,6 +24,7 @@ MANIFEST_DOC_PATH = PROJECT_ROOT / "docs" / "KB_MANIFEST.md"
 
 class KBSectionEntry(BaseModel):
     """Metadata for an individual section within a guideline document."""
+
     section_name: str
     section_id: str
     character_count: int
@@ -31,6 +33,7 @@ class KBSectionEntry(BaseModel):
 
 class KBDocumentEntry(BaseModel):
     """Authoritative metadata entry for an individual clinical guideline document."""
+
     doc_id: str
     test_name: str
     category: str
@@ -45,6 +48,7 @@ class KBDocumentEntry(BaseModel):
 
 class KBManifest(BaseModel):
     """Root Knowledge Base Manifest schema."""
+
     manifest_version: str = "1.0.0"
     created_at: str = "2026-11-23"
     total_documents: int
@@ -175,9 +179,7 @@ class KBManifestManager:
                 source_name=meta_data.get(
                     "source_name", "MedlinePlus (U.S. National Library of Medicine)"
                 ),
-                source_url=meta_data.get(
-                    "source_url", "https://medlineplus.gov/lab-tests/"
-                ),
+                source_url=meta_data.get("source_url", "https://medlineplus.gov/lab-tests/"),
                 version="2024.1",
                 last_reviewed="2024-05-15",
                 authority="U.S. National Library of Medicine / NIH",

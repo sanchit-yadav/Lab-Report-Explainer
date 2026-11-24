@@ -25,6 +25,7 @@ def clean_audit_logger(tmp_path):
 # 1. FileSecurityScanner Tests
 # ------------------------------------------------------------------------------
 
+
 def test_scanner_allows_clean_pdf(scanner):
     """Valid PDF without active scripts passes scan."""
     clean_pdf = b"%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n%%EOF"
@@ -65,12 +66,7 @@ def test_scanner_rejects_embedded_javascript(scanner):
 
 def test_scanner_rejects_launch_action(scanner):
     """PDF containing /Launch process trigger is rejected."""
-    malicious_pdf = (
-        b"%PDF-1.4\n"
-        b"2 0 obj\n"
-        b"<< /Type /Action /S /Launch /F (cmd.exe) >>\n"
-        b"endobj\n"
-    )
+    malicious_pdf = b"%PDF-1.4\n2 0 obj\n<< /Type /Action /S /Launch /F (cmd.exe) >>\nendobj\n"
     res = scanner.scan_bytes(malicious_pdf, "cbc.pdf")
     assert res.is_safe is False
     assert res.threat_type == "ACTIVE_EXPLOIT_DETECTED"
@@ -92,6 +88,7 @@ def test_scanner_validates_image_headers(scanner):
 # ------------------------------------------------------------------------------
 # 2. SecurityAuditLogger Tests (Cryptographic Merkle Chain)
 # ------------------------------------------------------------------------------
+
 
 def test_audit_log_genesis_and_chaining(clean_audit_logger):
     """First record links to GENESIS_HASH; subsequent records link to predecessor."""

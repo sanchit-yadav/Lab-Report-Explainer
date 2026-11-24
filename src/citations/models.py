@@ -9,17 +9,20 @@ from __future__ import annotations
 
 from enum import Enum
 from typing import Dict, List, Optional, Union
+
 from pydantic import BaseModel, Field
 
 
 class SourceKind(str, Enum):
     """Categorical classification of citation sources."""
+
     REPORT_FIELD = "report_field"
     KB_CHUNK = "kb_chunk"
 
 
 class ReportFieldSource(BaseModel):
     """Grounding source anchored in the patient's physical uploaded report."""
+
     source_id: str = Field(description="Unique source ID, e.g. 'report:glucose:p1:l4'")
     kind: SourceKind = Field(default=SourceKind.REPORT_FIELD)
     test_name: str
@@ -28,17 +31,24 @@ class ReportFieldSource(BaseModel):
     ref_range: Optional[str] = None
     flag: Optional[str] = None
     source_page: int = 1
-    source_location: str = Field(default="line_1", description="Line identifier or bbox coordinates")
+    source_location: str = Field(
+        default="line_1", description="Line identifier or bbox coordinates"
+    )
 
     def to_citation_label(self) -> str:
         """Human-readable citation label for UI/Doctor Brief."""
-        val_str = f"{self.value} {self.unit or ''}".strip() if self.value is not None else "observed"
+        val_str = (
+            f"{self.value} {self.unit or ''}".strip() if self.value is not None else "observed"
+        )
         return f"Lab Report: {self.test_name} ({val_str}) [Page {self.source_page}, {self.source_location}]"
 
 
 class KBChunkSource(BaseModel):
     """Grounding source anchored in curated clinical reference knowledge base."""
-    source_id: str = Field(description="Unique source ID, e.g. 'kb:medlineplus:fasting_blood_glucose:sec1'")
+
+    source_id: str = Field(
+        description="Unique source ID, e.g. 'kb:medlineplus:fasting_blood_glucose:sec1'"
+    )
     kind: SourceKind = Field(default=SourceKind.KB_CHUNK)
     doc_id: str
     title: str
@@ -56,6 +66,7 @@ class KBChunkSource(BaseModel):
 
 class VerificationStatus(str, Enum):
     """Clinical verification status of an individual attributed claim."""
+
     VERIFIED = "VERIFIED"
     UNSUPPORTED = "UNSUPPORTED"
     MISSING_SOURCE = "MISSING_SOURCE"
@@ -64,24 +75,25 @@ class VerificationStatus(str, Enum):
 
 class AttributedClaim(BaseModel):
     """Structured clinical claim anchored to explicit source identifiers."""
+
     claim_id: str = Field(default="", description="Unique claim identifier, e.g. 'claim_1'")
     claim: str = Field(description="Specific factual or educational clinical statement")
     source_ids: List[str] = Field(
         default_factory=list,
-        description="List of cited source IDs (report field or KB chunk identifiers)"
+        description="List of cited source IDs (report field or KB chunk identifiers)",
     )
     verification_status: VerificationStatus = Field(
         default=VerificationStatus.PENDING,
-        description="Whether the claim was verified programmatically and semantically"
+        description="Whether the claim was verified programmatically and semantically",
     )
     verification_reason: Optional[str] = Field(
-        default=None,
-        description="Diagnostic details from the citation verification engine"
+        default=None, description="Diagnostic details from the citation verification engine"
     )
 
 
 class CitationRegistry(BaseModel):
     """Container holding all valid grounding sources for a given report session."""
+
     report_sources: Dict[str, ReportFieldSource] = Field(default_factory=dict)
     kb_sources: Dict[str, KBChunkSource] = Field(default_factory=dict)
 

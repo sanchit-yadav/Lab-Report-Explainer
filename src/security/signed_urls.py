@@ -15,7 +15,11 @@ from typing import Optional, Tuple
 
 def _get_signing_key() -> bytes:
     """Retrieve secret key for HMAC signature generation."""
-    key = os.environ.get("URL_SIGNING_SECRET") or os.environ.get("JWT_SECRET_KEY") or "clinical_secure_default_key_change_in_production"
+    key = (
+        os.environ.get("URL_SIGNING_SECRET")
+        or os.environ.get("JWT_SECRET_KEY")
+        or "clinical_secure_default_key_change_in_production"
+    )
     return key.encode("utf-8")
 
 
@@ -71,7 +75,8 @@ def verify_signed_token(token: str, job_id: str) -> bool:
         exp_s, uid, sig = parts
         exp = int(exp_s)
         user_param = None if uid == "anonymous" else uid
-        return verify_signed_report_token(job_id=job_id, user_id=user_param, expires_at=exp, signature=sig)
+        return verify_signed_report_token(
+            job_id=job_id, user_id=user_param, expires_at=exp, signature=sig
+        )
     except Exception:
         return False
-

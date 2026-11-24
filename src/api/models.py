@@ -2,15 +2,17 @@
 
 from __future__ import annotations
 
+import re
 from datetime import datetime
 from enum import Enum
-import re
 from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, Field, field_validator
 
 
 class JobStatus(str, Enum):
     """Lifecycle stages for asynchronous report processing jobs."""
+
     QUEUED = "queued"
     EXTRACTING = "extracting"
     REVIEW_NEEDED = "review_needed"
@@ -26,8 +28,11 @@ EMAIL_REGEX = re.compile(r"^[\w\.-]+@[\w\.-]+\.\w+$")
 
 class UserRegisterRequest(BaseModel):
     """Payload for registering a new user account."""
+
     email: str = Field(..., description="Unique email address")
-    password: str = Field(..., min_length=8, max_length=128, description="Account password (min 8 characters)")
+    password: str = Field(
+        ..., min_length=8, max_length=128, description="Account password (min 8 characters)"
+    )
     full_name: Optional[str] = Field(None, max_length=255, description="Full name of the user")
 
     @field_validator("email")
@@ -41,6 +46,7 @@ class UserRegisterRequest(BaseModel):
 
 class UserLoginRequest(BaseModel):
     """Payload for user authentication."""
+
     email: str = Field(..., description="Account email address")
     password: str = Field(..., description="Account password")
 
@@ -55,6 +61,7 @@ class UserLoginRequest(BaseModel):
 
 class UserResponse(BaseModel):
     """Public user profile model."""
+
     id: str
     email: str
     full_name: Optional[str] = None
@@ -66,6 +73,7 @@ class UserResponse(BaseModel):
 
 class TokenResponse(BaseModel):
     """JWT bearer token and authenticated user profile response."""
+
     access_token: str
     token_type: str = "bearer"
     user: UserResponse
@@ -73,6 +81,7 @@ class TokenResponse(BaseModel):
 
 class UploadResponse(BaseModel):
     """Response returned upon accepting a laboratory document upload."""
+
     job_id: str = Field(..., description="Unique UUID tracking the processing job")
     file_hash: str = Field(..., description="SHA-256 fingerprint for document deduplication")
     filename: str = Field(..., description="Original filename of the uploaded report")
@@ -84,6 +93,7 @@ class UploadResponse(BaseModel):
 
 class JobStatusResponse(BaseModel):
     """Detailed progress and diagnostic telemetry for an asynchronous job."""
+
     job_id: str
     file_hash: str
     filename: str
@@ -101,8 +111,13 @@ class JobStatusResponse(BaseModel):
 
 class QARequest(BaseModel):
     """Request payload for conversational clinical Q&A."""
-    question: str = Field(..., min_length=2, max_length=1000, description="User educational inquiry")
-    patient_context: Optional[str] = Field(None, description="Optional serialized patient biomarker context")
+
+    question: str = Field(
+        ..., min_length=2, max_length=1000, description="User educational inquiry"
+    )
+    patient_context: Optional[str] = Field(
+        None, description="Optional serialized patient biomarker context"
+    )
     chat_history: Optional[List[Dict[str, str]]] = Field(
         None, description="Optional multi-turn chat history [{'role': 'user', 'content': '...'}]"
     )
@@ -110,18 +125,22 @@ class QARequest(BaseModel):
 
 class QAResponse(BaseModel):
     """Guardrail-validated response payload for clinical inquiries."""
+
     job_id: Optional[str] = None
     blocked: bool = Field(False, description="Whether Layer 1 input guardrails blocked the inquiry")
     category: Optional[str] = Field(None, description="Guardrail violation category if blocked")
     answer_en: str
     answer_hi: str
-    source_urls: List[str] = Field(default_factory=list, description="Grounding clinical guideline citations")
+    source_urls: List[str] = Field(
+        default_factory=list, description="Grounding clinical guideline citations"
+    )
     disclaimer: str
     elapsed_ms: float = 0.0
 
 
 class HealthResponse(BaseModel):
     """System diagnostic and readiness health check response."""
+
     status: str
     timestamp: str
     ready: bool
@@ -130,6 +149,7 @@ class HealthResponse(BaseModel):
 
 class ConfirmBiomarkerPayload(BaseModel):
     """Biomarker test entry confirmed or edited by user."""
+
     test_name: str
     value: Optional[float] = None
     raw_value: Optional[str] = None
@@ -142,6 +162,7 @@ class ConfirmBiomarkerPayload(BaseModel):
 
 class ConfirmReportRequest(BaseModel):
     """Request payload to confirm or correct extracted lab parameters."""
+
     patient_name: Optional[str] = None
     tests: List[ConfirmBiomarkerPayload] = Field(default_factory=list)
     explain_all: bool = False
@@ -149,6 +170,7 @@ class ConfirmReportRequest(BaseModel):
 
 class ConfirmReportResponse(BaseModel):
     """Response returned upon confirming report parameters."""
+
     job_id: str
     status: JobStatus
     message: str
@@ -157,6 +179,7 @@ class ConfirmReportResponse(BaseModel):
 
 class ExtractedReportResponse(BaseModel):
     """Structured laboratory data extracted from document for human review."""
+
     job_id: str
     patient_name: Optional[str] = None
     total_tests: int

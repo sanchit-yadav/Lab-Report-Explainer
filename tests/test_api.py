@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
 import uuid
+from unittest.mock import MagicMock, patch
 
 import pytest
 from starlette.testclient import TestClient
@@ -199,7 +199,9 @@ def test_qa_endpoint(client, tmp_path):
     dummy_file.write_bytes(b"%PDF-1.4")
     record = jm.create_job("report.pdf", dummy_file, "hash", 8)
 
-    mock_exp = ReportExplanation(patient_name="John Doe", report_summary_en="Summary", report_summary_hi="सारांश")
+    mock_exp = ReportExplanation(
+        patient_name="John Doe", report_summary_en="Summary", report_summary_hi="सारांश"
+    )
     record.mark_complete(mock_exp, b"%PDF")
 
     mock_pipeline = MagicMock()
@@ -245,7 +247,9 @@ def test_list_recent_jobs_endpoint(client, tmp_path):
 
 def test_upload_rejects_embedded_exploit(client):
     """Uploading a PDF with embedded JavaScript or Launch actions returns 400 Bad Request."""
-    malicious_pdf = b"%PDF-1.4\n1 0 obj\n<< /Type /Action /S /JavaScript /JS (alert('hack')) >>\nendobj"
+    malicious_pdf = (
+        b"%PDF-1.4\n1 0 obj\n<< /Type /Action /S /JavaScript /JS (alert('hack')) >>\nendobj"
+    )
     files = {"file": ("report_exploit.pdf", malicious_pdf, "application/pdf")}
     response = client.post("/api/v1/reports/upload", files=files)
     assert response.status_code == 400
@@ -367,7 +371,7 @@ def test_confirm_report_triggers_explanation(client, tmp_path):
         "explain_all": False,
     }
 
-    with patch("src.workers.job_manager.JobManager.confirm_and_explain_job") as mock_confirm:
+    with patch("src.workers.job_manager.JobManager.confirm_and_explain_job"):
         response = client.post(f"/api/v1/reports/{record.job_id}/confirm", json=payload)
         assert response.status_code == 200
         data = response.json()
@@ -379,8 +383,8 @@ def test_confirm_report_triggers_explanation(client, tmp_path):
 def test_delete_report_workflow(client, tmp_path):
     """DELETE /api/v1/reports/{job_id} removes report from memory, database, and disk."""
     from src.api.auth import create_access_token
+    from src.db.models import Report, User
     from src.db.session import SessionLocal
-    from src.db.models import User, Report
 
     # Create test user
     uid = str(uuid.uuid4())
@@ -417,8 +421,8 @@ def test_delete_report_workflow(client, tmp_path):
 def test_delete_report_unauthorized(client, tmp_path):
     """A user cannot delete another patient's laboratory report (403 Forbidden)."""
     from src.api.auth import create_access_token
-    from src.db.session import SessionLocal
     from src.db.models import User
+    from src.db.session import SessionLocal
 
     uid1 = str(uuid.uuid4())
     uid2 = str(uuid.uuid4())
@@ -444,8 +448,8 @@ def test_delete_report_unauthorized(client, tmp_path):
 def test_history_persistence_across_memory_clear(client, tmp_path):
     """GET /api/v1/reports and get_job retrieve historical reports from SQLite even after in-memory cache is cleared."""
     from src.api.auth import create_access_token
-    from src.db.session import SessionLocal
     from src.db.models import User
+    from src.db.session import SessionLocal
 
     uid = str(uuid.uuid4())
     with SessionLocal() as db:
@@ -487,4 +491,3 @@ def test_root_serves_react_spa(client):
     assert resp.status_code == 200
     assert "text/html" in resp.headers.get("content-type", "")
     assert '<div id="root">' in resp.text
-

@@ -1,6 +1,7 @@
 """Unit tests for Layer 1 Input Guard and Layer 3 Output Guard."""
 
 import pytest
+
 from src.explainer.schema import TestExplanation
 from src.extraction.schema import FlagStatus
 from src.guardrails.input_guard import InputGuard
@@ -20,6 +21,7 @@ def output_guard():
 # ------------------------------------------------------------------------------
 # 1. Layer 1 Input Guard Tests
 # ------------------------------------------------------------------------------
+
 
 def test_input_guard_blocks_diagnosis_requests(input_guard):
     res1 = input_guard.check("Based on my report, do I have diabetes?")
@@ -61,6 +63,7 @@ def test_input_guard_allows_safe_educational_queries(input_guard):
 # ------------------------------------------------------------------------------
 # 2. Layer 3 Output Guard Tests
 # ------------------------------------------------------------------------------
+
 
 def test_output_guard_redacts_drug_names(output_guard):
     unsafe_text = "You should start taking metformin 500mg and atorvastatin daily."

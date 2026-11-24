@@ -48,14 +48,16 @@ def check_rag_models() -> Dict[str, Any]:
     results = {}
     try:
         from src.rag.reranker import CrossEncoderReranker
-        reranker = CrossEncoderReranker(cfg.rag.reranker)
+
+        CrossEncoderReranker(cfg.rag.reranker)
         results["cross_encoder"] = "READY"
     except Exception as e:
         results["cross_encoder"] = f"UNAVAILABLE: {e}"
 
     try:
         from src.rag.embeddings import EmbeddingManager
-        embedder = EmbeddingManager(cfg.rag.embeddings)
+
+        EmbeddingManager(cfg.rag.embeddings)
         results["embedder"] = "READY"
     except Exception as e:
         results["embedder"] = f"UNAVAILABLE: {e}"
@@ -112,7 +114,9 @@ def run_preflight_diagnostic() -> bool:
     logger.info(f"1. Configuration Check: {config_res['status']}")
     logger.info(f"2. API Credentials Check: {creds_res['status']}")
     logger.info(f"3. RAG & Model Check: {rag_res['status']}")
-    logger.info(f"4. Relational Database Check: {db_res['status']} ({db_res.get('dialect', 'unknown')})")
+    logger.info(
+        f"4. Relational Database Check: {db_res['status']} ({db_res.get('dialect', 'unknown')})"
+    )
     logger.info(f"Diagnostic completed in {elapsed:.1f}ms.")
 
     return diag["status"] == "healthy"

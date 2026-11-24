@@ -9,16 +9,16 @@ Provides:
 
 from __future__ import annotations
 
-from collections import deque
 import functools
 import json
 import logging
 import os
 import threading
 import time
+import uuid
+from collections import deque
 from contextlib import contextmanager
 from typing import Any, Callable, Dict, Generator, List, Optional
-import uuid
 
 from src.config import get_config
 from src.stages.logger import sanitize_value
@@ -83,9 +83,7 @@ class LocalSpan:
 
     def to_otel_span(self, trace_id: str) -> Dict[str, Any]:
         """Convert to OpenTelemetry-compliant span dictionary."""
-        attributes = {
-            f"input.{k}": str(v) for k, v in self.inputs.items()
-        }
+        attributes = {f"input.{k}": str(v) for k, v in self.inputs.items()}
         attributes.update({f"output.{k}": str(v) for k, v in self.outputs.items()})
         attributes.update({f"meta.{k}": str(v) for k, v in self.metadata.items()})
 
@@ -106,7 +104,9 @@ class LocalSpan:
 class LocalTrace:
     """Local in-memory trace collecting spans, total latency, and cost."""
 
-    def __init__(self, name: str, metadata: Optional[Dict[str, Any]] = None, request_id: Optional[str] = None):
+    def __init__(
+        self, name: str, metadata: Optional[Dict[str, Any]] = None, request_id: Optional[str] = None
+    ):
         self.trace_id = (request_id or uuid.uuid4().hex)[:32]
         self.name = name
         self.metadata = sanitize_value(metadata or {})
@@ -178,6 +178,7 @@ class Tracer:
         if self.enabled and self.public_key and self.secret_key:
             try:
                 from langfuse import Langfuse
+
                 self.langfuse_client = Langfuse(
                     public_key=self.public_key,
                     secret_key=self.secret_key,
@@ -188,7 +189,9 @@ class Tracer:
                 logger.warning(f"Could not connect to Langfuse Cloud ({e}). Using local tracer.")
 
     @contextmanager
-    def start_trace(self, name: str, request_id: Optional[str] = None, **metadata) -> Generator[LocalTrace, None, None]:
+    def start_trace(
+        self, name: str, request_id: Optional[str] = None, **metadata
+    ) -> Generator[LocalTrace, None, None]:
         """Start a root pipeline trace."""
         trace = LocalTrace(name, metadata, request_id=request_id)
         start = time.perf_counter()
@@ -250,7 +253,9 @@ class Tracer:
                     pass
 
     @contextmanager
-    def span(self, name: str, parent_trace: Optional[LocalTrace] = None, **metadata) -> Generator[LocalSpan, None, None]:
+    def span(
+        self, name: str, parent_trace: Optional[LocalTrace] = None, **metadata
+    ) -> Generator[LocalSpan, None, None]:
         """Start a modular child span within an ongoing trace."""
         span_obj = LocalSpan(name, parent_trace)
         span_obj.set_metadata(**metadata)
@@ -337,6 +342,7 @@ def get_tracer() -> Tracer:
 
 def trace_stage(stage_name: Optional[str] = None):
     """Decorator for tracing pipeline stages with PII safety and latency tracking."""
+
     def decorator(func: Callable):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -371,5 +377,7 @@ def trace_stage(stage_name: Optional[str] = None):
                 elif hasattr(res, "passed"):
                     span.set_output(passed=res.passed)
                 return res
+
         return wrapper
+
     return decorator

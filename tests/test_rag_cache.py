@@ -1,9 +1,10 @@
 """Tests for RAGCacheManager and retrieval optimization."""
 
 import time
+
 from src.rag.cache import RAGCacheManager
-from src.stages.schemas import RetrieveInput
 from src.stages.retrieve import RetrieveStage
+from src.stages.schemas import RetrieveInput
 
 
 def test_rag_cache_basic_put_get():

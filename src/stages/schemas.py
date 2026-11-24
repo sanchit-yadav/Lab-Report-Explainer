@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
 import uuid
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
+from src.citations.models import AttributedClaim
 from src.extraction.schema import FlagStatus, LabReport, TestResult
 
 
@@ -19,8 +20,10 @@ def generate_request_id() -> str:
 # Stage 1: validate_upload
 # ==============================================================================
 
+
 class ValidateUploadInput(BaseModel):
     """Input payload for document upload security validation and sanitization."""
+
     file_bytes: bytes
     filename: str
     request_id: str = Field(default_factory=generate_request_id)
@@ -29,6 +32,7 @@ class ValidateUploadInput(BaseModel):
 
 class ValidateUploadOutput(BaseModel):
     """Output from upload validation verifying magic bytes, structure, and security."""
+
     request_id: str
     is_valid: bool
     file_hash: str
@@ -44,8 +48,10 @@ class ValidateUploadOutput(BaseModel):
 # Stage 2: ocr_parse
 # ==============================================================================
 
+
 class OCRLine(BaseModel):
     """Parsed single line of text with optional spatial bounding box."""
+
     line_num: int
     text: str
     bbox: Optional[List[float]] = None  # [x0, top, x1, bottom]
@@ -54,6 +60,7 @@ class OCRLine(BaseModel):
 
 class OCRPage(BaseModel):
     """Extracted content from an individual document page."""
+
     page_num: int
     text: str
     lines: List[OCRLine] = Field(default_factory=list)
@@ -65,6 +72,7 @@ class OCRPage(BaseModel):
 
 class OCRParseInput(BaseModel):
     """Input for document text and layout extraction."""
+
     file_bytes: bytes
     filename: str
     request_id: str = Field(default_factory=generate_request_id)
@@ -72,6 +80,7 @@ class OCRParseInput(BaseModel):
 
 class OCRParseOutput(BaseModel):
     """Extracted text, geometry, and tables across all pages."""
+
     request_id: str
     full_text: str
     pages: List[OCRPage] = Field(default_factory=list)
@@ -87,9 +96,10 @@ class OCRParseOutput(BaseModel):
 # Stage 3: extract_values
 # ==============================================================================
 
+
 class ExtractionOutputItem(BaseModel):
     """Standardized analyte observation adhering to the clinical portfolio schema.
-    
+
     Fields:
       test_name: Canonical analyte identifier
       value: Numeric measurement or None if non-numeric
@@ -101,6 +111,7 @@ class ExtractionOutputItem(BaseModel):
       source_bbox_or_line: Bounding box or line reference
       confidence: Extraction confidence score (0.0 to 1.0)
     """
+
     test_name: str
     value: Optional[float] = None
     unit: str = ""
@@ -126,7 +137,12 @@ class ExtractionOutputItem(BaseModel):
             unit=self.unit,
             ref_low=self.ref_low,
             ref_high=self.ref_high,
-            ref_raw=self.ref_raw or (f"{self.ref_low} - {self.ref_high}" if self.ref_low is not None and self.ref_high is not None else ""),
+            ref_raw=self.ref_raw
+            or (
+                f"{self.ref_low} - {self.ref_high}"
+                if self.ref_low is not None and self.ref_high is not None
+                else ""
+            ),
             flag=self.flag,
             source_page=self.source_page,
             source_bbox_or_line=self.source_bbox_or_line,
@@ -159,6 +175,7 @@ class ExtractionOutputItem(BaseModel):
 
 class ExtractValuesInput(BaseModel):
     """Input for biomarker tabular and value extraction."""
+
     parsed_doc: OCRParseOutput
     raw_bytes: Optional[bytes] = None
     request_id: str = Field(default_factory=generate_request_id)
@@ -167,6 +184,7 @@ class ExtractValuesInput(BaseModel):
 
 class ExtractValuesOutput(BaseModel):
     """Structured clinical report representation with deterministically assigned flags."""
+
     request_id: str
     patient_name: Optional[str] = None
     patient_age: Optional[str] = None
@@ -198,8 +216,10 @@ class ExtractValuesOutput(BaseModel):
 # Stage 4: retrieve
 # ==============================================================================
 
+
 class RetrievedChunk(BaseModel):
     """Individual retrieved and reranked clinical reference knowledge chunk."""
+
     chunk_id: str
     doc_id: str
     title: str
@@ -210,6 +230,7 @@ class RetrievedChunk(BaseModel):
 
 class RetrieveInput(BaseModel):
     """Input payload for RAG retrieval."""
+
     request_id: str = Field(default_factory=generate_request_id)
     queries: List[str]
     top_k: int = 3
@@ -218,6 +239,7 @@ class RetrieveInput(BaseModel):
 
 class RetrieveOutput(BaseModel):
     """Collection of retrieved clinical guidelines mapped by analyte query."""
+
     request_id: str
     chunks_by_query: Dict[str, List[RetrievedChunk]] = Field(default_factory=dict)
     total_chunks: int = 0
@@ -227,10 +249,11 @@ class RetrieveOutput(BaseModel):
 # Stage 5: explain
 # ==============================================================================
 
-from src.citations.models import AttributedClaim
 
 class TestExplanationItem(BaseModel):
     """Bilingual educational explanation for an individual biomarker."""
+
+    __test__ = False
     test_name: str
     value_display: str
     flag: FlagStatus
@@ -248,6 +271,7 @@ class TestExplanationItem(BaseModel):
 
 class ExplainInput(BaseModel):
     """Input for synthesizing patient-facing explanations."""
+
     request_id: str = Field(default_factory=generate_request_id)
     extraction: ExtractValuesOutput
     retrieved_knowledge: RetrieveOutput
@@ -257,6 +281,7 @@ class ExplainInput(BaseModel):
 
 class ExplainOutput(BaseModel):
     """Assembled bilingual clinical explanations prior to final guardrail sanitization."""
+
     request_id: str
     patient_name: Optional[str] = None
     summary_en: str
@@ -271,8 +296,10 @@ class ExplainOutput(BaseModel):
 # Stage 6: output_guard
 # ==============================================================================
 
+
 class OutputGuardInput(BaseModel):
     """Input payload for Layer 3 output guardrails."""
+
     request_id: str = Field(default_factory=generate_request_id)
     explanation: ExplainOutput
     extracted_items: List[ExtractionOutputItem] = Field(default_factory=list)
@@ -281,6 +308,7 @@ class OutputGuardInput(BaseModel):
 
 class OutputGuardOutput(BaseModel):
     """Sanitized, safety-verified clinical explanation safe for patient presentation."""
+
     request_id: str
     is_safe: bool = True
     sanitized_summary_en: str

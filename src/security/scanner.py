@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import logging
-from pathlib import Path
 import re
+from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional, Union
 
 logger = logging.getLogger("security.scanner")
@@ -14,6 +14,7 @@ logger = logging.getLogger("security.scanner")
 @dataclass
 class SecurityScanResult:
     """Security assessment result for an uploaded document."""
+
     is_safe: bool
     threat_type: Optional[str] = None
     details: str = "Document passed all security checks."
@@ -37,9 +38,21 @@ class FileSecurityScanner:
     SUSPICIOUS_PDF_PATTERNS = [
         (re.compile(rb"/JavaScript\b", re.IGNORECASE), "Embedded PDF JavaScript (/JavaScript)", 80),
         (re.compile(rb"/JS\b", re.IGNORECASE), "Embedded PDF JavaScript (/JS)", 80),
-        (re.compile(rb"/Launch\b", re.IGNORECASE), "Arbitrary Process Launch Action (/Launch)", 100),
-        (re.compile(rb"/EmbeddedFiles\b", re.IGNORECASE), "Embedded Binary Attachment (/EmbeddedFiles)", 70),
-        (re.compile(rb"/RichMedia\b", re.IGNORECASE), "Embedded Flash / RichMedia Action (/RichMedia)", 90),
+        (
+            re.compile(rb"/Launch\b", re.IGNORECASE),
+            "Arbitrary Process Launch Action (/Launch)",
+            100,
+        ),
+        (
+            re.compile(rb"/EmbeddedFiles\b", re.IGNORECASE),
+            "Embedded Binary Attachment (/EmbeddedFiles)",
+            70,
+        ),
+        (
+            re.compile(rb"/RichMedia\b", re.IGNORECASE),
+            "Embedded Flash / RichMedia Action (/RichMedia)",
+            90,
+        ),
     ]
 
     def __init__(self, max_file_size_bytes: int = 50 * 1024 * 1024):
@@ -114,9 +127,9 @@ class FileSecurityScanner:
 
         elif file_ext in {".png", ".jpg", ".jpeg", ".webp"}:
             is_valid_img = (
-                content.startswith(b"\x89PNG\r\n\x1a\n") or  # PNG
-                content.startswith(b"\xff\xd8\xff") or        # JPEG
-                (content.startswith(b"RIFF") and b"WEBP" in content[:16])  # WebP
+                content.startswith(b"\x89PNG\r\n\x1a\n")  # PNG
+                or content.startswith(b"\xff\xd8\xff")  # JPEG
+                or (content.startswith(b"RIFF") and b"WEBP" in content[:16])  # WebP
             )
             if not is_valid_img:
                 return SecurityScanResult(

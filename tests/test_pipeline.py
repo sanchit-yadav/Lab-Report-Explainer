@@ -1,6 +1,7 @@
 """Integration test for the end-to-end LabReportPipeline."""
 
 from pathlib import Path
+
 import pytest
 
 from src.explainer.schema import ReportExplanation
@@ -71,7 +72,10 @@ def test_pipeline_answer_question_educational_and_blocked(pipeline):
     assert len(ans_safe["answer_en"]) > 20
     assert len(ans_safe["answer_hi"]) > 10
     assert len(ans_safe["source_urls"]) > 0
-    assert any(term in ans_safe["disclaimer"].lower() for term in ("doctor", "healthcare provider", "physician"))
+    assert any(
+        term in ans_safe["disclaimer"].lower()
+        for term in ("doctor", "healthcare provider", "physician")
+    )
 
 
 def test_pipeline_answer_question_with_chat_history(pipeline):
@@ -90,8 +94,8 @@ def test_pipeline_answer_question_with_chat_history(pipeline):
 
 def test_pipeline_process_multiple_reports(pipeline, tmp_path):
     # Test batch processing of multiple reports belonging to different patients
-    p1 = SAMPLE_DIR / "srl_lipid_panel.pdf"       # Pooja Patel (Female)
-    p2 = SAMPLE_DIR / "metropolis_liver.pdf"       # Vikram Singh (Male)
+    p1 = SAMPLE_DIR / "srl_lipid_panel.pdf"  # Pooja Patel (Female)
+    p2 = SAMPLE_DIR / "metropolis_liver.pdf"  # Vikram Singh (Male)
     if p1.exists() and p2.exists():
         res = pipeline.process_multiple_reports([p1, p2])
         assert isinstance(res, ReportExplanation)
@@ -101,5 +105,6 @@ def test_pipeline_process_multiple_reports(pipeline, tmp_path):
         assert any("Pooja" in k for k in res.patient_profiles)
         assert any("Vikram" in k for k in res.patient_profiles)
         assert res.patient_warning is not None
-        assert "mismatch" in res.patient_warning.lower() or "different" in res.patient_warning.lower()
-
+        assert (
+            "mismatch" in res.patient_warning.lower() or "different" in res.patient_warning.lower()
+        )

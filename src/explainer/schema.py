@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Dict, List, Optional
+
 from pydantic import BaseModel, Field
 
 from src.extraction.schema import FlagStatus, LabReport
@@ -14,11 +15,16 @@ from src.flagging.panic_values import PanicAlert
 
 class TestExplanation(BaseModel):
     """Bilingual, patient-centered explanation for a single lab test result."""
+
     __test__ = False
     test_name: str = Field(description="Name of the laboratory test")
     flag: FlagStatus = Field(description="Assigned categorical flag status")
-    explanation_en: str = Field(description="Clear, everyday English explanation of the test and result")
-    explanation_hi: str = Field(description="Natural, empathetic Hindi explanation of the test and result")
+    explanation_en: str = Field(
+        description="Clear, everyday English explanation of the test and result"
+    )
+    explanation_hi: str = Field(
+        description="Natural, empathetic Hindi explanation of the test and result"
+    )
     source_urls: List[str] = Field(default_factory=list, description="Verified source URLs cited")
     doctor_questions: List[str] = Field(
         default_factory=list,
@@ -32,6 +38,7 @@ class TestExplanation(BaseModel):
 
 class ReportExplanation(BaseModel):
     """Comprehensive structured explanation for an entire laboratory report."""
+
     __test__ = False
     patient_name: Optional[str] = None
     report_date: Optional[str] = None
@@ -40,23 +47,32 @@ class ReportExplanation(BaseModel):
     test_explanations: List[TestExplanation] = Field(default_factory=list)
     flagged_count: int = Field(default=0, description="Number of abnormal or out-of-range tests")
     total_tests: int = Field(default=0, description="Total tests processed")
-    raw_report: Optional[LabReport] = Field(default=None, description="Extracted and flagged LabReport data")
+    raw_report: Optional[LabReport] = Field(
+        default=None, description="Extracted and flagged LabReport data"
+    )
     correlations: List[ClinicalCorrelation] = Field(
         default_factory=list, description="Computed multi-analyte clinical correlations and ratios"
     )
     panic_alerts: List[PanicAlert] = Field(
-        default_factory=list, description="Life-threatening critical panic alerts requiring emergency care"
+        default_factory=list,
+        description="Life-threatening critical panic alerts requiring emergency care",
     )
     interferences: List[DrugLabInterference] = Field(
-        default_factory=list, description="Known drug and supplement pre-analytical assay interferences"
+        default_factory=list,
+        description="Known drug and supplement pre-analytical assay interferences",
     )
     lifestyle_guidance: List[LifestyleGuidance] = Field(
         default_factory=list, description="Guideline-grounded dietary and lifestyle recommendations"
     )
-    is_multi_patient: bool = Field(default=False, description="Whether multiple distinct patients were detected")
-    patient_warning: Optional[str] = Field(default=None, description="Clinical safety alert when multiple patients are detected")
+    is_multi_patient: bool = Field(
+        default=False, description="Whether multiple distinct patients were detected"
+    )
+    patient_warning: Optional[str] = Field(
+        default=None, description="Clinical safety alert when multiple patients are detected"
+    )
     patient_profiles: Dict[str, ReportExplanation] = Field(
-        default_factory=dict, description="Separated patient reports when multi-patient documents are uploaded"
+        default_factory=dict,
+        description="Separated patient reports when multi-patient documents are uploaded",
     )
     disclaimer: str = Field(
         default="⚠️ This explanation is for educational purposes only and is not a medical diagnosis. Please discuss all results with your doctor.",

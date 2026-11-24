@@ -58,6 +58,7 @@ class ExtractValuesStage:
         if not extracted_report or not extracted_report.tests:
             # Fallback to OCR parsed tables / lines from Stage 2
             from src.extraction.pdf_parser import PDFPlumberExtractor
+
             parser = PDFPlumberExtractor()
             fallback_tests = []
             for page in parsed.pages:
@@ -69,7 +70,9 @@ class ExtractValuesStage:
 
             if fallback_tests:
                 extracted_report = LabReport(
-                    patient_name=extracted_report.patient_name if extracted_report else inp.patient_name_hint,
+                    patient_name=extracted_report.patient_name
+                    if extracted_report
+                    else inp.patient_name_hint,
                     tests=fallback_tests,
                     extraction_method="ocr_parsed_fallback",
                 )
@@ -84,7 +87,9 @@ class ExtractValuesStage:
         extracted_report = LOINCMapper.enrich_report(extracted_report)
 
         # 2. Apply Demographic Interval Adjustments
-        extracted_report = DemographicIntervalEngine.apply_demographic_stratification(extracted_report)
+        extracted_report = DemographicIntervalEngine.apply_demographic_stratification(
+            extracted_report
+        )
 
         # 3. Compute Deterministic Range Flags (Pure deterministic Python, zero LLM)
         extracted_report = self.flagger.flag_report(extracted_report)
@@ -131,10 +136,17 @@ class ExtractValuesStage:
                 flag=flag_val,
                 source_page=getattr(test, "source_page", source_page) or source_page,
                 source_location=getattr(test, "source_location", None) or line_ref or f"line_{idx}",
-                source_bbox_or_line=getattr(test, "source_bbox_or_line", None) or line_ref or f"line_{idx}",
+                source_bbox_or_line=getattr(test, "source_bbox_or_line", None)
+                or line_ref
+                or f"line_{idx}",
                 confidence=getattr(test, "confidence", 0.95 if test.value is not None else 0.70),
                 raw_value=test.raw_value or (str(test.value) if test.value is not None else ""),
-                ref_raw=test.ref_raw or (f"{test.ref_low} - {test.ref_high}" if test.ref_low is not None and test.ref_high is not None else ""),
+                ref_raw=test.ref_raw
+                or (
+                    f"{test.ref_low} - {test.ref_high}"
+                    if test.ref_low is not None and test.ref_high is not None
+                    else ""
+                ),
                 loinc_code=test.loinc_code,
                 loinc_name=test.loinc_name,
                 category=test.category,
@@ -143,6 +155,7 @@ class ExtractValuesStage:
 
         # 5. Evaluate Biological Plausibility and OCR Scan Fidelity
         from src.security.plausibility import PlausibilityValidator
+
         plaus_check = PlausibilityValidator().validate_report(items)
         if plaus_check.needs_better_upload:
             logger.warning(
@@ -177,7 +190,9 @@ class ExtractValuesStage:
             extraction_method=extracted_report.extraction_method,
             needs_better_upload=plaus_check.needs_better_upload,
             implausible_findings=plaus_check.implausible_findings,
-            plausibility_advisory=plaus_check.advisory_message if plaus_check.needs_better_upload else None,
+            plausibility_advisory=plaus_check.advisory_message
+            if plaus_check.needs_better_upload
+            else None,
         )
 
 

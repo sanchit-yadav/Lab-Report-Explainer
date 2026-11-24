@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import io
 from pathlib import Path
+from typing import List
 
 from src.extraction.schema import FlagStatus
 from src.pipeline import LabReportPipeline
@@ -34,8 +35,9 @@ from src.stages.logger import sanitize_value
 def create_minimal_pdf_bytes(text_lines: List[str]) -> bytes:
     """Helper to synthesize valid minimal PDF bytes with text."""
     from pypdf import PdfWriter
+
     writer = PdfWriter()
-    page = writer.add_blank_page(width=612, height=792)
+    writer.add_blank_page(width=612, height=792)
     stream = io.BytesIO()
     writer.write(stream)
     return stream.getvalue()
@@ -44,6 +46,7 @@ def create_minimal_pdf_bytes(text_lines: List[str]) -> bytes:
 # ==============================================================================
 # Stage 1: validate_upload Tests
 # ==============================================================================
+
 
 def test_validate_upload_valid_pdf():
     stage = ValidateUploadStage()
@@ -76,6 +79,7 @@ def test_validate_upload_empty_file():
 # Stage 2: ocr_parse Tests
 # ==============================================================================
 
+
 def test_ocr_parse_stage():
     stage = OCRParseStage()
     sample_text = "Patient: John Doe\nGlucose Fasting: 110 mg/dL (70 - 99)\nHemoglobin: 14.2 g/dL (13.0 - 17.0)"
@@ -89,6 +93,7 @@ def test_ocr_parse_stage():
 # Stage 3: extract_values Deterministic Flagging Tests
 # ==============================================================================
 
+
 def test_extract_values_deterministic_flags():
     """Verify flags are computed strictly mathematically by code, never by LLM."""
     stage = ExtractValuesStage()
@@ -100,10 +105,10 @@ def test_extract_values_deterministic_flags():
         OCRLine(line_num=3, text="Hemoglobin 10.5 g/dL 13.0 - 17.0 Low"),
         OCRLine(line_num=4, text="Total Cholesterol 180 mg/dL 125.0 - 200.0 Normal"),
     ]
-    page = OCRPage(page_num=1, text="\n".join(l.text for l in lines), lines=lines)
+    page = OCRPage(page_num=1, text="\n".join(line.text for line in lines), lines=lines)
     parsed_doc = OCRParseOutput(
         request_id="test_req",
-        full_text="\n".join(l.text for l in lines),
+        full_text="\n".join(line.text for line in lines),
         pages=[page],
         total_pages=1,
     )
@@ -163,6 +168,7 @@ def test_deterministic_flag_pure_code_logic():
 # Stage 4: retrieve Tests
 # ==============================================================================
 
+
 def test_retrieve_stage():
     stage = RetrieveStage()
     inp = RetrieveInput(
@@ -183,6 +189,7 @@ def test_retrieve_stage():
 # ==============================================================================
 # Stage 5 & 6: explain and output_guard Tests
 # ==============================================================================
+
 
 def test_explain_and_output_guard_pipeline():
     explain_stage = ExplainStage()
@@ -253,6 +260,7 @@ def test_output_guard_numerical_discrepancy_detection():
     ]
     # Simulate LLM hallucinating a value (e.g. 280.5) that was never in the lab report
     from src.stages.schemas import ExplainOutput, TestExplanationItem
+
     exp_out = ExplainOutput(
         request_id="test_hallucination",
         summary_en="Your glucose is 280.5 mg/dL which is very high.",

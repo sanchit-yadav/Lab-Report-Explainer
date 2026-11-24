@@ -6,9 +6,9 @@ pediatric vs geriatric age brackets, and physiological states (e.g. pediatric bo
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import logging
 import re
+from dataclasses import dataclass
 from typing import Dict, Optional, Tuple
 
 from src.extraction.loinc_mapper import LOINCMapper
@@ -20,6 +20,7 @@ logger = logging.getLogger("flagging.demographics")
 @dataclass
 class DemographicContext:
     """Parsed patient demographic context for clinical interval stratification."""
+
     age_years: Optional[float] = None
     sex: Optional[str] = None  # "M", "F", or None
     is_pediatric: bool = False
@@ -181,7 +182,9 @@ class DemographicIntervalEngine:
             if note:
                 test.ref_low = low
                 test.ref_high = high
-                test.ref_raw = f"{low} - {high}" if low is not None and high is not None else test.ref_raw
+                test.ref_raw = (
+                    f"{low} - {high}" if low is not None and high is not None else test.ref_raw
+                )
                 logger.info(f"Refined {test.test_name} for patient demographic: {note}")
 
         return report

@@ -144,7 +144,9 @@ def test_get_db_generator():
     assert session is not None
     try:
         # Verify connection can execute a basic query
-        res = session.execute(Base.metadata.tables["users"].select() if "users" in Base.metadata.tables else None)
+        session.execute(
+            Base.metadata.tables["users"].select() if "users" in Base.metadata.tables else None
+        )
     except Exception:
         pass
     finally:

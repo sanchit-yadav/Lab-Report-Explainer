@@ -64,7 +64,7 @@ def test_router_non_numeric_report():
 
 def test_router_handles_raw_image_bytes():
     """Verify that image inputs are detected and routed directly to Tier 3 without crashing."""
-    from src.extraction.vision_parser import is_image_bytes, detect_mime_type
+    from src.extraction.vision_parser import detect_mime_type, is_image_bytes
 
     # 1. JPEG mock bytes
     fake_jpeg = b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00"

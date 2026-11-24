@@ -18,7 +18,9 @@ class DrugLabInterference:
     analyte_name: str
     substance_name: str
     category: str  # "Supplement", "Prescription", "Dietary Factor"
-    direction_of_skew: str  # "Falsely Elevates", "Falsely Lowers", "Clinically Elevates", "Clinically Depletes"
+    direction_of_skew: (
+        str  # "Falsely Elevates", "Falsely Lowers", "Clinically Elevates", "Clinically Depletes"
+    )
     clinical_mechanism_en: str
     clinical_mechanism_hi: str
     guidance_en: str
@@ -28,7 +30,15 @@ class DrugLabInterference:
 # Knowledge base of known pharmacological and supplement pre-analytical interactions
 INTERFERENCE_RULES = [
     {
-        "keywords": ["tsh", "thyroid stimulating hormone", "ft3", "ft4", "free t3", "free t4", "troponin"],
+        "keywords": [
+            "tsh",
+            "thyroid stimulating hormone",
+            "ft3",
+            "ft4",
+            "free t3",
+            "free t4",
+            "troponin",
+        ],
         "substance": "Biotin (Vitamin B7 / Hair & Nail Supplements)",
         "category": "Over-the-Counter Supplement",
         "direction": "Falsely Distorts (Immunoassay Interference)",
@@ -100,7 +110,8 @@ class DrugInterferenceEngine:
 
         # Identify tests that are abnormal or flagged
         flagged_tests = [
-            t for t in tests
+            t
+            for t in tests
             if t.flag not in (FlagStatus.NORMAL, FlagStatus.UNKNOWN) or t.value is not None
         ]
 

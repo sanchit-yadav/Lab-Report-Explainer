@@ -1,6 +1,7 @@
 """Tests for Phase 2: Production Secrets, Security Hardening, Rate Limiting, and DB Pooling."""
 
 from unittest.mock import MagicMock
+
 import pytest
 from fastapi import HTTPException
 
@@ -17,7 +18,9 @@ def test_validate_jwt_security_rejects_default_in_production(monkeypatch):
 
     with pytest.raises(RuntimeError) as exc_info:
         validate_jwt_security()
-    assert "default development JWT_SECRET_KEY is being used in a production environment" in str(exc_info.value)
+    assert "default development JWT_SECRET_KEY is being used in a production environment" in str(
+        exc_info.value
+    )
 
 
 def test_validate_jwt_security_rejects_short_key_in_production(monkeypatch):

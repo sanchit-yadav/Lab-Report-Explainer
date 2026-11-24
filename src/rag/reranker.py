@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 import os
 import threading
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from src.config import RerankerConfig, get_config
 
@@ -53,7 +53,9 @@ class CrossEncoderReranker:
                 self._model_cache[self.model_name] = model
                 self._model = model
             except Exception as e:
-                logger.warning(f"Could not initialize CrossEncoder ({e}). Re-ranking will pass-through.")
+                logger.warning(
+                    f"Could not initialize CrossEncoder ({e}). Re-ranking will pass-through."
+                )
                 self.enabled = False
         return self._model_cache.get(self.model_name)
 
@@ -100,7 +102,9 @@ class CrossEncoderReranker:
             )
             return sorted_candidates[:n]
         except Exception as e:
-            logger.warning(f"Error during cross-encoder re-ranking: {e}. Falling back to vector ranking.")
+            logger.warning(
+                f"Error during cross-encoder re-ranking: {e}. Falling back to vector ranking."
+            )
             return candidates[:n]
 
     def rerank_batch(
@@ -149,5 +153,7 @@ class CrossEncoderReranker:
                 results.append(sorted_c[:n])
             return results
         except Exception as e:
-            logger.warning(f"Error during batched cross-encoder re-ranking: {e}. Falling back to unranked.")
+            logger.warning(
+                f"Error during batched cross-encoder re-ranking: {e}. Falling back to unranked."
+            )
             return [cands[:n] for _, cands in batch_items]

@@ -1,7 +1,9 @@
 """Tests for observability and distributed tracing module."""
 
-import pytest
 import time
+
+import pytest
+
 from src.tracing.langfuse_setup import LocalSpan, LocalTrace, calculate_cost, get_tracer
 
 
@@ -67,7 +69,7 @@ def test_tracer_context_managers():
             span.set_output(tests_found=5)
 
         with pytest.raises(ValueError):
-            with tracer.span("failing_step", parent_trace=trace) as fail_span:
+            with tracer.span("failing_step", parent_trace=trace):
                 raise ValueError("Deliberate failure")
 
     assert trace.elapsed_ms > 0
@@ -162,4 +164,3 @@ def test_recent_traces_ring_buffer():
     assert len(recent) >= 1
     found = any(tr.get("trace_id") == "ring-123" for tr in recent)
     assert found
-

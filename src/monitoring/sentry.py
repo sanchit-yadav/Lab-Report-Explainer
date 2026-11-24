@@ -12,14 +12,11 @@ import os
 import re
 from typing import Any, Dict, Optional
 
-
 logger = logging.getLogger("sentry_monitor")
 
 # Regex patterns for Protected Health Information (PHI)
 PHI_EMAIL_PATTERN = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
-PHI_PHONE_PATTERN = re.compile(
-    r"\b(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b"
-)
+PHI_PHONE_PATTERN = re.compile(r"\b(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b")
 PHI_SURROGATE_PATTERN = re.compile(
     r"\[(PATIENT_NAME|DOB|PHONE|EMAIL|MRN|DOCTOR|ADDRESS|IDENTIFIER|AGE)_\d+\]",
     re.IGNORECASE,
@@ -90,13 +87,9 @@ def scrub_phi_from_event(
     # 2. Scrub logentry message
     if "logentry" in event and isinstance(event["logentry"], dict):
         if "formatted" in event["logentry"]:
-            event["logentry"]["formatted"] = scrub_phi_from_text(
-                event["logentry"]["formatted"]
-            )
+            event["logentry"]["formatted"] = scrub_phi_from_text(event["logentry"]["formatted"])
         if "message" in event["logentry"]:
-            event["logentry"]["message"] = scrub_phi_from_text(
-                event["logentry"]["message"]
-            )
+            event["logentry"]["message"] = scrub_phi_from_text(event["logentry"]["message"])
 
     # 3. Scrub exceptions and stack trace frame variables
     if "exception" in event and isinstance(event["exception"], dict):

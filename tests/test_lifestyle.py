@@ -22,7 +22,9 @@ def test_lifestyle_engine_detects_dyslipidemia():
 def test_lifestyle_engine_detects_glycemic_and_liver():
     engine = LifestyleEngine()
     tests = [
-        TestResult(test_name="Fasting Blood Sugar", value=140.0, unit="mg/dL", flag=FlagStatus.HIGH),
+        TestResult(
+            test_name="Fasting Blood Sugar", value=140.0, unit="mg/dL", flag=FlagStatus.HIGH
+        ),
         TestResult(test_name="HbA1c", value=7.2, unit="%", flag=FlagStatus.HIGH),
         TestResult(test_name="SGPT (ALT)", value=75.0, unit="U/L", flag=FlagStatus.HIGH),
     ]
@@ -35,8 +37,12 @@ def test_lifestyle_engine_detects_glycemic_and_liver():
 def test_lifestyle_engine_ignores_all_normal_tests():
     engine = LifestyleEngine()
     tests = [
-        TestResult(test_name="Total Cholesterol", value=170.0, unit="mg/dL", flag=FlagStatus.NORMAL),
-        TestResult(test_name="Fasting Blood Sugar", value=85.0, unit="mg/dL", flag=FlagStatus.NORMAL),
+        TestResult(
+            test_name="Total Cholesterol", value=170.0, unit="mg/dL", flag=FlagStatus.NORMAL
+        ),
+        TestResult(
+            test_name="Fasting Blood Sugar", value=85.0, unit="mg/dL", flag=FlagStatus.NORMAL
+        ),
     ]
     guidance = engine.evaluate(tests)
     assert len(guidance) == 0

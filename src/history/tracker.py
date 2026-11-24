@@ -12,6 +12,7 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+
 from pydantic import BaseModel, Field
 
 from src.extraction.schema import FlagStatus, LabReport, TestResult
@@ -26,6 +27,7 @@ class TrendDirection(str, Enum):
 
 class AnalyteDataPoint(BaseModel):
     """A single chronological measurement of an analyte."""
+
     date_str: str = Field(description="Date string from the report")
     timestamp: float = Field(default=0.0, description="Unix timestamp for sorting")
     value: float = Field(description="Numeric analyte value")
@@ -35,6 +37,7 @@ class AnalyteDataPoint(BaseModel):
 
 class AnalyteTrend(BaseModel):
     """Historical progression of a single analyte across multiple dates."""
+
     test_name: str
     unit: str = ""
     data_points: List[AnalyteDataPoint] = Field(default_factory=list)
@@ -54,8 +57,14 @@ def _parse_report_date(date_str: Optional[str]) -> Tuple[float, str]:
 
     cleaned = date_str.strip()
     date_formats = [
-        "%d-%b-%Y", "%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y",
-        "%d %b %Y", "%d %B %Y", "%m/%d/%Y", "%b %d, %Y",
+        "%d-%b-%Y",
+        "%d/%m/%Y",
+        "%Y-%m-%d",
+        "%d-%m-%Y",
+        "%d %b %Y",
+        "%d %B %Y",
+        "%m/%d/%Y",
+        "%b %d, %Y",
     ]
     for fmt in date_formats:
         try:
@@ -100,8 +109,7 @@ class HistoryTracker:
         if patient_name:
             norm_target = normalize_patient_name(patient_name)
             target_reports = [
-                r for r in self.reports
-                if normalize_patient_name(r.patient_name) == norm_target
+                r for r in self.reports if normalize_patient_name(r.patient_name) == norm_target
             ]
         elif self.reports:
             match_res = group_reports_by_patient(self.reports)
@@ -110,8 +118,7 @@ class HistoryTracker:
                 latest_pname = self.reports[-1].patient_name
                 norm_target = normalize_patient_name(latest_pname)
                 target_reports = [
-                    r for r in self.reports
-                    if normalize_patient_name(r.patient_name) == norm_target
+                    r for r in self.reports if normalize_patient_name(r.patient_name) == norm_target
                 ]
 
         # 1. Group tests by canonical/normalized test name
@@ -205,12 +212,8 @@ class HistoryTracker:
                         f"{change_sign}{delta_abs} {unit} ({change_sign}{delta_pct}%) का प्रतिकूल बदलाव देखा गया है।"
                     )
                 else:
-                    n_en = (
-                        f"{name} remained stable at {curr_val} {unit} compared to {prev_date} ({prev_val} {unit})."
-                    )
-                    n_hi = (
-                        f"{name} {prev_date} ({prev_val} {unit}) की तुलना में {curr_val} {unit} पर स्थिर बना हुआ है।"
-                    )
+                    n_en = f"{name} remained stable at {curr_val} {unit} compared to {prev_date} ({prev_val} {unit})."
+                    n_hi = f"{name} {prev_date} ({prev_val} {unit}) की तुलना में {curr_val} {unit} पर स्थिर बना हुआ है।"
 
                 trends[name] = AnalyteTrend(
                     test_name=name,

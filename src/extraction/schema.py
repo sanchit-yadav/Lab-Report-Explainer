@@ -10,20 +10,24 @@ from pydantic import BaseModel, Field
 
 class FlagStatus(str, Enum):
     """Categorical flag assigned to a laboratory test result."""
+
     NORMAL = "normal"
     HIGH = "high"
     LOW = "low"
     CRITICAL_HIGH = "critical_high"
     CRITICAL_LOW = "critical_low"
-    UNKNOWN = "unknown"      # Used when reference range is not provided or unparseable
-    ABNORMAL = "abnormal"    # Used for non-numeric abnormal findings (e.g. 'Positive', 'Reactive')
+    UNKNOWN = "unknown"  # Used when reference range is not provided or unparseable
+    ABNORMAL = "abnormal"  # Used for non-numeric abnormal findings (e.g. 'Positive', 'Reactive')
 
 
 class TestResult(BaseModel):
     """Structured representation of an individual laboratory analyte test result."""
+
     __test__ = False
     test_name: str = Field(description="Name or description of the lab test")
-    value: Optional[float] = Field(default=None, description="Numeric result value, or None if non-numeric")
+    value: Optional[float] = Field(
+        default=None, description="Numeric result value, or None if non-numeric"
+    )
     raw_value: str = Field(default="", description="Original string value extracted from report")
     unit: str = Field(default="", description="Measurement unit (e.g. g/dL, mg/dL)")
     ref_low: Optional[float] = Field(default=None, description="Lower bound of reference range")
@@ -31,22 +35,43 @@ class TestResult(BaseModel):
     ref_raw: str = Field(default="", description="Original reference range string from report")
     flag: FlagStatus = Field(default=FlagStatus.UNKNOWN, description="Assigned flag status")
     source_page: int = Field(default=1, description="1-indexed document page number")
-    source_bbox_or_line: Optional[str] = Field(default=None, description="Bounding box [x0, y0, x1, y1] or line reference")
-    source_location: Optional[str] = Field(default=None, description="Spatial location, row/column or table reference")
-    confidence: float = Field(default=1.0, ge=0.0, le=1.0, description="Extraction confidence score")
-    extraction_tier: int = Field(default=1, description="Tier that extracted this record: 1, 2, or 3")
-    loinc_code: Optional[str] = Field(default=None, description="Standardized LOINC ontology code (e.g. 2093-3)")
-    loinc_name: Optional[str] = Field(default=None, description="Standard LOINC analyte display description")
-    category: Optional[str] = Field(default=None, description="Clinical category (e.g. Lipid, Hematology, Renal)")
+    source_bbox_or_line: Optional[str] = Field(
+        default=None, description="Bounding box [x0, y0, x1, y1] or line reference"
+    )
+    source_location: Optional[str] = Field(
+        default=None, description="Spatial location, row/column or table reference"
+    )
+    confidence: float = Field(
+        default=1.0, ge=0.0, le=1.0, description="Extraction confidence score"
+    )
+    extraction_tier: int = Field(
+        default=1, description="Tier that extracted this record: 1, 2, or 3"
+    )
+    loinc_code: Optional[str] = Field(
+        default=None, description="Standardized LOINC ontology code (e.g. 2093-3)"
+    )
+    loinc_name: Optional[str] = Field(
+        default=None, description="Standard LOINC analyte display description"
+    )
+    category: Optional[str] = Field(
+        default=None, description="Clinical category (e.g. Lipid, Hematology, Renal)"
+    )
 
 
 class LabReport(BaseModel):
     """Structured representation of a complete laboratory report."""
+
     patient_name: Optional[str] = Field(default=None, description="Patient name if present")
     patient_age: Optional[str] = Field(default=None, description="Patient age if present")
     patient_gender: Optional[str] = Field(default=None, description="Patient gender if present")
     report_date: Optional[str] = Field(default=None, description="Date of collection/reporting")
     lab_name: Optional[str] = Field(default=None, description="Diagnostic center / lab name")
-    report_type: str = Field(default="blood_test", description="Type of report (e.g. blood_test, ultrasound)")
-    tests: List[TestResult] = Field(default_factory=list, description="Extracted individual test results")
-    extraction_method: str = Field(default="pdfplumber", description="Extractor utilized: pdfplumber | camelot | vision")
+    report_type: str = Field(
+        default="blood_test", description="Type of report (e.g. blood_test, ultrasound)"
+    )
+    tests: List[TestResult] = Field(
+        default_factory=list, description="Extracted individual test results"
+    )
+    extraction_method: str = Field(
+        default="pdfplumber", description="Extractor utilized: pdfplumber | camelot | vision"
+    )

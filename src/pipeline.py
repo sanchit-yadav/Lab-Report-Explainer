@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from concurrent.futures import ThreadPoolExecutor
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any, BinaryIO, Dict, List, Optional, Union
 
@@ -12,7 +12,7 @@ from src.explainer.generator import ExplanationGenerator
 from src.explainer.schema import ReportExplanation, TestExplanation
 from src.extraction.loinc_mapper import LOINCMapper
 from src.extraction.router import ExtractionRouter
-from src.extraction.schema import FlagStatus, LabReport
+from src.extraction.schema import FlagStatus, LabReport, TestResult
 from src.flagging.correlations import CorrelationEngine
 from src.flagging.demographics import DemographicIntervalEngine
 from src.flagging.flagger import Flagger
@@ -82,15 +82,23 @@ class LabReportPipeline:
         self.stage_explain = ExplainStage()
         self.stage_output_guard = OutputGuardStage()
 
-    def run_stage_validate(self, file_bytes: bytes, filename: str, request_id: Optional[str] = None) -> ValidateUploadOutput:
+    def run_stage_validate(
+        self, file_bytes: bytes, filename: str, request_id: Optional[str] = None
+    ) -> ValidateUploadOutput:
         """Execute Stage 1: Upload Validation & Security Sanitization."""
         req_id = request_id or generate_request_id()
-        return self.stage_validate(ValidateUploadInput(file_bytes=file_bytes, filename=filename, request_id=req_id))
+        return self.stage_validate(
+            ValidateUploadInput(file_bytes=file_bytes, filename=filename, request_id=req_id)
+        )
 
-    def run_stage_ocr(self, file_bytes: bytes, filename: str, request_id: Optional[str] = None) -> OCRParseOutput:
+    def run_stage_ocr(
+        self, file_bytes: bytes, filename: str, request_id: Optional[str] = None
+    ) -> OCRParseOutput:
         """Execute Stage 2: OCR & Layout Geometry Parsing."""
         req_id = request_id or generate_request_id()
-        return self.stage_ocr(OCRParseInput(file_bytes=file_bytes, filename=filename, request_id=req_id))
+        return self.stage_ocr(
+            OCRParseInput(file_bytes=file_bytes, filename=filename, request_id=req_id)
+        )
 
     def run_stage_extract(
         self,
@@ -100,9 +108,13 @@ class LabReportPipeline:
     ) -> ExtractValuesOutput:
         """Execute Stage 3: Biomarker Value Extraction with Deterministic Range Flagging."""
         req_id = request_id or generate_request_id()
-        return self.stage_extract(ExtractValuesInput(parsed_doc=parsed_doc, raw_bytes=raw_bytes, request_id=req_id))
+        return self.stage_extract(
+            ExtractValuesInput(parsed_doc=parsed_doc, raw_bytes=raw_bytes, request_id=req_id)
+        )
 
-    def run_stage_retrieve(self, queries: List[str], request_id: Optional[str] = None) -> RetrieveOutput:
+    def run_stage_retrieve(
+        self, queries: List[str], request_id: Optional[str] = None
+    ) -> RetrieveOutput:
         """Execute Stage 4: Clinical Knowledge Retrieval & Cross-Encoder Reranking."""
         req_id = request_id or generate_request_id()
         return self.stage_retrieve(RetrieveInput(queries=queries, request_id=req_id))
@@ -151,7 +163,9 @@ class LabReportPipeline:
         """Execute all six stages sequentially in an independently verifiable chain with PII-safe tracing."""
         req_id = request_id or generate_request_id()
 
-        with self.tracer.start_trace("modular_pipeline", request_id=req_id, filename=filename) as trace:
+        with self.tracer.start_trace(
+            "modular_pipeline", request_id=req_id, filename=filename
+        ) as trace:
             # Stage 1: Validate upload
             with self.tracer.span("stage_1_validate", parent_trace=trace) as s_val:
                 s_val.set_input(filename=filename, file_size_bytes=len(file_bytes))
@@ -170,13 +184,23 @@ class LabReportPipeline:
             # Stage 3: Extract values with deterministic flags
             with self.tracer.span("stage_3_extract", parent_trace=trace) as s_ext:
                 s_ext.set_input(total_pages=ocr_out.total_pages)
-                ext_out = self.run_stage_extract(ocr_out, raw_bytes=val_out.sanitized_bytes, request_id=req_id)
-                flagged_count = sum(1 for item in ext_out.items if item.flag not in (FlagStatus.NORMAL, FlagStatus.UNKNOWN))
-                s_ext.set_output(biomarkers_extracted=len(ext_out.items), flagged_count=flagged_count)
+                ext_out = self.run_stage_extract(
+                    ocr_out, raw_bytes=val_out.sanitized_bytes, request_id=req_id
+                )
+                flagged_count = sum(
+                    1
+                    for item in ext_out.items
+                    if item.flag not in (FlagStatus.NORMAL, FlagStatus.UNKNOWN)
+                )
+                s_ext.set_output(
+                    biomarkers_extracted=len(ext_out.items), flagged_count=flagged_count
+                )
 
             # Stage 4: Knowledge retrieval
             with self.tracer.span("stage_4_retrieve", parent_trace=trace) as s_ret:
-                queries = [f"{item.test_name} {item.flag.value} lab test meaning" for item in ext_out.items]
+                queries = [
+                    f"{item.test_name} {item.flag.value} lab test meaning" for item in ext_out.items
+                ]
                 s_ret.set_input(query_count=len(queries))
                 ret_out = self.run_stage_retrieve(queries, req_id)
                 s_ret.set_output(total_chunks=ret_out.total_chunks)
@@ -186,7 +210,10 @@ class LabReportPipeline:
                 s_exp.set_input(explain_all=explain_all, query_count=len(queries))
                 exp_out = self.run_stage_explain(ext_out, ret_out, req_id, explain_all=explain_all)
                 total_citations = sum(len(t.claims) for t in exp_out.test_explanations)
-                s_exp.set_output(explanations_count=len(exp_out.test_explanations), citations_count=total_citations)
+                s_exp.set_output(
+                    explanations_count=len(exp_out.test_explanations),
+                    citations_count=total_citations,
+                )
 
             # Stage 6: Output guardrails & numerical check
             with self.tracer.span("stage_6_guard", parent_trace=trace) as s_grd:
@@ -217,7 +244,9 @@ class LabReportPipeline:
                 with self.tracer.span("input_guard", trace) as s_guard:
                     s_guard.set_input(user_question=user_question)
                     guard_res = self.check_user_input(user_question)
-                    s_guard.set_output(blocked=guard_res.blocked, category=guard_res.violation_category)
+                    s_guard.set_output(
+                        blocked=guard_res.blocked, category=guard_res.violation_category
+                    )
                     if guard_res.blocked:
                         return ReportExplanation(
                             report_summary_en=guard_res.safe_response_en,
@@ -237,7 +266,9 @@ class LabReportPipeline:
                     patient_id=getattr(lab_report, "patient_id", "ANONYMIZED"),
                 )
 
-            return self._explain_single_lab_report(lab_report, explain_all_tests=explain_all_tests, trace=trace)
+            return self._explain_single_lab_report(
+                lab_report, explain_all_tests=explain_all_tests, trace=trace
+            )
 
     def explain_lab_report(
         self,
@@ -246,13 +277,15 @@ class LabReportPipeline:
     ) -> ReportExplanation:
         """Process an already extracted/confirmed LabReport through flagging, RAG, and explanation synthesis."""
         with self.tracer.start_trace("explain_lab_report", explain_all=explain_all_tests) as trace:
-            return self._explain_single_lab_report(lab_report, explain_all_tests=explain_all_tests, trace=trace)
+            return self._explain_single_lab_report(
+                lab_report, explain_all_tests=explain_all_tests, trace=trace
+            )
 
     def _explain_single_lab_report(
         self,
         lab_report: LabReport,
         explain_all_tests: bool = False,
-        trace = None,
+        trace=None,
     ) -> ReportExplanation:
         """Internal helper to flag, evaluate correlations, run RAG, and assemble explanation for a single report."""
         # Step 2A: LOINC Standard Ontology Mapping & Demographic Stratification
@@ -265,7 +298,9 @@ class LabReportPipeline:
             with flag_span as s_flag:
                 lab_report = self.flagger.flag_report(lab_report)
                 flagged_count = sum(
-                    1 for t in lab_report.tests if t.flag not in (FlagStatus.NORMAL, FlagStatus.UNKNOWN)
+                    1
+                    for t in lab_report.tests
+                    if t.flag not in (FlagStatus.NORMAL, FlagStatus.UNKNOWN)
                 )
                 s_flag.set_output(flagged_count=flagged_count)
         else:
@@ -293,7 +328,8 @@ class LabReportPipeline:
 
         # Step 3 & 4: RAG Retrieval + Re-ranking and LLM Explanation (Concurrent Execution)
         tests_to_explain = [
-            test for test in lab_report.tests
+            test
+            for test in lab_report.tests
             if (test.flag not in (FlagStatus.NORMAL, FlagStatus.UNKNOWN)) or explain_all_tests
         ]
 
@@ -304,12 +340,18 @@ class LabReportPipeline:
             rag_span = self.tracer.span(f"rag_{test.test_name}", trace) if trace else None
             if rag_span:
                 with rag_span as s_rag:
-                    candidates = self.retriever.retrieve(query, top_k=self.config.rag.retrieval.top_k)
-                    reranked = self.reranker.rerank(query, candidates, top_n=self.config.rag.reranker.top_n)
+                    candidates = self.retriever.retrieve(
+                        query, top_k=self.config.rag.retrieval.top_k
+                    )
+                    reranked = self.reranker.rerank(
+                        query, candidates, top_n=self.config.rag.reranker.top_n
+                    )
                     s_rag.set_output(top_candidates=[c["id"] for c in reranked])
             else:
                 candidates = self.retriever.retrieve(query, top_k=self.config.rag.retrieval.top_k)
-                reranked = self.reranker.rerank(query, candidates, top_n=self.config.rag.reranker.top_n)
+                reranked = self.reranker.rerank(
+                    query, candidates, top_n=self.config.rag.reranker.top_n
+                )
 
             # 4: LLM Generation
             gen_span = self.tracer.span(f"generation_{test.test_name}", trace) if trace else None
@@ -317,7 +359,10 @@ class LabReportPipeline:
                 with gen_span as s_gen:
                     explanation = self.generator.explain_test(test, reranked)
                     in_tok = len(query.split()) * 4 + 400
-                    out_tok = (len(explanation.explanation_en.split()) + len(explanation.explanation_hi.split())) * 2
+                    out_tok = (
+                        len(explanation.explanation_en.split())
+                        + len(explanation.explanation_hi.split())
+                    ) * 2
                     if trace:
                         trace.add_tokens(self.config.models.explanation_llm, in_tok, out_tok)
                     s_gen.set_output(sources_count=len(explanation.source_urls))
@@ -363,11 +408,15 @@ class LabReportPipeline:
 
         # Step 7: Local re-hydration of surrogate tokens for patient presentation
         if phi_mapping:
-            final_report.patient_name = self.deidentifier.de_anonymize_text(final_report.patient_name or "", phi_mapping)
-            final_report.report_summary_en, final_report.report_summary_hi = self.deidentifier.de_anonymize_explanation(
-                final_report.report_summary_en,
-                final_report.report_summary_hi,
-                phi_mapping,
+            final_report.patient_name = self.deidentifier.de_anonymize_text(
+                final_report.patient_name or "", phi_mapping
+            )
+            final_report.report_summary_en, final_report.report_summary_hi = (
+                self.deidentifier.de_anonymize_explanation(
+                    final_report.report_summary_en,
+                    final_report.report_summary_hi,
+                    phi_mapping,
+                )
             )
 
         return final_report
@@ -439,6 +488,7 @@ class LabReportPipeline:
 
             # Check Patient Compatibility to Prevent Cross-Contamination
             from src.extraction.patient_matcher import group_reports_by_patient
+
             match_res = group_reports_by_patient(extracted_reports)
 
             if not match_res.is_single_patient:
@@ -449,10 +499,14 @@ class LabReportPipeline:
 
                 for patient_label, cohort in match_res.patient_groups.items():
                     if len(cohort) == 1:
-                        p_exp = self._explain_single_lab_report(cohort[0], explain_all_tests=explain_all_tests, trace=trace)
+                        p_exp = self._explain_single_lab_report(
+                            cohort[0], explain_all_tests=explain_all_tests, trace=trace
+                        )
                     else:
                         merged_p = self._merge_reports_for_single_patient(cohort)
-                        p_exp = self._explain_single_lab_report(merged_p, explain_all_tests=explain_all_tests, trace=trace)
+                        p_exp = self._explain_single_lab_report(
+                            merged_p, explain_all_tests=explain_all_tests, trace=trace
+                        )
 
                     patient_profiles[patient_label] = p_exp
                     total_tests_all += p_exp.total_tests
@@ -461,7 +515,8 @@ class LabReportPipeline:
                 return ReportExplanation(
                     patient_name="Multiple Patients",
                     report_summary_en=match_res.warning_message_en or "Multiple patients detected.",
-                    report_summary_hi=match_res.warning_message_hi or "विभिन्न मरीजों की रिपोर्ट पाई गई।",
+                    report_summary_hi=match_res.warning_message_hi
+                    or "विभिन्न मरीजों की रिपोर्ट पाई गई।",
                     total_tests=total_tests_all,
                     flagged_count=total_flagged_all,
                     is_multi_patient=True,
@@ -471,7 +526,9 @@ class LabReportPipeline:
 
             # SINGLE-PATIENT CASE: Safe to merge
             merged_report = self._merge_reports_for_single_patient(extracted_reports)
-            return self._explain_single_lab_report(merged_report, explain_all_tests=explain_all_tests, trace=trace)
+            return self._explain_single_lab_report(
+                merged_report, explain_all_tests=explain_all_tests, trace=trace
+            )
 
     def answer_question(
         self,
@@ -499,8 +556,12 @@ class LabReportPipeline:
 
             # 2. RAG Retrieval & Re-ranking
             with self.tracer.span("rag_retrieval", trace) as s_rag:
-                candidates = self.retriever.retrieve(question, top_k=self.config.rag.retrieval.top_k)
-                reranked = self.reranker.rerank(question, candidates, top_n=self.config.rag.reranker.top_n)
+                candidates = self.retriever.retrieve(
+                    question, top_k=self.config.rag.retrieval.top_k
+                )
+                reranked = self.reranker.rerank(
+                    question, candidates, top_n=self.config.rag.reranker.top_n
+                )
                 context_chunks = [c.get("text", "") for c in reranked if c.get("text")]
                 source_urls: List[str] = []
                 for c in reranked:
@@ -510,7 +571,7 @@ class LabReportPipeline:
                 s_rag.set_output(sources_found=len(source_urls))
 
             # 3. Generation with Conversational History
-            with self.tracer.span("generation_qa", trace) as s_gen:
+            with self.tracer.span("generation_qa", trace):
                 history_text = ""
                 if chat_history:
                     recent_turns = []
@@ -542,7 +603,9 @@ class LabReportPipeline:
                 augmented_parts.append(f"Current Question: {anon_q_res.sanitized_text}")
                 augmented_q = "\n\n".join(augmented_parts)
 
-                ans_en, ans_hi = self.generator.answer_question(augmented_q, context_chunks, source_urls)
+                ans_en, ans_hi = self.generator.answer_question(
+                    augmented_q, context_chunks, source_urls
+                )
                 in_tok = len(augmented_q.split()) * 4 + 400
                 out_tok = (len(ans_en.split()) + len(ans_hi.split())) * 2
                 trace.add_tokens(self.config.models.explanation_llm, in_tok, out_tok)

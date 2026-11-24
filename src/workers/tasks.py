@@ -34,7 +34,7 @@ try:
         enable_utc=True,
         task_track_started=True,
         worker_prefetch_multiplier=1,  # Fair distribution for heavy OCR tasks
-        task_acks_late=True,           # Ensure task re-queues if worker pod dies
+        task_acks_late=True,  # Ensure task re-queues if worker pod dies
     )
     CELERY_AVAILABLE = True
 except ImportError:
@@ -63,7 +63,9 @@ def run_pipeline_sync(
         record.update_progress(JobStatus.EXTRACTING, 20, "Extracting document data in worker...")
         pipeline = LabReportPipeline()
 
-        record.update_progress(JobStatus.FLAGGING, 40, "Flagging reference ranges & panic values...")
+        record.update_progress(
+            JobStatus.FLAGGING, 40, "Flagging reference ranges & panic values..."
+        )
         explanation: ReportExplanation = pipeline.process_report(
             Path(file_path_str),
             None,
@@ -91,6 +93,7 @@ def run_pipeline_sync(
 
 
 if CELERY_AVAILABLE and celery_app is not None:
+
     @celery_app.task(name="tasks.process_lab_report", bind=True)
     def process_lab_report_task(self, job_id: str, file_path_str: str, explain_all: bool = False):
         """Celery task entrypoint."""

@@ -45,12 +45,12 @@ except Exception as e:
 # Clinical Badge Colors for PDF Table
 STATUS_COLORS = {
     FlagStatus.CRITICAL_HIGH: colors.HexColor("#dc2626"),  # Red
-    FlagStatus.CRITICAL_LOW: colors.HexColor("#dc2626"),   # Red
-    FlagStatus.HIGH: colors.HexColor("#d97706"),           # Amber
-    FlagStatus.LOW: colors.HexColor("#d97706"),            # Amber
-    FlagStatus.NORMAL: colors.HexColor("#16a34a"),         # Green
-    FlagStatus.ABNORMAL: colors.HexColor("#ea580c"),       # Orange
-    FlagStatus.UNKNOWN: colors.HexColor("#64748b"),        # Slate
+    FlagStatus.CRITICAL_LOW: colors.HexColor("#dc2626"),  # Red
+    FlagStatus.HIGH: colors.HexColor("#d97706"),  # Amber
+    FlagStatus.LOW: colors.HexColor("#d97706"),  # Amber
+    FlagStatus.NORMAL: colors.HexColor("#16a34a"),  # Green
+    FlagStatus.ABNORMAL: colors.HexColor("#ea580c"),  # Orange
+    FlagStatus.UNKNOWN: colors.HexColor("#64748b"),  # Slate
 }
 
 STATUS_BG_COLORS = {
@@ -87,7 +87,7 @@ def generate_doctor_brief_pdf(
         bottomMargin=36,
     )
 
-    use_hindi_font = (lang == "hi" and HINDI_FONT_AVAILABLE)
+    use_hindi_font = lang == "hi" and HINDI_FONT_AVAILABLE
     body_font = "Nirmala" if use_hindi_font else FONT_REGULAR
     bold_font = "Nirmala-Bold" if use_hindi_font else FONT_BOLD
 
@@ -168,7 +168,9 @@ def generate_doctor_brief_pdf(
     )
     story.append(Paragraph(f"<b>{header_title}</b>", title_style))
     story.append(Paragraph(header_subtitle, subtitle_style))
-    story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#0284c7"), spaceAfter=10))
+    story.append(
+        HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#0284c7"), spaceAfter=10)
+    )
 
     # 2. Patient & Report Metadata Bar
     raw_report: Optional[LabReport] = explanation.raw_report
@@ -182,24 +184,35 @@ def generate_doctor_brief_pdf(
             Paragraph(f"<b>Date:</b> {r_date}", body_style),
             Paragraph(f"<b>Lab:</b> {lab_name}", body_style),
             Paragraph(f"<b>Parameters:</b> {explanation.total_tests}", body_style),
-            Paragraph(f"<b>Out of Range:</b> <font color='#dc2626'><b>{explanation.flagged_count}</b></font>", body_style),
+            Paragraph(
+                f"<b>Out of Range:</b> <font color='#dc2626'><b>{explanation.flagged_count}</b></font>",
+                body_style,
+            ),
         ]
     ]
-    meta_table = Table(meta_data, colWidths=[1.5 * inch, 1.2 * inch, 1.8 * inch, 1.2 * inch, 1.3 * inch])
+    meta_table = Table(
+        meta_data, colWidths=[1.5 * inch, 1.2 * inch, 1.8 * inch, 1.2 * inch, 1.3 * inch]
+    )
     meta_table.setStyle(
-        TableStyle([
-            ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f8fafc")),
-            ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
-            ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#e2e8f0")),
-            ("TOPPADDING", (0, 0), (-1, -1), 6),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-        ])
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f8fafc")),
+                ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
+                ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#e2e8f0")),
+                ("TOPPADDING", (0, 0), (-1, -1), 6),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+            ]
+        )
     )
     story.append(meta_table)
     story.append(Spacer(1, 10))
 
     # 3. Executive Summary Box
-    summary_text = explanation.report_summary_hi if (lang == "hi" and use_hindi_font) else explanation.report_summary_en
+    summary_text = (
+        explanation.report_summary_hi
+        if (lang == "hi" and use_hindi_font)
+        else explanation.report_summary_en
+    )
     summary_heading = "Executive Summary" if lang == "en" else "रिपोर्ट सारांश"
     summary_data = [
         [
@@ -211,14 +224,16 @@ def generate_doctor_brief_pdf(
     ]
     summary_table = Table(summary_data, colWidths=[7.0 * inch])
     summary_table.setStyle(
-        TableStyle([
-            ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f0f9ff")),
-            ("BOX", (0, 0), (-1, -1), 1, colors.HexColor("#bae6fd")),
-            ("TOPPADDING", (0, 0), (-1, -1), 8),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
-            ("LEFTPADDING", (0, 0), (-1, -1), 10),
-            ("RIGHTPADDING", (0, 0), (-1, -1), 10),
-        ])
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f0f9ff")),
+                ("BOX", (0, 0), (-1, -1), 1, colors.HexColor("#bae6fd")),
+                ("TOPPADDING", (0, 0), (-1, -1), 8),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+                ("LEFTPADDING", (0, 0), (-1, -1), 10),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+            ]
+        )
     )
     story.append(summary_table)
     story.append(Spacer(1, 10))
@@ -226,28 +241,57 @@ def generate_doctor_brief_pdf(
     # 3B. Critical Panic Alerts Box (if present)
     panic_alerts = getattr(explanation, "panic_alerts", [])
     if panic_alerts:
-        panic_heading = "🚨 IMMEDIATE MEDICAL PANIC ALERT — CRITICAL VALUE(S)" if lang == "en" else "🚨 अति-गंभीर आपातकालीन चेतावनी (Panic Alerts)"
-        panic_rows = [[Paragraph(f"<b>{panic_heading}</b>", ParagraphStyle("PanicHead", parent=body_style, fontName=bold_font, fontSize=10, textColor=colors.HexColor("#b91c1c")))]]
-        for alert in panic_alerts:
-            risk_desc = alert.clinical_risk_hi if (lang == "hi" and use_hindi_font) else alert.clinical_risk_en
-            proto_desc = alert.action_protocol_hi if (lang == "hi" and use_hindi_font) else alert.action_protocol_en
-            panic_rows.append([
+        panic_heading = (
+            "🚨 IMMEDIATE MEDICAL PANIC ALERT — CRITICAL VALUE(S)"
+            if lang == "en"
+            else "🚨 अति-गंभीर आपातकालीन चेतावनी (Panic Alerts)"
+        )
+        panic_rows = [
+            [
                 Paragraph(
-                    f"• <b>{alert.test_name} ({alert.observed_value} {alert.unit}):</b> {risk_desc}<br/>"
-                    f"&nbsp;&nbsp;<b>Action:</b> <font color='#b91c1c'><b>{proto_desc}</b></font>",
-                    body_style,
+                    f"<b>{panic_heading}</b>",
+                    ParagraphStyle(
+                        "PanicHead",
+                        parent=body_style,
+                        fontName=bold_font,
+                        fontSize=10,
+                        textColor=colors.HexColor("#b91c1c"),
+                    ),
                 )
-            ])
+            ]
+        ]
+        for alert in panic_alerts:
+            risk_desc = (
+                alert.clinical_risk_hi
+                if (lang == "hi" and use_hindi_font)
+                else alert.clinical_risk_en
+            )
+            proto_desc = (
+                alert.action_protocol_hi
+                if (lang == "hi" and use_hindi_font)
+                else alert.action_protocol_en
+            )
+            panic_rows.append(
+                [
+                    Paragraph(
+                        f"• <b>{alert.test_name} ({alert.observed_value} {alert.unit}):</b> {risk_desc}<br/>"
+                        f"&nbsp;&nbsp;<b>Action:</b> <font color='#b91c1c'><b>{proto_desc}</b></font>",
+                        body_style,
+                    )
+                ]
+            )
         panic_table = Table(panic_rows, colWidths=[7.0 * inch])
         panic_table.setStyle(
-            TableStyle([
-                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#fef2f2")),
-                ("BOX", (0, 0), (-1, -1), 1.5, colors.HexColor("#ef4444")),
-                ("TOPPADDING", (0, 0), (-1, -1), 6),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-                ("LEFTPADDING", (0, 0), (-1, -1), 8),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 8),
-            ])
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#fef2f2")),
+                    ("BOX", (0, 0), (-1, -1), 1.5, colors.HexColor("#ef4444")),
+                    ("TOPPADDING", (0, 0), (-1, -1), 6),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                ]
+            )
         )
         story.append(panic_table)
         story.append(Spacer(1, 10))
@@ -269,9 +313,7 @@ def generate_doctor_brief_pdf(
         tests_to_display = raw_report.tests
     else:
         for exp in explanation.test_explanations:
-            tests_to_display.append(
-                TestResult(test_name=exp.test_name, value=0.0, flag=exp.flag)
-            )
+            tests_to_display.append(TestResult(test_name=exp.test_name, value=0.0, flag=exp.flag))
 
     # Sort with out-of-range first
     flag_order = {
@@ -291,26 +333,36 @@ def generate_doctor_brief_pdf(
         status_name = test.flag.value.upper().replace("_", " ")
 
         ref_str = test.ref_raw or (
-            f"{test.ref_low} - {test.ref_high}" if test.ref_low is not None and test.ref_high is not None else "N/A"
+            f"{test.ref_low} - {test.ref_high}"
+            if test.ref_low is not None and test.ref_high is not None
+            else "N/A"
         )
         val_str = str(test.raw_value or (test.value if test.value is not None else "N/A"))
 
         # Colored text for status
-        status_para = Paragraph(f"<font color='{status_color.hexval()}'><b>{status_name}</b></font>", body_style)
+        status_para = Paragraph(
+            f"<font color='{status_color.hexval()}'><b>{status_name}</b></font>", body_style
+        )
 
-        table_rows.append([
-            Paragraph(f"<b>{test.test_name}</b>", body_style),
-            Paragraph(f"<b>{val_str}</b>", body_style),
-            Paragraph(test.unit or "-", body_style),
-            Paragraph(ref_str, body_style),
-            status_para,
-        ])
+        table_rows.append(
+            [
+                Paragraph(f"<b>{test.test_name}</b>", body_style),
+                Paragraph(f"<b>{val_str}</b>", body_style),
+                Paragraph(test.unit or "-", body_style),
+                Paragraph(ref_str, body_style),
+                status_para,
+            ]
+        )
 
         # Light background for abnormal rows
         if test.flag not in (FlagStatus.NORMAL, FlagStatus.UNKNOWN):
-            row_styles.append(("BACKGROUND", (0, idx), (-1, idx), STATUS_BG_COLORS.get(test.flag, colors.white)))
+            row_styles.append(
+                ("BACKGROUND", (0, idx), (-1, idx), STATUS_BG_COLORS.get(test.flag, colors.white))
+            )
 
-    analyte_table = Table(table_rows, colWidths=[2.3 * inch, 1.1 * inch, 1.0 * inch, 1.4 * inch, 1.2 * inch])
+    analyte_table = Table(
+        table_rows, colWidths=[2.3 * inch, 1.1 * inch, 1.0 * inch, 1.4 * inch, 1.2 * inch]
+    )
     base_table_style = [
         ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f1f5f9")),
         ("BOTTOMPADDING", (0, 0), (-1, 0), 5),
@@ -327,7 +379,9 @@ def generate_doctor_brief_pdf(
 
     # 4B. Clinical Panel Correlations & Multi-Analyte Ratios
     if getattr(explanation, "correlations", None):
-        corr_heading = "Clinical Panel Insights & Ratios" if lang == "en" else "नैदानिक अनुपात एवं निष्कर्ष"
+        corr_heading = (
+            "Clinical Panel Insights & Ratios" if lang == "en" else "नैदानिक अनुपात एवं निष्कर्ष"
+        )
         story.append(Paragraph(f"<b>{corr_heading}</b>", section_heading))
         corr_rows = [
             [
@@ -340,21 +394,30 @@ def generate_doctor_brief_pdf(
         for c in explanation.correlations:
             val_txt = f"{c.value} {c.unit}" if c.value is not None else "-"
             f_txt = c.finding_en if lang == "en" else c.finding_hi
-            corr_rows.append([
-                Paragraph(f"<b>{c.title}</b><br/><font size='8' color='#64748b'>{c.panel_name}</font>", body_style),
-                Paragraph(f"<b>{val_txt}</b>", body_style),
-                Paragraph(c.optimal_range or "-", body_style),
-                Paragraph(f_txt, body_style),
-            ])
+            corr_rows.append(
+                [
+                    Paragraph(
+                        f"<b>{c.title}</b><br/><font size='8' color='#64748b'>{c.panel_name}</font>",
+                        body_style,
+                    ),
+                    Paragraph(f"<b>{val_txt}</b>", body_style),
+                    Paragraph(c.optimal_range or "-", body_style),
+                    Paragraph(f_txt, body_style),
+                ]
+            )
         corr_table = Table(corr_rows, colWidths=[2.0 * inch, 1.0 * inch, 1.4 * inch, 2.6 * inch])
-        corr_table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f8fafc")),
-            ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
-            ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#e2e8f0")),
-            ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ("TOPPADDING", (0, 0), (-1, -1), 4),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-        ]))
+        corr_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f8fafc")),
+                    ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
+                    ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#e2e8f0")),
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("TOPPADDING", (0, 0), (-1, -1), 4),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                ]
+            )
+        )
         story.append(corr_table)
         story.append(Spacer(1, 14))
 
@@ -367,30 +430,42 @@ def generate_doctor_brief_pdf(
             else "दवा एवं सप्लीमेंट संबंधित सावधानियां (Interferences)"
         )
         story.append(Paragraph(f"<b>{med_heading}</b>", section_heading))
-        med_rows = [[
-            Paragraph("<b>Analyte</b>", body_style),
-            Paragraph("<b>Known Substance</b>", body_style),
-            Paragraph("<b>Category</b>", body_style),
-            Paragraph("<b>Clinical Interaction & Guidance</b>", body_style),
-        ]]
+        med_rows = [
+            [
+                Paragraph("<b>Analyte</b>", body_style),
+                Paragraph("<b>Known Substance</b>", body_style),
+                Paragraph("<b>Category</b>", body_style),
+                Paragraph("<b>Clinical Interaction & Guidance</b>", body_style),
+            ]
+        ]
         for med in interferences:
-            mech_text = med.clinical_mechanism_hi if (lang == "hi" and use_hindi_font) else med.clinical_mechanism_en
+            mech_text = (
+                med.clinical_mechanism_hi
+                if (lang == "hi" and use_hindi_font)
+                else med.clinical_mechanism_en
+            )
             guide_text = med.guidance_hi if (lang == "hi" and use_hindi_font) else med.guidance_en
-            med_rows.append([
-                Paragraph(f"<b>{med.analyte_name}</b>", body_style),
-                Paragraph(f"<b>{med.substance_name}</b>", body_style),
-                Paragraph(med.category, body_style),
-                Paragraph(f"{mech_text}<br/><b>Guidance:</b> {guide_text}", body_style),
-            ])
+            med_rows.append(
+                [
+                    Paragraph(f"<b>{med.analyte_name}</b>", body_style),
+                    Paragraph(f"<b>{med.substance_name}</b>", body_style),
+                    Paragraph(med.category, body_style),
+                    Paragraph(f"{mech_text}<br/><b>Guidance:</b> {guide_text}", body_style),
+                ]
+            )
         med_table = Table(med_rows, colWidths=[1.6 * inch, 1.8 * inch, 1.2 * inch, 2.4 * inch])
-        med_table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#fffbeb")),
-            ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#fde68a")),
-            ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#fef3c7")),
-            ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ("TOPPADDING", (0, 0), (-1, -1), 4),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-        ]))
+        med_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#fffbeb")),
+                    ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#fde68a")),
+                    ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#fef3c7")),
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("TOPPADDING", (0, 0), (-1, -1), 4),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                ]
+            )
+        )
         story.append(med_table)
         story.append(Spacer(1, 14))
 
@@ -407,7 +482,9 @@ def generate_doctor_brief_pdf(
             status_color = STATUS_COLORS.get(exp.flag, colors.HexColor("#475569"))
             status_name = exp.flag.value.upper().replace("_", " ")
 
-            exp_text = exp.explanation_hi if (lang == "hi" and use_hindi_font) else exp.explanation_en
+            exp_text = (
+                exp.explanation_hi if (lang == "hi" and use_hindi_font) else exp.explanation_en
+            )
 
             finding_box = [
                 [
@@ -420,14 +497,16 @@ def generate_doctor_brief_pdf(
             ]
             f_table = Table(finding_box, colWidths=[7.0 * inch])
             f_table.setStyle(
-                TableStyle([
-                    ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f8fafc")),
-                    ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
-                    ("TOPPADDING", (0, 0), (-1, -1), 6),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-                    ("LEFTPADDING", (0, 0), (-1, -1), 8),
-                    ("RIGHTPADDING", (0, 0), (-1, -1), 8),
-                ])
+                TableStyle(
+                    [
+                        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f8fafc")),
+                        ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
+                        ("TOPPADDING", (0, 0), (-1, -1), 6),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                    ]
+                )
             )
             story.append(f_table)
             story.append(Spacer(1, 4))
@@ -441,7 +520,9 @@ def generate_doctor_brief_pdf(
 
     # 6. Global Mandatory Clinical Disclaimer Footer
     story.append(Spacer(1, 10))
-    story.append(HRFlowable(width="100%", thickness=0.5, color=colors.HexColor("#94a3b8"), spaceAfter=8))
+    story.append(
+        HRFlowable(width="100%", thickness=0.5, color=colors.HexColor("#94a3b8"), spaceAfter=8)
+    )
     disclaimer_text = (
         "CONFIDENTIAL MEDICAL EDUCATION SUMMARY: This document was prepared by the AI Clinical Lab Report Explainer "
         "solely to help patients understand laboratory metrics and facilitate informed discussions with their doctor. "

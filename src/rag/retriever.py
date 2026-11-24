@@ -33,6 +33,7 @@ class ChromaRetriever:
             logger.info("ChromaDB collection is empty. Auto-indexing data/rag_sources...")
             try:
                 from src.rag.indexer import DocumentIndexer
+
                 indexer = DocumentIndexer(self.config)
                 indexer.index_all()
                 logger.info(f"Auto-indexed {self.collection.count()} clinical guidelines.")
@@ -52,7 +53,9 @@ class ChromaRetriever:
                 zeros_count = sum(1 for x in first_emb if x == 0.0)
                 if zeros_count > 200:
                     self._is_sparse_collection = True
-                    logger.debug("Detected sparse fallback embeddings in ChromaDB; aligning query embedder.")
+                    logger.debug(
+                        "Detected sparse fallback embeddings in ChromaDB; aligning query embedder."
+                    )
         except Exception as e:
             logger.debug(f"Could not inspect collection embedding density: {e}")
 
@@ -108,12 +111,14 @@ class ChromaRetriever:
             # For cosine distance: similarity = 1 - distance
             similarity = max(0.0, 1.0 - dist) if dist <= 1.0 else 1.0 / (1.0 + dist)
 
-            candidates.append({
-                "id": doc_id,
-                "text": doc_text,
-                "metadata": doc_meta,
-                "distance": dist,
-                "similarity": similarity,
-            })
+            candidates.append(
+                {
+                    "id": doc_id,
+                    "text": doc_text,
+                    "metadata": doc_meta,
+                    "distance": dist,
+                    "similarity": similarity,
+                }
+            )
 
         return candidates

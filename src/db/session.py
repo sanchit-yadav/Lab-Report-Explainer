@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Generator
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker, Session
+from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 logger = logging.getLogger("db_session")
 
@@ -35,12 +35,16 @@ if DATABASE_URL.startswith("sqlite"):
     connect_args["timeout"] = 30
 elif DATABASE_URL.startswith("postgresql"):
     # Serverless & Cloud PostgreSQL optimization (Neon, Supabase, Render, AWS RDS)
-    engine_kwargs.update({
-        "pool_size": int(os.environ.get("DB_POOL_SIZE", "10")),
-        "max_overflow": int(os.environ.get("DB_MAX_OVERFLOW", "20")),
-        "pool_recycle": int(os.environ.get("DB_POOL_RECYCLE", "300")),  # Prevents stale serverless disconnects
-        "pool_timeout": int(os.environ.get("DB_POOL_TIMEOUT", "30")),
-    })
+    engine_kwargs.update(
+        {
+            "pool_size": int(os.environ.get("DB_POOL_SIZE", "10")),
+            "max_overflow": int(os.environ.get("DB_MAX_OVERFLOW", "20")),
+            "pool_recycle": int(
+                os.environ.get("DB_POOL_RECYCLE", "300")
+            ),  # Prevents stale serverless disconnects
+            "pool_timeout": int(os.environ.get("DB_POOL_TIMEOUT", "30")),
+        }
+    )
 
 engine = create_engine(
     DATABASE_URL,
@@ -71,6 +75,7 @@ def init_db() -> None:
         # Safe backward-compatible schema migration for new columns and dropped roles
         with engine.connect() as conn:
             from sqlalchemy import text
+
             try:
                 conn.execute(text("ALTER TABLE reports ADD COLUMN current_step VARCHAR(500)"))
                 conn.commit()
@@ -82,7 +87,9 @@ def init_db() -> None:
                 conn.commit()
             except Exception:
                 pass  # SQLite <3.35 or column already dropped
-        logger.info(f"Database schema initialized successfully using engine: {engine.url.drivername}")
+        logger.info(
+            f"Database schema initialized successfully using engine: {engine.url.drivername}"
+        )
     except Exception as exc:
         logger.error(f"Failed to initialize database schema: {exc}")
         raise

@@ -68,7 +68,8 @@ class RetrieveStage:
                         title=item.get("metadata", {}).get("title", query),
                         text=item.get("text", ""),
                         score=float(item.get("score", 0.0)),
-                        source_url=item.get("metadata", {}).get("source_url") or item.get("source_url"),
+                        source_url=item.get("metadata", {}).get("source_url")
+                        or item.get("source_url"),
                     )
                     query_chunks.append(chunk)
                     total_chunks += 1

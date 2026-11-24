@@ -47,12 +47,20 @@ class CitationFormatter:
         # 2. Build annotated narrative
         narrative_parts: List[str] = []
         for claim in claims:
-            anchors = [f"[{source_id_to_num[sid]}]" for sid in claim.source_ids if sid in source_id_to_num]
+            anchors = [
+                f"[{source_id_to_num[sid]}]" for sid in claim.source_ids if sid in source_id_to_num
+            ]
             anchor_str = f" {''.join(anchors)}" if anchors else ""
 
-            if claim.verification_status == VerificationStatus.UNSUPPORTED and include_unverified_warning:
+            if (
+                claim.verification_status == VerificationStatus.UNSUPPORTED
+                and include_unverified_warning
+            ):
                 narrative_parts.append(f"{claim.claim}{anchor_str} *(⚠️ unverified citation)*")
-            elif claim.verification_status == VerificationStatus.MISSING_SOURCE and include_unverified_warning:
+            elif (
+                claim.verification_status == VerificationStatus.MISSING_SOURCE
+                and include_unverified_warning
+            ):
                 narrative_parts.append(f"{claim.claim}{anchor_str} *(⚠️ missing source)*")
             else:
                 narrative_parts.append(f"{claim.claim}{anchor_str}")
@@ -66,7 +74,9 @@ class CitationFormatter:
             if src is None:
                 bib_lines.append(f"{num}. **[Unrecognized Source ID]**: `{sid}`")
             elif isinstance(src, ReportFieldSource):
-                val_display = f"{src.value} {src.unit or ''}".strip() if src.value is not None else "Observed"
+                val_display = (
+                    f"{src.value} {src.unit or ''}".strip() if src.value is not None else "Observed"
+                )
                 bib_lines.append(
                     f"{num}. **Patient Report Field**: {src.test_name} (Value: `{val_display}`, Range: `{src.ref_range or 'N/A'}`) — *Page {src.source_page}, Location: {src.source_location}*"
                 )
@@ -125,13 +135,15 @@ class CitationFormatter:
                     attached_citations.append(source_meta)
                     source_index[sid] = source_meta
 
-            claim_cards.append({
-                "claim_id": claim.claim_id,
-                "claim_text": claim.claim,
-                "verification_status": claim.verification_status.value,
-                "verification_reason": claim.verification_reason,
-                "citations": attached_citations,
-            })
+            claim_cards.append(
+                {
+                    "claim_id": claim.claim_id,
+                    "claim_text": claim.claim,
+                    "verification_status": claim.verification_status.value,
+                    "verification_reason": claim.verification_reason,
+                    "citations": attached_citations,
+                }
+            )
 
         return {
             "claims": claim_cards,

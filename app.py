@@ -16,8 +16,8 @@ from __future__ import annotations
 
 import io
 import math
-from pathlib import Path
 import time
+from pathlib import Path
 from typing import Any, Dict, Optional
 
 import pandas as pd
@@ -42,12 +42,12 @@ SAMPLE_OPTIONS = {
 
 FLAG_COLORS = {
     FlagStatus.CRITICAL_HIGH: "#dc2626",  # Red
-    FlagStatus.CRITICAL_LOW: "#dc2626",   # Red
-    FlagStatus.HIGH: "#d97706",           # Amber
-    FlagStatus.LOW: "#d97706",            # Amber
-    FlagStatus.NORMAL: "#16a34a",         # Green
-    FlagStatus.ABNORMAL: "#ea580c",       # Orange
-    FlagStatus.UNKNOWN: "#64748b",        # Slate
+    FlagStatus.CRITICAL_LOW: "#dc2626",  # Red
+    FlagStatus.HIGH: "#d97706",  # Amber
+    FlagStatus.LOW: "#d97706",  # Amber
+    FlagStatus.NORMAL: "#16a34a",  # Green
+    FlagStatus.ABNORMAL: "#ea580c",  # Orange
+    FlagStatus.UNKNOWN: "#64748b",  # Slate
 }
 
 FLAG_BADGES = {
@@ -594,6 +594,7 @@ def check_api_health() -> bool:
 # SPLIT-LAYOUT AUTHENTICATION PAGES (SIGN IN & SIGN UP)
 # =====================================================================
 
+
 def render_login_page(client: CDSAPIClient):
     """Render modern split-layout Sign In page with brand preview card on left and form on right."""
     col_left, col_right = st.columns([1.1, 1], gap="large")
@@ -653,9 +654,16 @@ def render_login_page(client: CDSAPIClient):
             unsafe_allow_html=True,
         )
 
-        email = st.text_input("Email Address", key="login_field_email", placeholder="name@example.com")
+        email = st.text_input(
+            "Email Address", key="login_field_email", placeholder="name@example.com"
+        )
         show_pw = st.checkbox("Show password", key="login_show_pw")
-        password = st.text_input("Password", type="default" if show_pw else "password", key="login_field_pw", placeholder="••••••••")
+        password = st.text_input(
+            "Password",
+            type="default" if show_pw else "password",
+            key="login_field_pw",
+            placeholder="••••••••",
+        )
 
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("Sign In", type="primary", use_container_width=True, key="login_btn_submit"):
@@ -743,14 +751,30 @@ def render_register_page(client: CDSAPIClient):
             unsafe_allow_html=True,
         )
 
-        full_name = st.text_input("Full Name", key="reg_field_name", placeholder="John Smith / Jane Doe")
-        email = st.text_input("Email Address", key="reg_field_email", placeholder="name@example.com")
+        full_name = st.text_input(
+            "Full Name", key="reg_field_name", placeholder="John Smith / Jane Doe"
+        )
+        email = st.text_input(
+            "Email Address", key="reg_field_email", placeholder="name@example.com"
+        )
         show_pw = st.checkbox("Show passwords", key="reg_show_pw")
-        password = st.text_input("Password (min 8 characters)", type="default" if show_pw else "password", key="reg_field_pw", placeholder="••••••••")
-        confirm_pw = st.text_input("Confirm Password", type="default" if show_pw else "password", key="reg_field_confirm_pw", placeholder="••••••••")
+        password = st.text_input(
+            "Password (min 8 characters)",
+            type="default" if show_pw else "password",
+            key="reg_field_pw",
+            placeholder="••••••••",
+        )
+        confirm_pw = st.text_input(
+            "Confirm Password",
+            type="default" if show_pw else "password",
+            key="reg_field_confirm_pw",
+            placeholder="••••••••",
+        )
 
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("Create Account", type="primary", use_container_width=True, key="reg_btn_submit"):
+        if st.button(
+            "Create Account", type="primary", use_container_width=True, key="reg_btn_submit"
+        ):
             if not email or not password:
                 st.error("Please provide both email address and password.")
             elif len(password) < 8:
@@ -788,6 +812,7 @@ def render_register_page(client: CDSAPIClient):
 # PUBLIC SAAS LANDING PAGE
 # =====================================================================
 
+
 def render_landing_page(client: CDSAPIClient, backend_online: bool):
     """Render the public SaaS landing page with Navigation, Hero, Option B Preview, Features, Safety, FAQ, and Footer."""
     # Section A: Navigation Bar
@@ -815,11 +840,16 @@ def render_landing_page(client: CDSAPIClient, backend_online: bool):
                 st.session_state["view"] = "login"
                 st.rerun()
         with btn_c3:
-            if st.button("Get Started", type="primary", key="nav_btn_getstarted", use_container_width=True):
+            if st.button(
+                "Get Started", type="primary", key="nav_btn_getstarted", use_container_width=True
+            ):
                 st.session_state["view"] = "register"
                 st.rerun()
 
-    st.markdown("<hr style='margin: 12px 0 24px 0; border: none; border-top: 1px solid #e2e8f0;'>", unsafe_allow_html=True)
+    st.markdown(
+        "<hr style='margin: 12px 0 24px 0; border: none; border-top: 1px solid #e2e8f0;'>",
+        unsafe_allow_html=True,
+    )
 
     # Section B: Hero Section (Split 2-Column with Option B Live Interactive Preview)
     hero_col_left, hero_col_right = st.columns([1.1, 1.2], gap="large")
@@ -845,7 +875,12 @@ def render_landing_page(client: CDSAPIClient, backend_online: bool):
 
         cta_col1, cta_col2 = st.columns([1.2, 1])
         with cta_col1:
-            if st.button("🚀 Analyze My Report", type="primary", use_container_width=True, key="hero_cta_analyze"):
+            if st.button(
+                "🚀 Analyze My Report",
+                type="primary",
+                use_container_width=True,
+                key="hero_cta_analyze",
+            ):
                 st.session_state["view"] = "register"
                 st.rerun()
         with cta_col2:
@@ -893,7 +928,11 @@ def render_landing_page(client: CDSAPIClient, backend_online: bool):
 
         demo_choice = st.selectbox(
             "Select Clinical Sample to Preview Live:",
-            ["SRL Lipid Panel (Lipid Profile)", "Thyrocare CBC (Complete Blood Count)", "Metropolis Liver Function Test (LFT)"],
+            [
+                "SRL Lipid Panel (Lipid Profile)",
+                "Thyrocare CBC (Complete Blood Count)",
+                "Metropolis Liver Function Test (LFT)",
+            ],
             index=0,
             key="landing_preview_select",
         )
@@ -1039,14 +1078,28 @@ def render_landing_page(client: CDSAPIClient, backend_online: bool):
         # Preview Metrics Row
         m_c1, m_c2, m_c3 = st.columns(3)
         with m_c1:
-            st.markdown(f'<div class="metric-card"><div class="value">{demo_data["total"]}</div><div class="label">Total Parameters</div></div>', unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="metric-card"><div class="value">{demo_data["total"]}</div><div class="label">Total Parameters</div></div>',
+                unsafe_allow_html=True,
+            )
         with m_c2:
-            st.markdown(f'<div class="metric-card"><div class="value" style="color: #15803d;">{demo_data["total"] - demo_data["flagged"]}</div><div class="label">Normal Results</div></div>', unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="metric-card"><div class="value" style="color: #15803d;">{demo_data["total"] - demo_data["flagged"]}</div><div class="label">Normal Results</div></div>',
+                unsafe_allow_html=True,
+            )
         with m_c3:
-            st.markdown(f'<div class="metric-card"><div class="value" style="color: #b45309;">{demo_data["flagged"]}</div><div class="label">Out-of-Range</div></div>', unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="metric-card"><div class="value" style="color: #b45309;">{demo_data["flagged"]}</div><div class="label">Out-of-Range</div></div>',
+                unsafe_allow_html=True,
+            )
 
         # Preview language switcher
-        demo_lang_choice = st.radio("Preview Language:", ["English", "हिंदी (Hindi)"], horizontal=True, key="landing_demo_lang")
+        demo_lang_choice = st.radio(
+            "Preview Language:",
+            ["English", "हिंदी (Hindi)"],
+            horizontal=True,
+            key="landing_demo_lang",
+        )
         is_hi = "हिंदी" in demo_lang_choice
 
         # Render first biomarker preview card
@@ -1066,18 +1119,18 @@ def render_landing_page(client: CDSAPIClient, backend_online: bool):
             f"""
             <div class="test-card" style="margin-top: 14px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <span style="font-size: 16px; font-weight: 700; color: #0f172a;">{preview_test['test_name']}</span>
+                    <span style="font-size: 16px; font-weight: 700; color: #0f172a;">{preview_test["test_name"]}</span>
                     <span class="badge" style="background-color: {b_bg}; color: {b_fg}; border: 1px solid {b_border};">
                         {b_icon} {b_text}
                     </span>
                 </div>
                 <div style="font-size: 14px; margin-bottom: 4px; color: #334155;">
-                    <strong>Result:</strong> {preview_test['value']} {preview_test['unit']} &nbsp;|&nbsp; <strong>Reference:</strong> {preview_test['ref_raw']}
+                    <strong>Result:</strong> {preview_test["value"]} {preview_test["unit"]} &nbsp;|&nbsp; <strong>Reference:</strong> {preview_test["ref_raw"]}
                 </div>
                 {render_range_gauge_html(t_obj)}
                 <div style="margin-top: 10px; font-size: 13px; color: #1e293b; background: #f8fafc; padding: 10px 12px; border-radius: 6px; border-left: 3px solid #0d9488;">
                     <strong>Clinical Context:</strong><br>
-                    {preview_test['explanation_hi'] if is_hi else preview_test['explanation_en']}
+                    {preview_test["explanation_hi"] if is_hi else preview_test["explanation_en"]}
                 </div>
             </div>
             """,
@@ -1315,12 +1368,20 @@ def render_landing_page(client: CDSAPIClient, backend_online: bool):
 
     col_cta_btn_l, col_cta_btn_c, col_cta_btn_r = st.columns([1, 1, 1])
     with col_cta_btn_c:
-        if st.button("🚀 Get Started Now", type="primary", use_container_width=True, key="landing_final_cta_btn"):
+        if st.button(
+            "🚀 Get Started Now",
+            type="primary",
+            use_container_width=True,
+            key="landing_final_cta_btn",
+        ):
             st.session_state["view"] = "register"
             st.rerun()
 
     # Footer
-    st.markdown("<hr style='margin: 40px 0 20px 0; border: none; border-top: 1px solid #e2e8f0;'>", unsafe_allow_html=True)
+    st.markdown(
+        "<hr style='margin: 40px 0 20px 0; border: none; border-top: 1px solid #e2e8f0;'>",
+        unsafe_allow_html=True,
+    )
     st.markdown(
         """
         <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #64748b; padding-bottom: 24px;">
@@ -1347,10 +1408,12 @@ def render_landing_page(client: CDSAPIClient, backend_online: bool):
 # DIRECT PIPELINE MODE (Standalone — no FastAPI backend required)
 # =====================================================================
 
+
 @st.cache_resource(show_spinner=False)
 def _get_direct_pipeline():
     """Lazy-load a singleton LabReportPipeline for standalone (direct) mode."""
     from src.pipeline import LabReportPipeline
+
     return LabReportPipeline()
 
 
@@ -1369,42 +1432,63 @@ def _run_direct_pipeline(file_bytes: bytes, filename: str, explain_all: bool = F
         # HITL mode: extract only, then pause for human review
         with st.spinner("🔬 Extracting biomarkers from report (Stage 1-3)..."):
             try:
-                from src.stages import OCRParseInput, OCRParseStage, ExtractValuesInput, ExtractValuesStage, ValidateUploadInput, ValidateUploadStage
+                from src.config import get_config
                 from src.extraction.loinc_mapper import LOINCMapper
                 from src.flagging.flagger import Flagger
-                from src.config import get_config
+                from src.stages import (
+                    ExtractValuesInput,
+                    ExtractValuesStage,
+                    OCRParseInput,
+                    OCRParseStage,
+                    ValidateUploadInput,
+                    ValidateUploadStage,
+                )
 
                 cfg = get_config()
 
                 # Stage 1: Validate
                 val_stage = ValidateUploadStage()
-                val_out = val_stage(ValidateUploadInput(file_bytes=file_bytes, filename=filename, request_id=job_id))
+                val_out = val_stage(
+                    ValidateUploadInput(file_bytes=file_bytes, filename=filename, request_id=job_id)
+                )
                 if not val_out.is_valid:
                     st.error(f"❌ File validation failed: {val_out.error}")
                     return
 
                 # Stage 2: OCR
                 ocr_stage = OCRParseStage()
-                ocr_out = ocr_stage(OCRParseInput(file_bytes=val_out.sanitized_bytes, filename=filename, request_id=job_id))
+                ocr_out = ocr_stage(
+                    OCRParseInput(
+                        file_bytes=val_out.sanitized_bytes, filename=filename, request_id=job_id
+                    )
+                )
 
                 # Stage 3: Extract values + flag
                 ext_stage = ExtractValuesStage()
-                ext_out = ext_stage(ExtractValuesInput(parsed_doc=ocr_out, raw_bytes=val_out.sanitized_bytes, request_id=job_id))
+                ext_out = ext_stage(
+                    ExtractValuesInput(
+                        parsed_doc=ocr_out, raw_bytes=val_out.sanitized_bytes, request_id=job_id
+                    )
+                )
 
                 from src.extraction.schema import LabReport
+
                 tests = []
                 for item in ext_out.items:
                     from src.extraction.schema import TestResult
-                    tests.append(TestResult(
-                        test_name=item.test_name,
-                        value=item.value,
-                        raw_value=item.raw_value or "",
-                        unit=item.unit or "",
-                        ref_low=item.ref_low,
-                        ref_high=item.ref_high,
-                        ref_raw=item.ref_raw or "",
-                        flag=item.flag,
-                    ))
+
+                    tests.append(
+                        TestResult(
+                            test_name=item.test_name,
+                            value=item.value,
+                            raw_value=item.raw_value or "",
+                            unit=item.unit or "",
+                            ref_low=item.ref_low,
+                            ref_high=item.ref_high,
+                            ref_raw=item.ref_raw or "",
+                            flag=item.flag,
+                        )
+                    )
                 lab_report = LabReport(patient_name=ext_out.patient_name, tests=tests)
                 lab_report = LOINCMapper.enrich_report(lab_report)
                 flagger = Flagger(cfg.extraction.flagging)
@@ -1450,6 +1534,7 @@ def _run_direct_explain(confirmed_report, explain_all: bool = False) -> None:
 # =====================================================================
 # MAIN AUTHENTICATED USER DASHBOARD
 # =====================================================================
+
 
 def render_auth_sidebar(client: CDSAPIClient):
     """Render User Profile and Sign Out action in the sidebar when authenticated."""
@@ -1610,7 +1695,9 @@ def render_authenticated_workspace(client: CDSAPIClient, backend_online: bool):
 
     if not curr_job_id or curr_status is None:
         st.markdown("### 📄 Analyze New Laboratory Report")
-        st.caption("Upload your digital lab report or choose a pre-loaded clinical sample to begin intelligent extraction.")
+        st.caption(
+            "Upload your digital lab report or choose a pre-loaded clinical sample to begin intelligent extraction."
+        )
 
         col_up, col_sample = st.columns([2, 1])
 
@@ -1635,9 +1722,16 @@ def render_authenticated_workspace(client: CDSAPIClient, backend_online: bool):
             if sample_choice != "-- Select a Sample Report --":
                 sample_path = SAMPLE_DIR / SAMPLE_OPTIONS[sample_choice]
                 if sample_path.exists():
-                    st.caption(f"Selected: `{SAMPLE_OPTIONS[sample_choice]}` ({sample_path.stat().st_size // 1024} KB)")
+                    st.caption(
+                        f"Selected: `{SAMPLE_OPTIONS[sample_choice]}` ({sample_path.stat().st_size // 1024} KB)"
+                    )
 
-        if st.button("🚀 Analyze Lab Report", type="primary", use_container_width=True, key="btn_run_analysis"):
+        if st.button(
+            "🚀 Analyze Lab Report",
+            type="primary",
+            use_container_width=True,
+            key="btn_run_analysis",
+        ):
             file_bytes = None
             filename = "lab_report.pdf"
 
@@ -1674,7 +1768,9 @@ def render_authenticated_workspace(client: CDSAPIClient, backend_online: bool):
                         st.error(f"Upload failed: {exc}")
             else:
                 # ── Direct / standalone mode: run pipeline in-process ──
-                st.info("ℹ️ **Standalone Mode:** FastAPI backend not detected — running pipeline directly in-process.")
+                st.info(
+                    "ℹ️ **Standalone Mode:** FastAPI backend not detected — running pipeline directly in-process."
+                )
                 _run_direct_pipeline(file_bytes, filename, explain_all_opt)
 
     # Polling & Workflow State Management
@@ -1686,7 +1782,13 @@ def render_authenticated_workspace(client: CDSAPIClient, backend_online: bool):
             st.session_state["job_status"] = current_status
 
             # Handle IN-PROGRESS polling with real backend stages
-            if current_status in ("queued", "extracting", "flagging", "rag_retrieval", "generating"):
+            if current_status in (
+                "queued",
+                "extracting",
+                "flagging",
+                "rag_retrieval",
+                "generating",
+            ):
                 progress_pct = status_data.get("progress_pct", 10)
                 current_step = status_data.get("current_step", "Processing report...")
                 st.info(f"⏳ **Clinical Pipeline Active:** {current_step}")
@@ -1723,16 +1825,18 @@ def render_authenticated_workspace(client: CDSAPIClient, backend_online: bool):
             # Direct/standalone HITL: reconstruct from in-memory LabReport
             tests_serialized = []
             for t in getattr(_direct_report, "tests", []):
-                tests_serialized.append({
-                    "test_name": t.test_name,
-                    "value": t.value,
-                    "raw_value": t.raw_value or "",
-                    "unit": t.unit or "",
-                    "ref_low": t.ref_low,
-                    "ref_high": t.ref_high,
-                    "ref_raw": t.ref_raw or "",
-                    "flag": t.flag.value if hasattr(t.flag, "value") else str(t.flag),
-                })
+                tests_serialized.append(
+                    {
+                        "test_name": t.test_name,
+                        "value": t.value,
+                        "raw_value": t.raw_value or "",
+                        "unit": t.unit or "",
+                        "ref_low": t.ref_low,
+                        "ref_high": t.ref_high,
+                        "ref_raw": t.ref_raw or "",
+                        "flag": t.flag.value if hasattr(t.flag, "value") else str(t.flag),
+                    }
+                )
             extracted_resp = {
                 "job_id": job_id,
                 "patient_name": getattr(_direct_report, "patient_name", None),
@@ -1740,7 +1844,9 @@ def render_authenticated_workspace(client: CDSAPIClient, backend_online: bool):
                 "tests": tests_serialized,
             }
         else:
-            st.error("Could not load extraction data for review. Please try uploading the report again.")
+            st.error(
+                "Could not load extraction data for review. Please try uploading the report again."
+            )
 
         if extracted_resp:
             tests_data = extracted_resp.get("tests", [])
@@ -1761,23 +1867,48 @@ def render_authenticated_workspace(client: CDSAPIClient, backend_online: bool):
                 num_rows="dynamic",
                 use_container_width=True,
                 column_config={
-                    "test_name": st.column_config.TextColumn("Test / Biomarker Name", required=True),
+                    "test_name": st.column_config.TextColumn(
+                        "Test / Biomarker Name", required=True
+                    ),
                     "value": st.column_config.NumberColumn("Result Value", format="%.2f"),
                     "unit": st.column_config.TextColumn("Measurement Unit"),
                     "ref_low": st.column_config.NumberColumn("Reference Low", format="%.2f"),
                     "ref_high": st.column_config.NumberColumn("Reference High", format="%.2f"),
                     "ref_raw": st.column_config.TextColumn("Raw Reference String"),
-                    "flag": st.column_config.SelectboxColumn("Flag", options=["normal", "low", "high", "critical_low", "critical_high", "unknown"]),
+                    "flag": st.column_config.SelectboxColumn(
+                        "Flag",
+                        options=[
+                            "normal",
+                            "low",
+                            "high",
+                            "critical_low",
+                            "critical_high",
+                            "unknown",
+                        ],
+                    ),
                 },
                 key="editor_biomarkers",
             )
 
             col_btn1, col_btn2 = st.columns(2)
             with col_btn1:
-                if st.button("✅ Confirm Parameters & Generate Explanations", type="primary", use_container_width=True, key="btn_confirm_edited"):
+                if st.button(
+                    "✅ Confirm Parameters & Generate Explanations",
+                    type="primary",
+                    use_container_width=True,
+                    key="btn_confirm_edited",
+                ):
                     raw_records = edited_df.to_dict(orient="records")
                     confirmed_records = [
-                        {k: (None if pd.isna(v) or (isinstance(v, float) and (math.isnan(v) or math.isinf(v))) else v) for k, v in r.items()}
+                        {
+                            k: (
+                                None
+                                if pd.isna(v)
+                                or (isinstance(v, float) and (math.isnan(v) or math.isinf(v)))
+                                else v
+                            )
+                            for k, v in r.items()
+                        }
                         for r in raw_records
                     ]
                     if backend_online and not _direct_report:
@@ -1795,29 +1926,43 @@ def render_authenticated_workspace(client: CDSAPIClient, backend_online: bool):
                             st.error(f"Failed to submit confirmed parameters: {submit_err}")
                     else:
                         # Direct/standalone confirm: build LabReport and explain in-process
-                        from src.extraction.schema import LabReport, TestResult, FlagStatus as _FS
+                        from src.extraction.schema import FlagStatus as _FS, LabReport, TestResult
+
                         updated_tests = []
                         for rec in confirmed_records:
                             try:
                                 flag_val = _FS(rec.get("flag", "unknown").lower())
                             except ValueError:
                                 flag_val = _FS.UNKNOWN
-                            updated_tests.append(TestResult(
-                                test_name=rec.get("test_name", ""),
-                                value=rec.get("value"),
-                                raw_value=rec.get("raw_value") or (str(rec.get("value")) if rec.get("value") is not None else ""),
-                                unit=rec.get("unit") or "",
-                                ref_low=rec.get("ref_low"),
-                                ref_high=rec.get("ref_high"),
-                                ref_raw=rec.get("ref_raw") or "",
-                                flag=flag_val,
-                            ))
-                        confirmed_lab = LabReport(patient_name=patient_name_input, tests=updated_tests)
+                            updated_tests.append(
+                                TestResult(
+                                    test_name=rec.get("test_name", ""),
+                                    value=rec.get("value"),
+                                    raw_value=rec.get("raw_value")
+                                    or (
+                                        str(rec.get("value"))
+                                        if rec.get("value") is not None
+                                        else ""
+                                    ),
+                                    unit=rec.get("unit") or "",
+                                    ref_low=rec.get("ref_low"),
+                                    ref_high=rec.get("ref_high"),
+                                    ref_raw=rec.get("ref_raw") or "",
+                                    flag=flag_val,
+                                )
+                            )
+                        confirmed_lab = LabReport(
+                            patient_name=patient_name_input, tests=updated_tests
+                        )
                         st.session_state["_direct_extracted_report"] = None
                         _run_direct_explain(confirmed_lab, explain_all=explain_all_opt)
 
             with col_btn2:
-                if st.button("⚡ Confirm As-Is (Skip Editing)", use_container_width=True, key="btn_confirm_asis"):
+                if st.button(
+                    "⚡ Confirm As-Is (Skip Editing)",
+                    use_container_width=True,
+                    key="btn_confirm_asis",
+                ):
                     if backend_online and not _direct_report:
                         # API-backed confirm
                         try:
@@ -1839,7 +1984,9 @@ def render_authenticated_workspace(client: CDSAPIClient, backend_online: bool):
                             st.session_state["_direct_extracted_report"] = None
                             _run_direct_explain(confirmed_lab, explain_all=explain_all_opt)
                         else:
-                            st.error("No extracted report data available. Please re-upload the file.")
+                            st.error(
+                                "No extracted report data available. Please re-upload the file."
+                            )
 
     # Step 3: Complete Clinical Findings Dashboard
     if st.session_state.get("job_status") == "ready":
@@ -1860,7 +2007,6 @@ def render_findings_dashboard(client: CDSAPIClient, job_id: str, exp: Dict[str, 
     """Render the full interactive clinical findings dashboard with gauges, 2-bullet context, and chat."""
     st.divider()
 
-    patient_name = exp.get("patient_name") or "Patient"
     report_summary = exp.get(f"report_summary_{lang}") or exp.get("report_summary_en", "")
 
     # Panic / Critical Value Alert Banner
@@ -1870,7 +2016,7 @@ def render_findings_dashboard(client: CDSAPIClient, job_id: str, exp: Dict[str, 
             f"""
             <div class="panic-banner">
                 <h3 style="color: #b91c1c; margin: 0 0 8px 0; font-size: 18px;">
-                    🚨 Critical Clinical Panic Alert Detected ({len(panic_alerts)} Finding{'s' if len(panic_alerts) > 1 else ''})
+                    🚨 Critical Clinical Panic Alert Detected ({len(panic_alerts)} Finding{"s" if len(panic_alerts) > 1 else ""})
                 </h3>
                 <p style="color: #7f1d1d; margin: 0; font-size: 14px;">
                     One or more laboratory analytes fall into clinically recognized critical panic intervals.
@@ -1926,9 +2072,17 @@ def render_findings_dashboard(client: CDSAPIClient, job_id: str, exp: Dict[str, 
     else:
         filter_col1, filter_col2 = st.columns(2)
         with filter_col1:
-            status_filter = st.selectbox("Filter by Status", ["All Results", "Flagged Abnormal Only", "Normal Only"], key="filter_status")
+            status_filter = st.selectbox(
+                "Filter by Status",
+                ["All Results", "Flagged Abnormal Only", "Normal Only"],
+                key="filter_status",
+            )
         with filter_col2:
-            search_query = st.text_input("🔍 Search Biomarker by Name", "", key="search_biomarker").lower().strip()
+            search_query = (
+                st.text_input("🔍 Search Biomarker by Name", "", key="search_biomarker")
+                .lower()
+                .strip()
+            )
 
         for t in test_explanations:
             t_name = t.get("test_name", "")
@@ -1943,9 +2097,21 @@ def render_findings_dashboard(client: CDSAPIClient, job_id: str, exp: Dict[str, 
                 continue
 
             badge_text = t_flag.upper()
-            badge_bg = "#f0fdf4" if t_flag == "normal" else ("#fef2f2" if "critical" in t_flag else "#fffbeb")
-            badge_color = "#15803d" if t_flag == "normal" else ("#b91c1c" if "critical" in t_flag else "#b45309")
-            val_display = f"{t.get('value')} {t.get('unit') or ''}".strip() if t.get("value") is not None else "Recorded"
+            badge_bg = (
+                "#f0fdf4"
+                if t_flag == "normal"
+                else ("#fef2f2" if "critical" in t_flag else "#fffbeb")
+            )
+            badge_color = (
+                "#15803d"
+                if t_flag == "normal"
+                else ("#b91c1c" if "critical" in t_flag else "#b45309")
+            )
+            val_display = (
+                f"{t.get('value')} {t.get('unit') or ''}".strip()
+                if t.get("value") is not None
+                else "Recorded"
+            )
 
             with st.container():
                 st.markdown(
@@ -1972,7 +2138,9 @@ def render_findings_dashboard(client: CDSAPIClient, job_id: str, exp: Dict[str, 
                     unit=t.get("unit") or "",
                     ref_low=t.get("ref_low"),
                     ref_high=t.get("ref_high"),
-                    flag=FlagStatus(t_flag) if t_flag in FlagStatus._value2member_map_ else FlagStatus.UNKNOWN,
+                    flag=FlagStatus(t_flag)
+                    if t_flag in FlagStatus._value2member_map_
+                    else FlagStatus.UNKNOWN,
                 )
                 gauge_html = render_range_gauge_html(t_obj)
                 if gauge_html:
@@ -1996,7 +2164,7 @@ def render_findings_dashboard(client: CDSAPIClient, job_id: str, exp: Dict[str, 
                         <div style="margin-top: 8px; font-size: 13px; color: #475569;">
                             <strong>Suggested Questions for Your Physician:</strong>
                             <ul style="margin: 4px 0 0 16px; padding: 0;">
-                                {''.join(f'<li>{q}</li>' for q in t_questions)}
+                                {"".join(f"<li>{q}</li>" for q in t_questions)}
                             </ul>
                         </div>
                         """,
@@ -2005,7 +2173,9 @@ def render_findings_dashboard(client: CDSAPIClient, job_id: str, exp: Dict[str, 
 
                 sources = t.get("source_urls", [])
                 if sources:
-                    links = " | ".join([f"[MedlinePlus Reference Source]({s})" for s in sources[:2]])
+                    links = " | ".join(
+                        [f"[MedlinePlus Reference Source]({s})" for s in sources[:2]]
+                    )
                     st.caption(f"📚 {links}")
 
                 st.markdown("</div>", unsafe_allow_html=True)
@@ -2045,13 +2215,17 @@ def render_findings_dashboard(client: CDSAPIClient, job_id: str, exp: Dict[str, 
     # Conversational Clinical Q&A
     st.divider()
     st.markdown("### 💬 Ask Questions About Your Lab Report")
-    st.caption("Ask educational questions about your biomarkers, reference ranges, or biological functions. Answers are grounded in MedlinePlus clinical guidelines.")
+    st.caption(
+        "Ask educational questions about your biomarkers, reference ranges, or biological functions. Answers are grounded in MedlinePlus clinical guidelines."
+    )
 
     for msg in st.session_state["chat_history"]:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
-    user_query = st.chat_input("Ask a question (e.g. 'What does my low hemoglobin level mean?')", key="chat_input_qa")
+    user_query = st.chat_input(
+        "Ask a question (e.g. 'What does my low hemoglobin level mean?')", key="chat_input_qa"
+    )
     if user_query:
         st.session_state["chat_history"].append({"role": "user", "content": user_query})
         with st.chat_message("user"):
@@ -2070,7 +2244,9 @@ def render_findings_dashboard(client: CDSAPIClient, job_id: str, exp: Dict[str, 
                     full_reply = f"{ans}\n\n*_{disclaimer}_*"
 
                     st.markdown(full_reply)
-                    st.session_state["chat_history"].append({"role": "assistant", "content": full_reply})
+                    st.session_state["chat_history"].append(
+                        {"role": "assistant", "content": full_reply}
+                    )
 
                     src_urls = qa_res.get("source_urls", [])
                     if src_urls:
@@ -2079,12 +2255,15 @@ def render_findings_dashboard(client: CDSAPIClient, job_id: str, exp: Dict[str, 
                 except Exception as exc:
                     err_msg = f"Sorry, I could not answer that right now: {exc}"
                     st.error(err_msg)
-                    st.session_state["chat_history"].append({"role": "assistant", "content": err_msg})
+                    st.session_state["chat_history"].append(
+                        {"role": "assistant", "content": err_msg}
+                    )
 
 
 # =====================================================================
 # MAIN ROUTER
 # =====================================================================
+
 
 def main():
     """Main Streamlit application entrypoint with state-based routing."""

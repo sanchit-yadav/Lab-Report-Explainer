@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
 import logging
 import os
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
 
 import bcrypt
+import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-import jwt
 from sqlalchemy.orm import Session
 
 from src.db.models import User
@@ -24,7 +24,9 @@ DEFAULT_DEV_JWT_SECRET = (
 )
 JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", DEFAULT_DEV_JWT_SECRET)
 JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))  # Default 24 hours
+ACCESS_TOKEN_EXPIRE_MINUTES = int(
+    os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES", "1440")
+)  # Default 24 hours
 _BCRYPT_ROUNDS = int(os.environ.get("BCRYPT_ROUNDS", "12"))
 
 
@@ -34,7 +36,12 @@ def validate_jwt_security() -> bool:
     Raises:
         RuntimeError: If running in production with the default or a weak key.
     """
-    env = os.environ.get("ENV") or os.environ.get("ENVIRONMENT") or os.environ.get("APP_ENV") or "development"
+    env = (
+        os.environ.get("ENV")
+        or os.environ.get("ENVIRONMENT")
+        or os.environ.get("APP_ENV")
+        or "development"
+    )
     is_prod = env.strip().lower() in ("production", "prod", "staging")
     secret = os.environ.get("JWT_SECRET_KEY", DEFAULT_DEV_JWT_SECRET)
 
@@ -123,7 +130,9 @@ def verify_and_migrate_password(
                 iterations = int(parts[2])
                 salt = parts[3].encode("utf-8")
                 target_hash = parts[4]
-                derived = hashlib.pbkdf2_hmac("sha256", plain_password.encode("utf-8"), salt, iterations).hex()
+                derived = hashlib.pbkdf2_hmac(
+                    "sha256", plain_password.encode("utf-8"), salt, iterations
+                ).hex()
                 if hmac.compare_digest(target_hash, derived):
                     new_bcrypt_hash = hash_password(plain_password)
                     return True, True, new_bcrypt_hash
@@ -233,7 +242,7 @@ def get_optional_current_user(
         user_id = payload.get("sub")
         if not user_id:
             return None
-        return db.query(User).filter(User.id == user_id, User.is_active == True).first()
+        return db.query(User).filter(User.id == user_id, User.is_active.is_(True)).first()
     except Exception:
         return None
 
@@ -257,6 +266,7 @@ def verify_report_access(record: Any, current_user: Optional[User]) -> None:
 
     if current_user.id != record_user_id:
         from src.security.audit import SecurityAuditLogger
+
         SecurityAuditLogger.get_instance().log_event(
             event_type="IDOR_ATTEMPT_BLOCKED",
             actor_id=current_user.id,

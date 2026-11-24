@@ -7,8 +7,8 @@ Rule: Low OCR confidence or implausible values -> ask for a better upload; NEVER
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 import logging
+from dataclasses import dataclass, field
 from typing import Any, List
 
 logger = logging.getLogger("security.plausibility")
@@ -41,6 +41,7 @@ PHYSIOLOGICAL_BOUNDS = {
 @dataclass
 class PlausibilityResult:
     """Assessment of biological plausibility and OCR fidelity."""
+
     is_plausible: bool
     needs_better_upload: bool = False
     implausible_findings: List[str] = field(default_factory=list)
@@ -78,7 +79,9 @@ class PlausibilityValidator:
 
             # Check strictly non-negative concentrations
             if val < 0.0:
-                findings.append(f"Negative measurement detected for {getattr(item, 'test_name', 'Analyte')}: {val} (biologically impossible).")
+                findings.append(
+                    f"Negative measurement detected for {getattr(item, 'test_name', 'Analyte')}: {val} (biologically impossible)."
+                )
                 continue
 
             name_lower = getattr(item, "test_name", "").lower()

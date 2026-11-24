@@ -7,7 +7,12 @@ from src.flagging.interferences import DrugInterferenceEngine
 def test_drug_interference_detects_biotin_thyroid():
     engine = DrugInterferenceEngine()
     tests = [
-        TestResult(test_name="TSH - Thyroid Stimulating Hormone", value=0.05, unit="uIU/mL", flag=FlagStatus.LOW),
+        TestResult(
+            test_name="TSH - Thyroid Stimulating Hormone",
+            value=0.05,
+            unit="uIU/mL",
+            flag=FlagStatus.LOW,
+        ),
         TestResult(test_name="Free T4", value=3.2, unit="ng/dL", flag=FlagStatus.HIGH),
     ]
     interferences = engine.evaluate(tests)

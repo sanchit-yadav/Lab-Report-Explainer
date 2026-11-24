@@ -6,11 +6,11 @@ and denial-of-service attempts without external dependencies.
 
 from __future__ import annotations
 
-from collections import defaultdict
 import logging
 import os
 import threading
 import time
+from collections import defaultdict
 from typing import Dict, List
 
 from fastapi import HTTPException, Request, status

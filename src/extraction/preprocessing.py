@@ -44,7 +44,7 @@ class DocumentPreprocessor:
 
     def fix_orientation(self, img_bgr: np.ndarray) -> Tuple[np.ndarray, int]:
         """Detect and correct 90/270 degree rotation for medical documents.
-        
+
         Medical lab reports are strictly portrait (height > width). If an image
         arrives in landscape (width > height * 1.15), rotate to portrait.
         """
@@ -54,12 +54,14 @@ class DocumentPreprocessor:
             gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
             sobel_x = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=3)
             sobel_y = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=3)
-            var_x = np.var(sobel_x)
-            var_y = np.var(sobel_y)
+            _var_x = np.var(sobel_x)
+            _var_y = np.var(sobel_y)
 
             # In rotated text, text lines run vertically so var_x is higher than var_y
             rotated = cv2.rotate(img_bgr, cv2.ROTATE_90_CLOCKWISE)
-            logger.info("Landscape page detected in medical report; corrected 90 deg clockwise to portrait.")
+            logger.info(
+                "Landscape page detected in medical report; corrected 90 deg clockwise to portrait."
+            )
             return rotated, 90
 
         return img_bgr, 0
@@ -118,9 +120,11 @@ class DocumentPreprocessor:
         merged = cv2.merge([y_filtered, cr, cb])
         return cv2.cvtColor(merged, cv2.COLOR_YCrCb2BGR)
 
-    def preprocess(self, source_image: Union[Image.Image, np.ndarray]) -> Tuple[Image.Image, Dict[str, Any]]:
+    def preprocess(
+        self, source_image: Union[Image.Image, np.ndarray]
+    ) -> Tuple[Image.Image, Dict[str, Any]]:
         """Execute full preprocessing pipeline on input image.
-        
+
         Returns:
             Tuple of (preprocessed_pil_image, metadata_dict)
         """

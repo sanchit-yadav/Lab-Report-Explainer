@@ -25,7 +25,6 @@ from src.extraction.normalizer import (
 )
 from src.extraction.schema import LabReport, TestResult
 
-
 RE_PATIENT_NAME = re.compile(
     r"(?:Patient\s*Name|Patient|Name|Mr\.|Mrs\.|Ms\.)\s*[:.]?\s*([^\n\r|]+?)"
     r"(?:\s+(?:Age\s*/\s*Gender|Age|Gender|DOB|Sex|Referred|Sample|ID|Status|Date|Lab|Ref)\s*[:.]|$)",
@@ -113,8 +112,7 @@ class PDFPlumberExtractor:
             for line in all_text_lines:
                 cl = clean_text(line)
                 if cl and any(
-                    k in cl.lower()
-                    for k in ["ltd", "diagnostics", "pathlabs", "healthcare", "lab"]
+                    k in cl.lower() for k in ["ltd", "diagnostics", "pathlabs", "healthcare", "lab"]
                 ):
                     lab_name = cl
                     break
@@ -169,7 +167,7 @@ class PDFPlumberExtractor:
             return results
 
         # Process table rows following the header
-        for row in table[header_idx + 1:]:
+        for row in table[header_idx + 1 :]:
             if not row or all(c is None or clean_text(c) == "" for c in row):
                 continue
 
@@ -185,7 +183,9 @@ class PDFPlumberExtractor:
                 in_col = col_map.get("in_range_value")
                 out_col = col_map.get("out_range_value")
                 val_in = clean_text(row[in_col]) if in_col is not None and in_col < len(row) else ""
-                val_out = clean_text(row[out_col]) if out_col is not None and out_col < len(row) else ""
+                val_out = (
+                    clean_text(row[out_col]) if out_col is not None and out_col < len(row) else ""
+                )
                 raw_val = val_out or val_in
             else:
                 v_col = col_map.get("value", 1)

@@ -10,6 +10,7 @@ from __future__ import annotations
 import re
 from enum import Enum
 from typing import Dict, List, Optional
+
 from pydantic import BaseModel, Field
 
 from src.extraction.schema import FlagStatus, TestResult
@@ -24,67 +25,102 @@ class CorrelationSeverity(str, Enum):
 
 class ClinicalCorrelation(BaseModel):
     """Structured representation of a multi-analyte clinical pattern or ratio."""
-    panel_name: str = Field(description="Clinical domain (e.g. Lipid Profile, Liver Function, Kidney Function, Anemia)")
+
+    panel_name: str = Field(
+        description="Clinical domain (e.g. Lipid Profile, Liver Function, Kidney Function, Anemia)"
+    )
     title: str = Field(description="Clinical title of the evaluated pattern")
-    value: Optional[float] = Field(default=None, description="Calculated numeric ratio value if applicable")
+    value: Optional[float] = Field(
+        default=None, description="Calculated numeric ratio value if applicable"
+    )
     unit: str = Field(default="", description="Ratio notation or unit")
     optimal_range: str = Field(default="", description="Target clinical benchmark")
-    severity: CorrelationSeverity = Field(default=CorrelationSeverity.NORMAL, description="Risk/severity assessment")
+    severity: CorrelationSeverity = Field(
+        default=CorrelationSeverity.NORMAL, description="Risk/severity assessment"
+    )
     finding_en: str = Field(description="Educational explanation in English")
     finding_hi: str = Field(description="Educational explanation in Hindi")
-    doctor_questions: List[str] = Field(default_factory=list, description="Targeted clinical consultation questions")
+    doctor_questions: List[str] = Field(
+        default_factory=list, description="Targeted clinical consultation questions"
+    )
 
 
 # Canonical alias mappings for common laboratory analytes
 CANONICAL_ALIASES: Dict[str, List[str]] = {
     "total_cholesterol": [
-        "total cholesterol", "cholesterol - total", "cholesterol, total", "cholesterol total", "cholesterol"
+        "total cholesterol",
+        "cholesterol - total",
+        "cholesterol, total",
+        "cholesterol total",
+        "cholesterol",
     ],
     "hdl": [
-        "hdl", "hdl cholesterol", "hdl - cholesterol", "high density lipoprotein", "cholesterol - hdl"
+        "hdl",
+        "hdl cholesterol",
+        "hdl - cholesterol",
+        "high density lipoprotein",
+        "cholesterol - hdl",
     ],
     "triglycerides": [
-        "triglycerides", "triglyceride", "tg", "serum triglycerides", "triglycerides - serum"
+        "triglycerides",
+        "triglyceride",
+        "tg",
+        "serum triglycerides",
+        "triglycerides - serum",
     ],
     "ldl": [
-        "ldl", "ldl cholesterol", "ldl - cholesterol", "low density lipoprotein", "cholesterol - ldl"
+        "ldl",
+        "ldl cholesterol",
+        "ldl - cholesterol",
+        "low density lipoprotein",
+        "cholesterol - ldl",
     ],
     "ast": [
-        "ast", "sgot", "aspartate aminotransferase", "sgot / ast", "aspartate transaminase", "sgot(ast)"
+        "ast",
+        "sgot",
+        "aspartate aminotransferase",
+        "sgot / ast",
+        "aspartate transaminase",
+        "sgot(ast)",
     ],
     "alt": [
-        "alt", "sgpt", "alanine aminotransferase", "sgpt / alt", "alanine transaminase", "sgpt(alt)"
+        "alt",
+        "sgpt",
+        "alanine aminotransferase",
+        "sgpt / alt",
+        "alanine transaminase",
+        "sgpt(alt)",
     ],
-    "bun": [
-        "bun", "blood urea nitrogen", "urea nitrogen"
-    ],
-    "urea": [
-        "urea", "serum urea", "blood urea", "urea - serum"
-    ],
-    "creatinine": [
-        "creatinine", "serum creatinine", "s. creatinine", "creatinine - serum"
-    ],
-    "hemoglobin": [
-        "hemoglobin", "hb", "hgb", "haemoglobin"
-    ],
-    "mcv": [
-        "mcv", "mean corpuscular volume"
-    ],
-    "ferritin": [
-        "ferritin", "serum ferritin", "s. ferritin"
-    ],
+    "bun": ["bun", "blood urea nitrogen", "urea nitrogen"],
+    "urea": ["urea", "serum urea", "blood urea", "urea - serum"],
+    "creatinine": ["creatinine", "serum creatinine", "s. creatinine", "creatinine - serum"],
+    "hemoglobin": ["hemoglobin", "hb", "hgb", "haemoglobin"],
+    "mcv": ["mcv", "mean corpuscular volume"],
+    "ferritin": ["ferritin", "serum ferritin", "s. ferritin"],
     "fasting_glucose": [
-        "fasting blood sugar", "glucose - fasting", "fasting glucose", "fbs", "blood glucose fasting", "glucose, fasting"
+        "fasting blood sugar",
+        "glucose - fasting",
+        "fasting glucose",
+        "fbs",
+        "blood glucose fasting",
+        "glucose, fasting",
     ],
     "hba1c": [
-        "hba1c", "glycated hemoglobin", "hemoglobin a1c", "glycosylated hemoglobin", "hba1c (glycated hemoglobin)"
+        "hba1c",
+        "glycated hemoglobin",
+        "hemoglobin a1c",
+        "glycosylated hemoglobin",
+        "hba1c (glycated hemoglobin)",
     ],
     "wbc": [
-        "wbc", "total wbc count", "leukocyte count", "white blood cells", "total leucocyte count (tlc)", "tlc"
+        "wbc",
+        "total wbc count",
+        "leukocyte count",
+        "white blood cells",
+        "total leucocyte count (tlc)",
+        "tlc",
     ],
-    "platelets": [
-        "platelet count", "platelets", "total platelet count", "plt"
-    ],
+    "platelets": ["platelet count", "platelets", "total platelet count", "plt"],
 }
 
 
@@ -318,7 +354,10 @@ class CorrelationEngine:
         glucose = _match_analyte(tests, "fasting_glucose")
         hba1c = _match_analyte(tests, "hba1c")
         if glucose and hba1c and glucose.value and hba1c.value:
-            g_high = glucose.value >= 126.0 or glucose.flag in (FlagStatus.HIGH, FlagStatus.CRITICAL_HIGH)
+            g_high = glucose.value >= 126.0 or glucose.flag in (
+                FlagStatus.HIGH,
+                FlagStatus.CRITICAL_HIGH,
+            )
             a_high = hba1c.value >= 6.5 or hba1c.flag in (FlagStatus.HIGH, FlagStatus.CRITICAL_HIGH)
 
             if g_high and a_high:
@@ -349,7 +388,9 @@ class CorrelationEngine:
                 sev = CorrelationSeverity.NORMAL
                 f_en = f"Both Fasting Glucose ({glucose.value} mg/dL) and HbA1c ({hba1c.value}%) are concordant and within desirable clinical reference limits."
                 f_hi = f"फास्टिंग ग्लूकोज ({glucose.value} mg/dL) और एचबीए1सी ({hba1c.value}%) दोनों सामान्य और संतुलित सीमा के भीतर हैं।"
-                doctor_q = ["How often should routine glycemic screening be repeated for proactive maintenance?"]
+                doctor_q = [
+                    "How often should routine glycemic screening be repeated for proactive maintenance?"
+                ]
 
             correlations.append(
                 ClinicalCorrelation(

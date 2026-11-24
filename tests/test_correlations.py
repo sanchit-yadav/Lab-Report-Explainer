@@ -82,7 +82,9 @@ def test_glycemic_discordance():
     engine = CorrelationEngine()
     # High Fasting Glucose + Normal HbA1c
     tests = [
-        TestResult(test_name="Fasting Blood Sugar", value=138.0, unit="mg/dL", flag=FlagStatus.HIGH),
+        TestResult(
+            test_name="Fasting Blood Sugar", value=138.0, unit="mg/dL", flag=FlagStatus.HIGH
+        ),
         TestResult(test_name="HbA1c", value=5.4, unit="%", flag=FlagStatus.NORMAL),
     ]
     correlations = engine.evaluate(tests)
