@@ -476,6 +476,9 @@ async def confirm_report(
         tests=updated_tests,
     )
 
+    # Synchronously advance status to FLAGGING before response so UI polling reflects active progress
+    record.update_progress(JobStatus.FLAGGING, 50, "Evaluating clinical reference ranges & panic values...")
+
     # Dispatch to background tasks to resume explanation generation
     background_tasks.add_task(
         job_mgr.confirm_and_explain_job,
@@ -525,7 +528,7 @@ async def get_job_explanation(
             detail=f"Job '{job_id}' is currently '{record.status}'. Result is not ready yet.",
         )
 
-    return record.explanation.model_dump()
+    return record.explanation.model_dump(mode="json")
 
 
 @app.post(
