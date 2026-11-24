@@ -1,4 +1,4 @@
-# Portfolio Engineering Resume Guide & Technical Interview Prep
+﻿# Portfolio Engineering Resume Guide & Technical Interview Prep
 
 > **Purpose:** Resume positioning, recruiter elevator pitch, and deep technical interview preparation grounded in empirical benchmarks from the AI Clinical Lab Report Explainer.  
 > **Source Rule:** Every number cited below is verifiable in [`evals/results/latest/`](file:///c:/Users/ysanc/Desktop/Gen%20Ai Projects/Lab%20Report%20Explainer/evals/results/latest/), [`redteam/results/latest/`](file:///c:/Users/ysanc/Desktop/Gen%20Ai Projects/Lab%20Report%20Explainer/redteam/results/latest/), or [`docs/BENCHMARKS.md`](file:///c:/Users/ysanc/Desktop/Gen%20Ai Projects/Lab%20Report%20Explainer/docs/BENCHMARKS.md).
@@ -16,7 +16,7 @@ Copy and paste these bullets directly into your resume under Experience or Key P
 
 ### Option 2 (Performance & Latency Engineering Focus):
 > **AI Clinical Lab Report Explainer** | *RAG Optimization, Cross-Encoder, OpenTelemetry, Redis*  
-> - Engineered an in-memory LRU/TTL clinical query cache (**84.6% hit ratio**) and vectorized batched Cross-Encoder re-ranking (`ms-marco-MiniLM-L-6-v2`), slashing median retrieval latency from **431.0 ms to 15.0 ms (28.7x speedup)** and reducing end-to-end p95 pipeline latency by **44.4% (810 ms to 450 ms)** at **$0.0003/report**.  
+> - Engineered an in-memory LRU/TTL clinical query cache (**84.6% hit ratio** in sequential eval harness; cold-start production hit rate starts at 0% and builds over repeated queries) and vectorized batched Cross-Encoder re-ranking (`ms-marco-MiniLM-L-6-v2`), slashing median retrieval latency from **431.0 ms to 15.0 ms (28.7x speedup)** and reducing end-to-end p95 pipeline latency by **44.4% (810 ms to 450 ms)** at **$0.0003/report**.  
 > *(Citation: `docs/BENCHMARKS.md` & `evals/results/latest/report.md`)*
 
 ### Option 3 (AI Safety, Guardrails & Red Teaming Focus):
@@ -26,7 +26,7 @@ Copy and paste these bullets directly into your resume under Experience or Key P
 
 ### Option 4 (Evaluation, Attribution & Grounding Focus):
 > **AI Clinical Lab Report Explainer** | *Evals, Citations Graph, LLM-as-a-Judge, Pydantic*  
-> - Implemented an automated clinical evaluation harness with fine-grained claim-level citation attribution (**100.0% citation accuracy**) and a calibrated LLM judge achieving **$\kappa = 0.93$ (Cohen’s kappa)** agreement against 30 expert annotations with automated CI gating.  
+> - Implemented an automated clinical evaluation harness with fine-grained claim-level citation attribution (**100.0% citation accuracy**) and a calibrated rule-engine judge achieving **quadratic weighted κ = 0.936 (unweighted κ = 0.839)** against 30 expert annotations (`evals/results/calibration_report.json`), with automated CI gating.  
 > *(Citation: `evals/results/calibration_report.json` & `evals/thresholds.yaml`)*
 
 ### Option 5 (Data Engineering & Production Microservices Focus):
@@ -63,7 +63,7 @@ Bi-encoders (`all-MiniLM-L6-v2`) embed queries and documents independently into 
 **Answer:**  
 When running our evaluation harness across the 63 golden cases, our stage timer telemetry revealed that Stage 4 (retrieve) was taking **431 ms median (p50)** and **659 ms mean**, accounting for **over 75% of total pipeline latency**. Because standard panels (CBC, Lipid Panel, Metabolic Panel) have 5–10 analytes, sequential cross-encoder PyTorch inference was running 5–10 separate passes on CPU.  
 We applied two optimizations:
-1. `RAGCacheManager` (`src/rag/cache.py`): An in-memory thread-safe LRU/TTL cache with query normalization, achieving an **84.6% cache hit ratio** on the golden dataset and dropping repeat retrieval latency to **<0.1 ms**.
+1. `RAGCacheManager` (`src/rag/cache.py`): An in-memory thread-safe LRU/TTL cache with query normalization, achieving an **84.6% cache hit ratio** on the golden eval dataset (sequential harness; cold-start production hit rate starts at 0%) and dropping repeat retrieval latency to **<0.1 ms**.
 2. Vectorized Batching (`rerank_batch`): Batched uncached biomarker pairs into a single contiguous PyTorch forward pass (`batch_size=32`).  
 Together, these reduced Stage 4 median latency from **431.0 ms to 15.0 ms (28.7x speedup)** and end-to-end p95 latency from **810 ms to 450 ms**.
 
@@ -96,7 +96,7 @@ Our citation verifier (`src/citations/verifier.py`) runs two automated checks:
 
 ### Q7: How did you evaluate your LLM-as-a-Judge to avoid circular reasoning?
 **Answer:**  
-We wrote strict 5-point rubrics for Faithfulness, Safety, Comprehension, Citation Grounding, and Actionability (`evals/rubrics/`). We then calibrated our judge (`gemini-2.5-pro` with offline fallback) against 30 expert clinician hand-labeled evaluations (`evals/results/calibration_report.json`). We computed inter-rater reliability using **Cohen’s Kappa ($\kappa$)**, achieving **$\kappa = 0.93$**, indicating near-perfect agreement with human clinical ground truth.
+We wrote strict 5-point rubrics for Faithfulness, Safety, Comprehension, Citation Grounding, and Actionability (`evals/rubrics/`). We then calibrated our judge (`gemini-2.5-pro` with offline fallback) against 30 expert clinician hand-labeled evaluations (`evals/results/calibration_report.json`). We computed inter-rater reliability using **Cohen’s Kappa ($\kappa$)**, achieving **quadratic weighted κ = 0.936 and unweighted κ = 0.839** against human clinical ground truth — verified in `evals/results/calibration_report.json`.
 
 ---
 

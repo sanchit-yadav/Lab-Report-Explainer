@@ -77,13 +77,25 @@ To eliminate subjective evaluation variance, an LLM judge (`gemini-2.5-pro` with
 ### Judge Calibration & Agreement:
 The judge is calibrated against 30 hand-labeled expert clinician annotations (`evals/results/calibration_report.json`), reporting inter-rater reliability via **Cohen's Kappa ($\kappa$)**:
 $$\kappa = \frac{p_o - p_e}{1 - p_e}$$
-The calibrated judge achieves **$\kappa = 0.93$ (Near-perfect agreement)** against human clinical ground truth.
+Verified results from `evals/results/calibration_report.json` (run 2026-11-23, git commit `d2f0786`):
+
+| Agreement Metric | Value | Interpretation |
+| :--- | :--- | :--- |
+| **Unweighted Cohen's κ** | **0.839** | Substantial–Almost Perfect Agreement |
+| **Quadratic Weighted κ** | **0.936** | Almost Perfect Agreement (standard for 1–5 ordinal ratings) |
+| Composite MAE | 0.312 | Very low mean absolute error across 5 dimensions |
+| Citation κ (best dimension) | 0.989 | Near-perfect citation agreement |
+| Comprehension κ (hardest) | 0.571 | Moderate (expected subjectivity in readability scoring) |
+
+> **Note on Eval Environment:** All evaluation runs above use a **deterministic offline fallback generator** (no live Gemini API calls) due to sandbox network isolation during CI. The faithfulness/safety metrics reflect the rule-engine fallback, not live LLM generation. When a `GEMINI_API_KEY` is configured and network is available, Gemini Flash is called for each explanation; offline fallback activates automatically when the API is unreachable.
 
 ---
 
 ## 4. Latest Empirical Benchmark Results
 
 Captured on **Commit `824cbaa` / `d2f0786`** across all 63 golden evaluation cases ([`evals/results/latest/report.md`](file:///c:/Users/ysanc/Desktop/Gen%20Ai Projects/Lab%20Report%20Explainer/evals/results/latest/report.md)):
+
+> **Eval Environment:** Pipeline runs with **offline deterministic fallback** (no live Gemini API). Extraction F1, flag accuracy, retrieval metrics are deterministic and do not depend on the LLM. Faithfulness/Safety scores reflect the structured offline rule-engine. Latencies exclude API round-trip time (p50 = 15 ms RAG, p50 = 70 ms offline LLM stub).
 
 | Evaluation Dimension | CI Threshold Target | Measured Result | Status |
 | :--- | :--- | :--- | :--- |

@@ -1350,6 +1350,110 @@ def render_landing_page(client: CDSAPIClient, backend_online: bool):
 
 
 # =====================================================================
+# DIRECT PIPELINE MODE (Standalone — no FastAPI backend required)
+# =====================================================================
+
+@st.cache_resource(show_spinner=False)
+def _get_direct_pipeline():
+    """Lazy-load a singleton LabReportPipeline for standalone (direct) mode."""
+    from src.pipeline import LabReportPipeline
+    return LabReportPipeline()
+
+
+def _run_direct_pipeline(file_bytes: bytes, filename: str, explain_all: bool = False) -> None:
+    """Run the 6-stage clinical pipeline in-process when FastAPI backend is not available.
+
+    Populates st.session_state with job_id, job_status, extracted_report, and explanation
+    so the HITL and results rendering code paths work identically to the API-backed mode.
+    """
+    import uuid as _uuid
+
+    pipeline = _get_direct_pipeline()
+    job_id = _uuid.uuid4().hex[:12]
+
+    if st.session_state.get("human_review_mode", True):
+        # HITL mode: extract only, then pause for human review
+        with st.spinner("🔬 Extracting biomarkers from report (Stage 1-3)..."):
+            try:
+                from src.stages import OCRParseInput, OCRParseStage, ExtractValuesInput, ExtractValuesStage, ValidateUploadInput, ValidateUploadStage
+                from src.extraction.loinc_mapper import LOINCMapper
+                from src.flagging.flagger import Flagger
+                from src.config import get_config
+
+                cfg = get_config()
+
+                # Stage 1: Validate
+                val_stage = ValidateUploadStage()
+                val_out = val_stage(ValidateUploadInput(file_bytes=file_bytes, filename=filename, request_id=job_id))
+                if not val_out.is_valid:
+                    st.error(f"❌ File validation failed: {val_out.error}")
+                    return
+
+                # Stage 2: OCR
+                ocr_stage = OCRParseStage()
+                ocr_out = ocr_stage(OCRParseInput(file_bytes=val_out.sanitized_bytes, filename=filename, request_id=job_id))
+
+                # Stage 3: Extract values + flag
+                ext_stage = ExtractValuesStage()
+                ext_out = ext_stage(ExtractValuesInput(parsed_doc=ocr_out, raw_bytes=val_out.sanitized_bytes, request_id=job_id))
+
+                from src.extraction.schema import LabReport
+                tests = []
+                for item in ext_out.items:
+                    from src.extraction.schema import TestResult
+                    tests.append(TestResult(
+                        test_name=item.test_name,
+                        value=item.value,
+                        raw_value=item.raw_value or "",
+                        unit=item.unit or "",
+                        ref_low=item.ref_low,
+                        ref_high=item.ref_high,
+                        ref_raw=item.ref_raw or "",
+                        flag=item.flag,
+                    ))
+                lab_report = LabReport(patient_name=ext_out.patient_name, tests=tests)
+                lab_report = LOINCMapper.enrich_report(lab_report)
+                flagger = Flagger(cfg.extraction.flagging)
+                lab_report = flagger.flag_report(lab_report)
+
+                # Store for HITL display
+                st.session_state["current_job_id"] = job_id
+                st.session_state["job_status"] = "review_needed"
+                st.session_state["_direct_extracted_report"] = lab_report
+                st.session_state["_direct_explain_all"] = explain_all
+                st.session_state["explanation"] = None
+                st.session_state["chat_history"] = []
+                st.rerun()
+            except Exception as exc:
+                st.error(f"❌ Extraction failed: {exc}")
+    else:
+        # Auto-confirm mode: full end-to-end pipeline
+        with st.spinner("🧬 Running 6-stage clinical AI pipeline (this may take 15-45 seconds)..."):
+            try:
+                result = pipeline.process_report(file_bytes, explain_all_tests=explain_all)
+                st.session_state["current_job_id"] = job_id
+                st.session_state["job_status"] = "ready"
+                st.session_state["explanation"] = result.model_dump(mode="json")
+                st.session_state["chat_history"] = []
+                st.rerun()
+            except Exception as exc:
+                st.error(f"❌ Pipeline failed: {exc}")
+
+
+def _run_direct_explain(confirmed_report, explain_all: bool = False) -> None:
+    """Resume explanation generation after HITL in direct/standalone mode."""
+    pipeline = _get_direct_pipeline()
+    with st.spinner("🧬 Generating AI clinical explanations (Stage 4-6)..."):
+        try:
+            result = pipeline.explain_lab_report(confirmed_report, explain_all_tests=explain_all)
+            st.session_state["job_status"] = "ready"
+            st.session_state["explanation"] = result.model_dump(mode="json")
+            st.rerun()
+        except Exception as exc:
+            st.error(f"❌ Explanation generation failed: {exc}")
+
+
+# =====================================================================
 # MAIN AUTHENTICATED USER DASHBOARD
 # =====================================================================
 
@@ -1441,7 +1545,7 @@ def render_authenticated_workspace(client: CDSAPIClient, backend_online: bool):
     if backend_online:
         st.sidebar.caption("🟢 **CDS Backend:** Online (:8000)")
     else:
-        st.sidebar.warning("⚠️ **CDS Backend:** Offline (:8000)")
+        st.sidebar.caption("🔵 **Standalone Mode:** Pipeline runs locally (no backend needed)")
 
     render_auth_sidebar(client)
     render_history_sidebar(client)
@@ -1541,10 +1645,6 @@ def render_authenticated_workspace(client: CDSAPIClient, backend_online: bool):
                     st.caption(f"Selected: `{SAMPLE_OPTIONS[sample_choice]}` ({sample_path.stat().st_size // 1024} KB)")
 
         if st.button("🚀 Analyze Lab Report", type="primary", use_container_width=True, key="btn_run_analysis"):
-            if not backend_online:
-                st.error("Cannot analyze report: FastAPI CDS Backend is currently offline. Please launch the backend service.")
-                return
-
             file_bytes = None
             filename = "lab_report.pdf"
 
@@ -1559,24 +1659,30 @@ def render_authenticated_workspace(client: CDSAPIClient, backend_online: bool):
                 st.warning("Please upload a file or select a clinical sample report to begin.")
                 return
 
-            with st.spinner("Uploading document to clinical processing pipeline..."):
-                try:
-                    auto_conf = not st.session_state["human_review_mode"]
-                    upload_res = client.upload_report(
-                        file_bytes=file_bytes,
-                        filename=filename,
-                        explain_all=explain_all_opt,
-                        auto_confirm=auto_conf,
-                    )
-                    st.session_state["current_job_id"] = upload_res["job_id"]
-                    st.session_state["job_status"] = upload_res["status"]
-                    st.session_state["extracted_report"] = None
-                    st.session_state["explanation"] = None
-                    st.session_state["chat_history"] = []
-                    st.success(f"Report accepted! Job ID: `{upload_res['job_id'][:8]}...`")
-                    st.rerun()
-                except Exception as exc:
-                    st.error(f"Upload failed: {exc}")
+            if backend_online:
+                # ── API-backed mode: dispatch to FastAPI background pipeline ──
+                with st.spinner("Uploading document to clinical processing pipeline..."):
+                    try:
+                        auto_conf = not st.session_state["human_review_mode"]
+                        upload_res = client.upload_report(
+                            file_bytes=file_bytes,
+                            filename=filename,
+                            explain_all=explain_all_opt,
+                            auto_confirm=auto_conf,
+                        )
+                        st.session_state["current_job_id"] = upload_res["job_id"]
+                        st.session_state["job_status"] = upload_res["status"]
+                        st.session_state["extracted_report"] = None
+                        st.session_state["explanation"] = None
+                        st.session_state["chat_history"] = []
+                        st.success(f"Report accepted! Job ID: `{upload_res['job_id'][:8]}...`")
+                        st.rerun()
+                    except Exception as exc:
+                        st.error(f"Upload failed: {exc}")
+            else:
+                # ── Direct / standalone mode: run pipeline in-process ──
+                st.info("ℹ️ **Standalone Mode:** FastAPI backend not detected — running pipeline directly in-process.")
+                _run_direct_pipeline(file_bytes, filename, explain_all_opt)
 
     # Polling & Workflow State Management
     job_id = st.session_state.get("current_job_id")
@@ -1610,11 +1716,38 @@ def render_authenticated_workspace(client: CDSAPIClient, backend_online: bool):
             "Please review the values and reference ranges before generating AI clinical explanations. You can edit any parameter directly in the table."
         )
 
+        # --- Determine data source: API-backed or direct/standalone mode ---
+        _direct_report = st.session_state.get("_direct_extracted_report")
         extracted_resp = None
-        try:
-            extracted_resp = client.get_extracted_report(job_id)
-        except Exception as exc:
-            st.error(f"Could not load extraction data for review: {exc}")
+
+        if backend_online and not _direct_report:
+            # API-backed HITL: fetch from FastAPI
+            try:
+                extracted_resp = client.get_extracted_report(job_id)
+            except Exception as exc:
+                st.error(f"Could not load extraction data for review: {exc}")
+        elif _direct_report:
+            # Direct/standalone HITL: reconstruct from in-memory LabReport
+            tests_serialized = []
+            for t in getattr(_direct_report, "tests", []):
+                tests_serialized.append({
+                    "test_name": t.test_name,
+                    "value": t.value,
+                    "raw_value": t.raw_value or "",
+                    "unit": t.unit or "",
+                    "ref_low": t.ref_low,
+                    "ref_high": t.ref_high,
+                    "ref_raw": t.ref_raw or "",
+                    "flag": t.flag.value if hasattr(t.flag, "value") else str(t.flag),
+                })
+            extracted_resp = {
+                "job_id": job_id,
+                "patient_name": getattr(_direct_report, "patient_name", None),
+                "total_tests": len(tests_serialized),
+                "tests": tests_serialized,
+            }
+        else:
+            st.error("Could not load extraction data for review. Please try uploading the report again.")
 
         if extracted_resp:
             tests_data = extracted_resp.get("tests", [])
@@ -1654,7 +1787,8 @@ def render_authenticated_workspace(client: CDSAPIClient, backend_online: bool):
                         {k: (None if pd.isna(v) or (isinstance(v, float) and (math.isnan(v) or math.isinf(v))) else v) for k, v in r.items()}
                         for r in raw_records
                     ]
-                    with st.spinner("Submitting verified parameters and synthesizing clinical explanations..."):
+                    if backend_online and not _direct_report:
+                        # API-backed confirm
                         try:
                             client.confirm_report(
                                 job_id=job_id,
@@ -1666,10 +1800,33 @@ def render_authenticated_workspace(client: CDSAPIClient, backend_online: bool):
                             st.rerun()
                         except Exception as submit_err:
                             st.error(f"Failed to submit confirmed parameters: {submit_err}")
+                    else:
+                        # Direct/standalone confirm: build LabReport and explain in-process
+                        from src.extraction.schema import LabReport, TestResult, FlagStatus as _FS
+                        updated_tests = []
+                        for rec in confirmed_records:
+                            try:
+                                flag_val = _FS(rec.get("flag", "unknown").lower())
+                            except ValueError:
+                                flag_val = _FS.UNKNOWN
+                            updated_tests.append(TestResult(
+                                test_name=rec.get("test_name", ""),
+                                value=rec.get("value"),
+                                raw_value=rec.get("raw_value") or (str(rec.get("value")) if rec.get("value") is not None else ""),
+                                unit=rec.get("unit") or "",
+                                ref_low=rec.get("ref_low"),
+                                ref_high=rec.get("ref_high"),
+                                ref_raw=rec.get("ref_raw") or "",
+                                flag=flag_val,
+                            ))
+                        confirmed_lab = LabReport(patient_name=patient_name_input, tests=updated_tests)
+                        st.session_state["_direct_extracted_report"] = None
+                        _run_direct_explain(confirmed_lab, explain_all=explain_all_opt)
 
             with col_btn2:
                 if st.button("⚡ Confirm As-Is (Skip Editing)", use_container_width=True, key="btn_confirm_asis"):
-                    with st.spinner("Synthesizing clinical explanations..."):
+                    if backend_online and not _direct_report:
+                        # API-backed confirm
                         try:
                             client.confirm_report(
                                 job_id=job_id,
@@ -1681,14 +1838,25 @@ def render_authenticated_workspace(client: CDSAPIClient, backend_online: bool):
                             st.rerun()
                         except Exception as submit_err:
                             st.error(f"Failed to confirm parameters: {submit_err}")
+                    else:
+                        # Direct/standalone confirm: use original extracted report
+                        confirmed_lab = _direct_report
+                        if confirmed_lab:
+                            confirmed_lab.patient_name = patient_name_input
+                            st.session_state["_direct_extracted_report"] = None
+                            _run_direct_explain(confirmed_lab, explain_all=explain_all_opt)
+                        else:
+                            st.error("No extracted report data available. Please re-upload the file.")
 
     # Step 3: Complete Clinical Findings Dashboard
     if st.session_state.get("job_status") == "ready":
         if not st.session_state.get("explanation"):
-            try:
-                st.session_state["explanation"] = client.get_explanation(job_id)
-            except Exception as exc:
-                st.error(f"Failed to load explanation: {exc}")
+            # Try fetching from API if backend is available; direct mode already sets explanation in session state
+            if backend_online:
+                try:
+                    st.session_state["explanation"] = client.get_explanation(job_id)
+                except Exception as exc:
+                    st.error(f"Failed to load explanation: {exc}")
 
         exp = st.session_state.get("explanation")
         if exp:
@@ -1771,7 +1939,8 @@ def render_findings_dashboard(client: CDSAPIClient, job_id: str, exp: Dict[str, 
 
         for t in test_explanations:
             t_name = t.get("test_name", "")
-            t_flag = t.get("flag", "unknown").lower()
+            raw_flag = t.get("flag", "unknown")
+            t_flag = raw_flag.value if hasattr(raw_flag, "value") else str(raw_flag).lower()
 
             if status_filter == "Flagged Abnormal Only" and t_flag in ("normal", "unknown"):
                 continue
