@@ -5,7 +5,6 @@ from __future__ import annotations
 import os
 from unittest.mock import patch
 
-import pytest
 
 from eval.regression_gate import BenchmarkThreshold, run_clinical_regression_gate
 

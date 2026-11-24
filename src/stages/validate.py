@@ -153,7 +153,6 @@ class ValidateUploadStage:
                     sanitized_bytes=b"",
                     error=f"Corrupted or malformed PDF structure: {pdf_err}",
                 )
-                sanitized_bytes = raw_bytes
 
         elapsed_ms = (time.perf_counter() - t0) * 1000
         logger.info(

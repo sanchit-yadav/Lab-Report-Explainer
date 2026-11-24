@@ -12,20 +12,14 @@ from __future__ import annotations
 
 from datetime import timedelta
 import hashlib
-import json
 from pathlib import Path
 import pytest
 from fastapi import HTTPException
-import jwt
 
 from src.api.auth import (
     create_access_token,
     decode_access_token,
-    hash_password,
     verify_password,
-    verify_and_migrate_password,
-    JWT_SECRET_KEY,
-    JWT_ALGORITHM,
 )
 from src.api.models import UserLoginRequest, UserRegisterRequest
 from src.api.routes.auth import login, register

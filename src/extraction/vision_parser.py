@@ -14,7 +14,7 @@ import logging
 import os
 from pathlib import Path
 import re
-from typing import BinaryIO, List, Optional, Union
+from typing import BinaryIO, List, Union
 
 from PIL import Image
 import pypdfium2 as pdfium

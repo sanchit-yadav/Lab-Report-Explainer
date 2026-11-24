@@ -14,7 +14,6 @@ AFTER FIX:
 from __future__ import annotations
 
 import hashlib
-import pytest
 
 from src.api.auth import verify_password
 from src.api.models import UserLoginRequest

@@ -12,7 +12,7 @@ import re
 from typing import Dict, Optional, Tuple
 
 from src.extraction.loinc_mapper import LOINCMapper
-from src.extraction.schema import FlagStatus, LabReport, TestResult
+from src.extraction.schema import LabReport, TestResult
 
 logger = logging.getLogger("flagging.demographics")
 

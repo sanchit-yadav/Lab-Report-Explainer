@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import List
 
 from src.config import get_config
 from src.extraction.schema import TestResult

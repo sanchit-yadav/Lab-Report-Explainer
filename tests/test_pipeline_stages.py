@@ -4,13 +4,11 @@ from __future__ import annotations
 
 import io
 from pathlib import Path
-import pytest
 
 from src.extraction.schema import FlagStatus
 from src.pipeline import LabReportPipeline
 from src.stages import (
     ExplainInput,
-    ExplainOutput,
     ExplainStage,
     ExtractionOutputItem,
     ExtractValuesInput,
@@ -22,16 +20,13 @@ from src.stages import (
     OCRParseOutput,
     OCRParseStage,
     OutputGuardInput,
-    OutputGuardOutput,
     OutputGuardStage,
     RetrievedChunk,
     RetrieveInput,
     RetrieveOutput,
     RetrieveStage,
     ValidateUploadInput,
-    ValidateUploadOutput,
     ValidateUploadStage,
-    generate_request_id,
 )
 from src.stages.logger import sanitize_value
 

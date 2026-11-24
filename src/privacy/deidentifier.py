@@ -11,7 +11,7 @@ import copy
 from dataclasses import dataclass, field
 import logging
 import re
-from typing import Any, Dict, List, Optional, Pattern, Tuple
+from typing import Dict, List, Tuple
 
 from src.extraction.schema import LabReport
 

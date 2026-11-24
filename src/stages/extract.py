@@ -13,7 +13,7 @@ from typing import List, Optional
 from src.config import get_config
 from src.extraction.loinc_mapper import LOINCMapper
 from src.extraction.router import ExtractionRouter
-from src.extraction.schema import FlagStatus, LabReport, TestResult
+from src.extraction.schema import FlagStatus, LabReport
 from src.flagging.demographics import DemographicIntervalEngine
 from src.flagging.flagger import Flagger
 from src.flagging.panic_values import PanicValueEngine

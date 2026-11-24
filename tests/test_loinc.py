@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-import pytest
 
-from src.extraction.loinc_mapper import LOINCMapper, LOINCRecord
-from src.extraction.schema import FlagStatus, LabReport, TestResult
+from src.extraction.loinc_mapper import LOINCMapper
+from src.extraction.schema import LabReport, TestResult
 
 
 def test_map_lipid_panel_analytes():

@@ -7,7 +7,6 @@ variables using Pydantic Settings. No hardcoded thresholds, prompts, or model na
 from __future__ import annotations
 
 import functools
-import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 

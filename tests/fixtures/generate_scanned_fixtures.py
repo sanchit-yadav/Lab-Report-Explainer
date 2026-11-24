@@ -14,10 +14,9 @@ Each fixture has an identical ground-truth JSON file alongside it.
 from __future__ import annotations
 
 import json
-import math
 from pathlib import Path
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageFont
 
 
 FIXTURES_DIR = Path(__file__).parent / "scanned"

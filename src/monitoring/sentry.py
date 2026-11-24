@@ -10,9 +10,8 @@ from __future__ import annotations
 import logging
 import os
 import re
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Optional
 
-from src.config import get_config
 
 logger = logging.getLogger("sentry_monitor")
 

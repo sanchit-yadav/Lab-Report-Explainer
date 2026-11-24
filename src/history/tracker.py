@@ -11,7 +11,7 @@ import json
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 from pydantic import BaseModel, Field
 
 from src.extraction.schema import FlagStatus, LabReport, TestResult

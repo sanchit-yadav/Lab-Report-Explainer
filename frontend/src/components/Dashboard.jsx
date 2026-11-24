@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import {
-  Upload, FileText, Trash2, RefreshCw, CheckCircle2, AlertTriangle, 
-  AlertCircle, Download, Send, Search, Filter, Languages, Sparkles, 
-  ChevronRight, ArrowLeft, Loader2, User, ExternalLink, Dna, PlusCircle
+  Upload, Trash2, RefreshCw, AlertTriangle, 
+  Download, Send, Search, Languages, Sparkles, 
+  Loader2, ExternalLink, Dna, PlusCircle
 } from 'lucide-react'
 import { RangeGauge } from './RangeGauge'
 
@@ -29,7 +29,7 @@ export function Dashboard({ user, client, onLogout }) {
   // Preferences
   const [language, setLanguage] = useState('en')
   const [humanReviewMode, setHumanReviewMode] = useState(true)
-  const [explainAll, setExplainAll] = useState(false)
+  const [explainAll] = useState(false)
 
   // Ingestion / Upload state
   const [selectedFile, setSelectedFile] = useState(null)

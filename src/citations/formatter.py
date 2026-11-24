@@ -8,14 +8,13 @@ Transforms structured {claim, source_ids[]} and CitationRegistry instances into:
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 from src.citations.models import (
     AttributedClaim,
     CitationRegistry,
     KBChunkSource,
     ReportFieldSource,
-    SourceKind,
     VerificationStatus,
 )
 

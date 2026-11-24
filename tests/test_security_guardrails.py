@@ -12,15 +12,12 @@ Verifies:
 
 from __future__ import annotations
 
-import os
 import time
-from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi import HTTPException
-from fastapi.testclient import TestClient
 
-from src.api.auth import create_access_token, verify_report_access
+from src.api.auth import verify_report_access
 from src.db.models import User
 from src.extraction.schema import FlagStatus
 from src.security.audit import SecurityAuditLogger
@@ -36,7 +33,7 @@ from src.security.signed_urls import (
 )
 from src.stages.schemas import ExtractionOutputItem, OutputGuardInput, TestExplanationItem
 from src.stages.output_guard import OutputGuardStage
-from src.workers.job_manager import JobManager, JobRecord, JobStatus
+from src.workers.job_manager import JobManager
 
 
 # ============================================================================

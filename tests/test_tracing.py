@@ -2,7 +2,7 @@
 
 import pytest
 import time
-from src.tracing.langfuse_setup import LocalSpan, LocalTrace, Tracer, calculate_cost, get_tracer
+from src.tracing.langfuse_setup import LocalSpan, LocalTrace, calculate_cost, get_tracer
 
 
 def test_calculate_cost():

@@ -1,6 +1,5 @@
 """Unit tests for configuration loader and schema validation."""
 
-import pytest
 from src.config import get_config
 
 

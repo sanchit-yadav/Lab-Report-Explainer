@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import pytest
 
 from redteam.cases import get_all_attack_cases
 from redteam.harness import RedTeamHarness
-from redteam.models import AttackCategory, AttackTargetLayer
+from redteam.models import AttackCategory
 
 
 def test_redteam_attack_suite_count_and_categories():

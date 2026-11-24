@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, List
 
 logger = logging.getLogger("security.plausibility")
 

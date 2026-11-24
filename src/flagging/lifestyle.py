@@ -7,7 +7,7 @@ Generates deterministic, guideline-grounded dietary and lifestyle recommendation
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import List
 
 from src.extraction.schema import FlagStatus, TestResult
 

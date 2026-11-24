@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import BinaryIO, Optional, Union
+from typing import BinaryIO, Union
 
 from src.config import get_config
 from src.extraction.camelot_parser import CamelotExtractor

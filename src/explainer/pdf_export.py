@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import io
 import logging
-import os
 from pathlib import Path
 from typing import List, Optional
 
@@ -20,7 +19,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import HRFlowable, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-from src.explainer.schema import ReportExplanation, TestExplanation
+from src.explainer.schema import ReportExplanation
 from src.extraction.schema import FlagStatus, LabReport, TestResult
 
 logger = logging.getLogger("pdf_export")

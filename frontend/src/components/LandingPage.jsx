@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { 
   ArrowRight, CheckCircle2, ShieldCheck, FileText, Cpu, BookOpen, 
-  Languages, FileSpreadsheet, ChevronDown, Sparkles, AlertCircle, HelpCircle
+  Languages, FileSpreadsheet, ChevronDown, Sparkles
 } from 'lucide-react'
 import { RangeGauge } from './RangeGauge'
 

@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import logging
 import re
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional
 
 from src.extraction.schema import LabReport, TestResult
 

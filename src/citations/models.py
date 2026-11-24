@@ -8,7 +8,7 @@ Enforces schema: {claim, source_ids[]} where sources are:
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union
 from pydantic import BaseModel, Field
 
 

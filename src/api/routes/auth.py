@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -12,7 +11,6 @@ from src.api.auth import (
     create_access_token,
     get_current_user,
     hash_password,
-    verify_password,
     verify_and_migrate_password,
 )
 from src.api.models import TokenResponse, UserLoginRequest, UserRegisterRequest, UserResponse

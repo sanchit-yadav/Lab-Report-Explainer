@@ -11,9 +11,7 @@ Confirms that:
 """
 
 from pathlib import Path
-import pytest
 
-from src.extraction.router import ExtractionRouter
 from src.extraction.schema import FlagStatus
 from src.stages.extract import ExtractValuesStage
 from src.stages.ocr import OCRParseStage

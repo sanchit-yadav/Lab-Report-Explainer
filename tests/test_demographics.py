@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import pytest
 
-from src.extraction.schema import FlagStatus, LabReport, TestResult
+from src.extraction.schema import LabReport, TestResult
 from src.flagging.demographics import DemographicContext, DemographicIntervalEngine
 
 

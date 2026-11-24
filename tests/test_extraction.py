@@ -1,7 +1,6 @@
 """Unit and integration tests for PDF Extraction components."""
 
 from pathlib import Path
-import pytest
 
 from src.extraction.pdf_parser import PDFPlumberExtractor
 from src.extraction.router import ExtractionRouter

@@ -1,9 +1,8 @@
 """Tests for RAGCacheManager and retrieval optimization."""
 
 import time
-import pytest
 from src.rag.cache import RAGCacheManager
-from src.stages.schemas import RetrievedChunk, RetrieveInput
+from src.stages.schemas import RetrieveInput
 from src.stages.retrieve import RetrieveStage
 
 

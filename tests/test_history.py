@@ -1,6 +1,5 @@
 """Unit tests for longitudinal history tracking and trend analysis."""
 
-from pathlib import Path
 from src.extraction.schema import FlagStatus, LabReport, TestResult
 from src.history.tracker import HistoryTracker, TrendDirection
 

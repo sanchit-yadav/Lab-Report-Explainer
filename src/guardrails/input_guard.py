@@ -8,7 +8,7 @@ import os
 import re
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from src.config import get_config
 from src.explainer.prompts import build_classifier_prompt

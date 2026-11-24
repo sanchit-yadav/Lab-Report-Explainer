@@ -3,14 +3,12 @@
 from __future__ import annotations
 
 import asyncio
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from src.api.models import JobStatus
 from src.explainer.schema import ReportExplanation
-from src.extraction.schema import LabReport
 from src.workers.job_manager import JobManager, JobRecord
 from src.workers.tasks import run_pipeline_sync
 

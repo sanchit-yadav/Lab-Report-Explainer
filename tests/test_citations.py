@@ -11,10 +11,9 @@ Verifies:
 
 from __future__ import annotations
 
-import pytest
 
 from src.citations.formatter import CitationFormatter
-from src.citations.manifest import KBManifestManager, get_kb_manifest
+from src.citations.manifest import KBManifestManager
 from src.citations.models import (
     AttributedClaim,
     CitationRegistry,
@@ -34,7 +33,6 @@ from src.stages.schemas import (
     OutputGuardOutput,
     RetrievedChunk,
     RetrieveOutput,
-    TestExplanationItem,
 )
 from src.stages.explain import ExplainStage
 from src.stages.output_guard import OutputGuardStage

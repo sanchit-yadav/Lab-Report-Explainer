@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import logging
 from pathlib import Path
 import re
-from typing import BinaryIO, Optional, Union
+from typing import Optional, Union
 
 logger = logging.getLogger("security.scanner")
 

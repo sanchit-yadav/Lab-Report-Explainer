@@ -1,5 +1,5 @@
 import React from 'react'
-import { Dna, ShieldCheck, LogIn, UserPlus, LogOut, LayoutDashboard } from 'lucide-react'
+import { Dna, UserPlus, LogOut, LayoutDashboard } from 'lucide-react'
 
 export function Navbar({ view, onNavigate, user, onLogout, backendOnline }) {
   return (

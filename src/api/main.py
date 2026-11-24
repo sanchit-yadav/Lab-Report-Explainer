@@ -58,7 +58,7 @@ from src.security.rate_limiter import SlidingWindowRateLimiter
 from src.security.retention import purge_user_data
 from src.security.scanner import FileSecurityScanner
 from src.security.signed_urls import create_signed_token, verify_signed_token
-from src.workers.job_manager import JobManager, JobRecord
+from src.workers.job_manager import JobManager
 
 logger = logging.getLogger("api")
 

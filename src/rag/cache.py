@@ -10,7 +10,7 @@ import logging
 import threading
 import time
 from collections import OrderedDict
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 logger = logging.getLogger("rag_cache")
 

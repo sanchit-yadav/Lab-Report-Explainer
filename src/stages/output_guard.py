@@ -11,7 +11,7 @@ import re
 import time
 from typing import List, Set
 
-from src.citations.models import CitationRegistry, KBChunkSource, ReportFieldSource, VerificationStatus
+from src.citations.models import CitationRegistry, KBChunkSource, ReportFieldSource
 from src.citations.verifier import CitationVerifier
 from src.guardrails.output_guard import OutputGuard
 from src.stages.logger import get_stage_logger

@@ -1,6 +1,5 @@
 """Unit tests for data normalization utilities."""
 
-import pytest
 from src.extraction.normalizer import (
     clean_text,
     identify_columns,

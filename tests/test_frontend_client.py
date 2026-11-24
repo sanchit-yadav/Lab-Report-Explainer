@@ -1,7 +1,6 @@
 """Tests for the frontend API client (CDSAPIClient)."""
 
 from unittest.mock import MagicMock, patch
-import pytest
 
 from src.frontend.api_client import CDSAPIClient
 
@@ -111,7 +110,6 @@ def test_api_client_report_workflow_methods():
 
 def test_api_client_confirm_report_sanitizes_nan_and_na():
     """Verify confirm_report cleanly sanitizes float('nan'), inf, and pandas NA before HTTP POST."""
-    import math
     import pandas as pd
     client = CDSAPIClient(base_url="http://testserver", token="tok123")
 

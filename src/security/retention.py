@@ -11,7 +11,7 @@ from datetime import timezone
 import logging
 from pathlib import Path
 import shutil
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 logger = logging.getLogger("security.retention")
 

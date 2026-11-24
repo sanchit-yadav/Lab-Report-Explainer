@@ -14,20 +14,16 @@ Features:
 
 from __future__ import annotations
 
-from datetime import datetime
 import io
-import json
 import math
-import os
 from pathlib import Path
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import pandas as pd
 import streamlit as st
-import streamlit.components.v1 as components
 
-from src.extraction.schema import FlagStatus, LabReport, TestResult
+from src.extraction.schema import FlagStatus, TestResult
 from src.frontend.api_client import CDSAPIClient
 
 PROJECT_ROOT = Path(__file__).resolve().parent

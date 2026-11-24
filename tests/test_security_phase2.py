@@ -1,7 +1,5 @@
 """Tests for Phase 2: Production Secrets, Security Hardening, Rate Limiting, and DB Pooling."""
 
-import os
-import time
 from unittest.mock import MagicMock
 import pytest
 from fastapi import HTTPException

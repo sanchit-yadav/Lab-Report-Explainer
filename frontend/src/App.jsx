@@ -40,7 +40,7 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const handleAuthSuccess = (userData, token) => {
+  const handleAuthSuccess = (userData) => {
     setUser(userData)
     setView('dashboard')
   }
