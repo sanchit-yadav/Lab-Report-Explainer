@@ -70,15 +70,74 @@ def hash_password(plain_password: str) -> str:
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify that a plaintext password matches the stored bcrypt hash."""
+    """Verify that a plaintext password matches the stored hash (supports bcrypt and legacy formats)."""
+    valid, _, _ = verify_and_migrate_password(plain_password, hashed_password)
+    return valid
+
+
+def verify_and_migrate_password(
+    plain_password: str,
+    hashed_password: str,
+) -> tuple[bool, bool, Optional[str]]:
+    """Verify password with automatic detection and seamless migration for legacy hash formats.
+
+    Supports:
+    1. Standard Bcrypt ($2a$, $2b$, $2y$)
+    2. Legacy SHA-256 (64-character hex string)
+    3. Legacy PBKDF2 (pbkdf2:sha256 or pbkdf2_sha256)
+
+    Returns:
+        Tuple of (is_valid: bool, needs_rehash: bool, upgraded_hash: Optional[str])
+    """
+    if not plain_password or not hashed_password:
+        return False, False, None
+
+    # 1. Standard bcrypt hash check ($2a$, $2b$, $2y$)
+    if hashed_password.startswith(("$2a$", "$2b$", "$2y$")):
+        try:
+            is_valid = bcrypt.checkpw(
+                plain_password.encode("utf-8"),
+                hashed_password.encode("utf-8"),
+            )
+            return is_valid, False, None
+        except Exception as exc:
+            logger.warning(f"Bcrypt verification error: {exc}")
+            return False, False, None
+
+    # 2. Legacy SHA-256 hexadecimal hash (64 hex characters)
+    import hashlib
+    import hmac
+
+    clean_stored = hashed_password.strip().lower()
+    if len(clean_stored) == 64 and all(c in "0123456789abcdef" for c in clean_stored):
+        computed_sha = hashlib.sha256(plain_password.encode("utf-8")).hexdigest()
+        if hmac.compare_digest(clean_stored, computed_sha):
+            new_bcrypt_hash = hash_password(plain_password)
+            return True, True, new_bcrypt_hash
+
+    # 3. Legacy PBKDF2 format (pbkdf2:sha256 or pbkdf2_sha256)
+    if clean_stored.startswith(("pbkdf2:sha256:", "pbkdf2_sha256$")):
+        try:
+            parts = clean_stored.replace(":", "$").split("$")
+            if len(parts) >= 4:
+                iterations = int(parts[2])
+                salt = parts[3].encode("utf-8")
+                target_hash = parts[4]
+                derived = hashlib.pbkdf2_hmac("sha256", plain_password.encode("utf-8"), salt, iterations).hex()
+                if hmac.compare_digest(target_hash, derived):
+                    new_bcrypt_hash = hash_password(plain_password)
+                    return True, True, new_bcrypt_hash
+        except Exception as exc:
+            logger.warning(f"PBKDF2 legacy verification error: {exc}")
+
+    # Fallback bcrypt attempt in case of unusual prefix
     try:
-        return bcrypt.checkpw(
-            plain_password.encode("utf-8"),
-            hashed_password.encode("utf-8"),
-        )
-    except Exception as exc:
-        logger.warning(f"Password verification encountered error: {exc}")
-        return False
+        if bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8")):
+            return True, False, None
+    except Exception:
+        pass
+
+    return False, False, None
 
 
 def create_access_token(

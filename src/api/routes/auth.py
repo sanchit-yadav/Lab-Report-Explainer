@@ -13,6 +13,7 @@ from src.api.auth import (
     get_current_user,
     hash_password,
     verify_password,
+    verify_and_migrate_password,
 )
 from src.api.models import TokenResponse, UserLoginRequest, UserRegisterRequest, UserResponse
 from src.db.models import User
@@ -91,7 +92,16 @@ def login(
 
     audit = SecurityAuditLogger.get_instance()
 
-    if not user or not verify_password(req.password, user.hashed_password):
+    is_valid = False
+    needs_rehash = False
+    upgraded_hash = None
+    if user:
+        is_valid, needs_rehash, upgraded_hash = verify_and_migrate_password(
+            req.password,
+            user.hashed_password,
+        )
+
+    if not user or not is_valid:
         audit.log_event(
             event_type="LOGIN_FAILED",
             actor_id="anonymous",
@@ -103,6 +113,13 @@ def login(
             detail="Invalid email or password.",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+    # Safe zero-downtime migration: rehash legacy password schemes to modern bcrypt
+    if needs_rehash and upgraded_hash:
+        user.hashed_password = upgraded_hash
+        db.commit()
+        db.refresh(user)
+        logger.info(f"User '{user.id}' password hash upgraded to standard bcrypt upon successful authentication.")
 
     if not user.is_active:
         audit.log_event(

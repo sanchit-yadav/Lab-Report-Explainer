@@ -32,6 +32,7 @@ engine_kwargs = {"pool_pre_ping": True}
 
 if DATABASE_URL.startswith("sqlite"):
     connect_args["check_same_thread"] = False
+    connect_args["timeout"] = 30
 elif DATABASE_URL.startswith("postgresql"):
     # Serverless & Cloud PostgreSQL optimization (Neon, Supabase, Render, AWS RDS)
     engine_kwargs.update({
