@@ -1,26 +1,27 @@
-# Core & Web
-streamlit>=1.30.0
-pydantic>=2.5.0
-pydantic-settings>=2.0.0
-pyyaml>=6.0.0
-python-dotenv>=1.0.0
-
-# Extraction
-pdfplumber>=0.10.0
-camelot-py>=2.0.0
-
-# AI / Embeddings / Vector DB
-google-genai>=1.51.0
-chromadb>=0.4.0
-sentence-transformers>=2.0.0
-
-# Observability
-langfuse>=2.0.0
-
-# Testing & Quality
-pytest>=7.0.0
-pytest-cov>=4.0.0
-rich>=13.0.0
-
-# Synthetic Data Generation
-reportlab>=4.0.0
+# Pinned Dependencies for AI Clinical Lab Report Explainer
+streamlit==1.67.0
+pydantic==2.14.3
+pydantic-settings==2.16.2
+pyyaml==6.0.3
+python-dotenv==1.2.4
+pdfplumber==0.11.10
+pypdfium2==5.15.2
+opencv-python-headless==5.0.0.93
+camelot-py==2.0.0
+google-genai==3.1.0
+chromadb==1.5.9
+sentence-transformers==6.2.0
+langfuse==5.2.0
+pytest==9.2.0
+pytest-cov==7.1.0
+rich==15.0.0
+reportlab==5.1.0
+gtts==2.5.4
+fastapi==0.162.7
+uvicorn==0.54.0
+python-multipart==0.0.33
+sqlalchemy==2.1.8
+pyjwt==2.15.1
+bcrypt==5.0.0
+httpx==0.28.1
+psycopg2-binary==2.9.13
