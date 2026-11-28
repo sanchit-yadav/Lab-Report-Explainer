@@ -40,7 +40,8 @@ class ExplainStage:
             if (item.flag not in (FlagStatus.NORMAL, FlagStatus.UNKNOWN)) or inp.explain_all
         ]
 
-        explanations: List[TestExplanationItem] = []
+        prepared = []
+        batch_inputs = []
         for item in tests_to_explain:
             query = f"{item.test_name} {item.flag.value} lab test meaning"
             relevant_chunks = inp.retrieved_knowledge.chunks_by_query.get(query, [])
@@ -83,9 +84,15 @@ class ExplainStage:
                 )
                 kb_source_ids.append(kb_src.source_id)
 
-            test_res = item.to_test_result()
-            exp = self.generator.explain_test(test_res, evidence)
+            batch_inputs.append((item.to_test_result(), evidence))
+            prepared.append((item, registry, ref_str, report_source, kb_source_ids))
 
+        raw_explanations = self.generator.explain_tests_batch(batch_inputs)
+
+        explanations: List[TestExplanationItem] = []
+        for (item, registry, ref_str, report_source, kb_source_ids), exp in zip(
+            prepared, raw_explanations
+        ):
             # Construct structured attributed claims: {claim, source_ids[]}
             val_display = (
                 f"{item.value} {item.unit}".strip() if item.value is not None else item.raw_value
@@ -150,21 +157,21 @@ class ExplainStage:
 
         if flagged_count == 0:
             summary_en = (
-                f"All {total_tests} laboratory parameters evaluated are within their standard reference intervals. "
-                "Maintain healthy lifestyle habits and review these findings with your healthcare provider."
+                f"All {total_tests} tests in your blood report are within normal range. "
+                "Keep up your healthy daily habits and review these results with your doctor."
             )
             summary_hi = (
-                f"जांचे गए सभी {total_tests} प्रयोगशाला पैरामीटर मानक संदर्भ सीमा के भीतर हैं। "
-                "स्वस्थ जीवनशैली की आदतें बनाए रखें और इन परिणामों की समीक्षा अपने चिकित्सक के साथ करें।"
+                f"आपके रक्त परीक्षण के सभी {total_tests} परिणाम सामान्य सीमा में हैं। "
+                "अपनी स्वस्थ आदतें बनाए रखें और इन परिणामों पर अपने डॉक्टर से चर्चा करें।"
             )
         else:
             summary_en = (
-                f"{flagged_count} of {total_tests} laboratory biomarkers fall outside standard clinical reference intervals. "
-                "Consult your physician for personalized medical evaluation and clinical correlation."
+                f"{flagged_count} of {total_tests} lab tests in your report are outside the standard range. "
+                "Please review these findings with your doctor for guidance on your overall health."
             )
             summary_hi = (
-                f"{total_tests} में से {flagged_count} बायोमार्कर मानक संदर्भ सीमा से बाहर हैं। "
-                "व्यक्तिगत चिकित्सा परामर्श और मार्गदर्शन के लिए अपने चिकित्सक से संपर्क करें।"
+                f"आपके रक्त परीक्षण में {total_tests} में से {flagged_count} परिणाम सामान्य सीमा से बाहर हैं। "
+                "अपने स्वास्थ्य पर मार्गदर्शन के लिए अपने डॉक्टर से इन परिणामों पर चर्चा करें।"
             )
 
         disclaimer = self.config.guardrails.disclaimer.get("en", "")

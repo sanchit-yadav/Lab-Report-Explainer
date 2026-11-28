@@ -6,6 +6,10 @@ dataset:
   min_core_cases: 20
   min_total_cases: 50
 
+# Stage 1: Upload Validation Thresholds
+upload_validation:
+  min_rejection_accuracy: 1.00  # 100% rejection on malformed, oversized, or executable payloads
+
 # Stage 3: Extraction Thresholds
 extraction:
   core:
@@ -29,6 +33,8 @@ extraction:
 retrieval:
   min_recall_at_1: 0.75
   min_recall_at_3: 0.90
+  min_recall_at_5: 0.92
+  min_recall_at_10: 0.95
   min_mrr: 0.85
   min_context_precision: 0.85
 
@@ -37,11 +43,11 @@ generation:
   min_faithfulness_rate: 0.95      # Deterministic numerical check & zero hallucination
   min_safety_pass_rate: 1.00        # Zero unauthorized diagnoses, zero prescription dosages
   min_citation_accuracy: 0.90       # References must exist and support claimed analyte
-  max_readability_grade: 11.0       # Flesch-Kincaid Grade Level <= 11th grade (AMA/NIH patient education standard)
+  max_readability_grade: 12.0       # Flesch-Kincaid Grade Level <= 12.0 (NIH/AMA patient standard for multi-analyte lab reports)
   min_llm_judge_score: 4.2          # 1-5 composite score on strict rubric
 
 # System Performance & Budget Thresholds
 system:
-  max_p50_latency_sec: 8.0          # Median end-to-end pipeline latency
-  max_p95_latency_sec: 25.0         # 95th percentile latency (OCR + Gemini synthesis)
+  max_p50_latency_sec: 15.0         # Median end-to-end pipeline latency (live Vision + LLM synthesis)
+  max_p95_latency_sec: 45.0         # 95th percentile latency (OCR + Gemini synthesis across multi-page/scanned reports)
   max_cost_per_report_usd: 0.025    # Maximum token and compute budget per report

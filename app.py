@@ -1732,6 +1732,21 @@ def render_authenticated_workspace(client: CDSAPIClient, backend_online: bool):
             use_container_width=True,
             key="btn_run_analysis",
         ):
+            # Client-side sliding-window rate limit: max 10 requests per 60s, min 3s between clicks
+            now = time.time()
+            upload_history = [
+                t for t in st.session_state.setdefault("_upload_history", [])
+                if now - t < 60.0
+            ]
+            st.session_state["_upload_history"] = upload_history
+            if len(upload_history) >= 10:
+                st.error("⚠️ Rate limit reached: Maximum 10 report analyses per minute. Please wait a moment before trying again.")
+                return
+            if upload_history and (now - upload_history[-1]) < 3.0:
+                st.warning("⚠️ Request already submitted. Please wait a moment for analysis to begin.")
+                return
+            st.session_state["_upload_history"].append(now)
+
             file_bytes = None
             filename = "lab_report.pdf"
 

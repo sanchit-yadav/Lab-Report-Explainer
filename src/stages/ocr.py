@@ -102,6 +102,10 @@ class OCRParseStage:
         # ----------------------------------------------------------------------
         # Fallback for Scanned / Image-Only PDFs and Direct Image Uploads
         # ----------------------------------------------------------------------
+        vision_tests = []
+        vision_patient_name = None
+        vision_lab_name = None
+
         if not has_digital_text:
             page_images: List[Image.Image] = []
             if is_pdf:
@@ -172,6 +176,12 @@ class OCRParseStage:
                         page_report = vision.extract_from_image(clean_img, page_idx=page_idx)
 
                         if page_report.tests:
+                            if not vision_patient_name and page_report.patient_name:
+                                vision_patient_name = page_report.patient_name
+                            if not vision_lab_name and page_report.lab_name:
+                                vision_lab_name = page_report.lab_name
+                            vision_tests.extend(page_report.tests)
+
                             ocr_lines = []
                             page_text_lines = []
                             for t_idx, t in enumerate(page_report.tests, start=1):
@@ -219,6 +229,18 @@ class OCRParseStage:
                 )
                 full_text_chunks.append(page_text)
 
+        structured_report = None
+        if vision_tests:
+            from src.extraction.schema import LabReport
+
+            structured_report = LabReport(
+                patient_name=vision_patient_name,
+                lab_name=vision_lab_name,
+                report_type="blood_test",
+                tests=vision_tests,
+                extraction_method="vision",
+            )
+
         elapsed_ms = (time.perf_counter() - t0) * 1000
         full_text = "\n\n".join(full_text_chunks)
         total_pages = len(pages)
@@ -250,6 +272,7 @@ class OCRParseStage:
                 if overall_needs_clearer
                 else None
             ),
+            structured_report=structured_report,
         )
 
 

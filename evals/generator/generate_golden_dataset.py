@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+
 from evals.generator.report_generator import ReportGenerator
 
 

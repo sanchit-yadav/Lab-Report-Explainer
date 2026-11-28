@@ -7,6 +7,8 @@ variables using Pydantic Settings. No hardcoded thresholds, prompts, or model na
 from __future__ import annotations
 
 import functools
+import threading
+import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -44,13 +46,13 @@ def _load_text_file(file_path: Path) -> str:
 class ModelsConfig(BaseModel):
     explanation_llm: str = Field(default="gemini-3.5-flash-lite")
     explanation_thinking_level: str = Field(default="low")
-    vision_fallback: str = Field(default="gemini-2.5-flash")
+    vision_fallback: str = Field(default="gemini-3.5-flash-lite")
     vision_media_resolution: str = Field(default="medium")
     guardrail_classifier: str = Field(default="gemini-3.1-flash-lite")
     eval_judge: str = Field(default="gemini-3.5-flash")
     eval_thinking_level: str = Field(default="high")
     fallback_models: List[str] = Field(
-        default_factory=lambda: ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]
+        default_factory=lambda: ["gemini-2.5-flash-lite", "gemini-3.5-flash-lite", "gemini-2.5-flash"]
     )
 
 
@@ -331,3 +333,87 @@ def get_config() -> Settings:
         prompts=prompts,
         default_lab_name=app_data.get("default_lab_name", ""),
     )
+
+
+# ==============================================================================
+# Thread-safe Gemini Model Cooldown Circuit Breaker
+# ==============================================================================
+_COOLDOWN_LOCK = threading.Lock()
+_MODEL_COOLDOWN_UNTIL: Dict[str, float] = {}
+
+
+def mark_model_cooldown(model_name: str, error_text: str) -> None:
+    """Temporarily bench a model that returned 429/404/503/504 so subsequent calls skip it."""
+    err_upper = error_text.upper()
+    if "429" in err_upper or "RESOURCE_EXHAUSTED" in err_upper:
+        duration = 180.0
+    elif "404" in err_upper or "NOT_FOUND" in err_upper:
+        duration = 3600.0
+    elif any(k in err_upper for k in ("503", "UNAVAILABLE", "504", "DEADLINE_EXCEEDED", "TIMEOUT")):
+        duration = 30.0
+    else:
+        return
+
+    with _COOLDOWN_LOCK:
+        _MODEL_COOLDOWN_UNTIL[model_name] = max(
+            _MODEL_COOLDOWN_UNTIL.get(model_name, 0.0), time.monotonic() + duration
+        )
+
+
+def available_models(candidates: List[str]) -> List[str]:
+    """Return candidate models not currently in cooldown (or all candidates if all are benched)."""
+    now = time.monotonic()
+    with _COOLDOWN_LOCK:
+        healthy = [m for m in candidates if _MODEL_COOLDOWN_UNTIL.get(m, 0.0) <= now]
+    return healthy or list(candidates)
+
+
+# ==============================================================================
+# Thread-safe Live LLM Token & Model Telemetry Recorder
+# ==============================================================================
+_USAGE_LOCK = threading.Lock()
+_USAGE_STATS: Dict[str, Any] = {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0,
+    "api_calls": 0,
+    "calls_by_model": {},
+}
+
+
+def reset_llm_usage() -> None:
+    """Reset accumulated LLM token and model telemetry counters."""
+    with _USAGE_LOCK:
+        _USAGE_STATS["input_tokens"] = 0
+        _USAGE_STATS["output_tokens"] = 0
+        _USAGE_STATS["total_tokens"] = 0
+        _USAGE_STATS["api_calls"] = 0
+        _USAGE_STATS["calls_by_model"] = {}
+
+
+def record_llm_usage(model_name: str, response: Any) -> None:
+    """Record actual input/output token counts from a Google GenAI response object."""
+    usage = getattr(response, "usage_metadata", None)
+    in_tok = int(getattr(usage, "prompt_token_count", 0) or 0) if usage else 0
+    out_tok = int(getattr(usage, "candidates_token_count", 0) or 0) if usage else 0
+    tot_tok = int(getattr(usage, "total_token_count", 0) or (in_tok + out_tok)) if usage else 0
+
+    with _USAGE_LOCK:
+        _USAGE_STATS["input_tokens"] += in_tok
+        _USAGE_STATS["output_tokens"] += out_tok
+        _USAGE_STATS["total_tokens"] += tot_tok
+        _USAGE_STATS["api_calls"] += 1
+        by_m = _USAGE_STATS["calls_by_model"]
+        by_m[model_name] = by_m.get(model_name, 0) + 1
+
+
+def get_llm_usage_snapshot() -> Dict[str, Any]:
+    """Return a copy of accumulated token and model telemetry counters."""
+    with _USAGE_LOCK:
+        return {
+            "input_tokens": _USAGE_STATS["input_tokens"],
+            "output_tokens": _USAGE_STATS["output_tokens"],
+            "total_tokens": _USAGE_STATS["total_tokens"],
+            "api_calls": _USAGE_STATS["api_calls"],
+            "calls_by_model": dict(_USAGE_STATS["calls_by_model"]),
+        }

@@ -90,6 +90,7 @@ class OCRParseOutput(BaseModel):
     needs_clearer_image: bool = False
     advisory: Optional[str] = None
     metadata: Dict[str, Any] = Field(default_factory=dict)
+    structured_report: Optional[LabReport] = None
 
 
 # ==============================================================================

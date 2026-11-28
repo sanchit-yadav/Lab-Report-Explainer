@@ -43,17 +43,20 @@ class ExtractValuesStage:
         t0 = time.perf_counter()
         parsed = inp.parsed_doc
 
-        # Extract using unified multi-tier extraction router
+        # Extract using unified multi-tier extraction router (or reuse Vision result from Stage 2)
         extracted_report: Optional[LabReport] = None
-        source_payload = inp.raw_bytes if inp.raw_bytes else parsed.full_text.encode("utf-8")
-        try:
-            extracted_report = self.router.extract(source_payload)
-        except Exception as exc:
-            logger.warning(
-                "Router extraction warning, assembling from parsed pages",
-                inp.request_id,
-                {"error": str(exc)},
-            )
+        if parsed.structured_report and parsed.structured_report.tests:
+            extracted_report = parsed.structured_report
+        else:
+            source_payload = inp.raw_bytes if inp.raw_bytes else parsed.full_text.encode("utf-8")
+            try:
+                extracted_report = self.router.extract(source_payload)
+            except Exception as exc:
+                logger.warning(
+                    "Router extraction warning, assembling from parsed pages",
+                    inp.request_id,
+                    {"error": str(exc)},
+                )
 
         if not extracted_report or not extracted_report.tests:
             # Fallback to OCR parsed tables / lines from Stage 2

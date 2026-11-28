@@ -1,14 +1,115 @@
 {
   "metadata": {
-    "timestamp": "2026-11-23T09:59:01.260627+00:00",
-    "git_commit": "824cbaa",
+    "timestamp": "2026-11-27T09:21:20.578978+00:00",
+    "git_commit": "85854b3",
     "python_version": "3.14.6",
     "models": {
-      "explainer": "gemini-2.5-flash (with offline fallback)",
-      "judge": "gemini-2.5-pro / calibrated rubric rule engine",
-      "embeddings": "all-MiniLM-L6-v2 / bge-small-en-v1.5",
+      "explainer_configured": "gemini-3.5-flash-lite",
+      "vision_configured": "gemini-3.5-flash-lite",
+      "models_used_live": "gemini-3.5-flash-lite (69x)",
+      "judge": "ClinicalJudge (calibrated rubric engine)",
+      "embeddings": "gemini-embedding-2",
       "reranker": "cross-encoder/ms-marco-MiniLM-L-6-v2"
     }
+  },
+  "upload_validation": {
+    "total_test_cases": 10,
+    "malformed_cases": 7,
+    "clean_cases": 3,
+    "rejection_accuracy": 1.0,
+    "acceptance_accuracy": 1.0,
+    "test_results": [
+      {
+        "test_case": "zero_byte.pdf",
+        "category": "empty_file",
+        "expected_valid": false,
+        "actual_valid": false,
+        "passed": true,
+        "latency_ms": 0.51,
+        "rejection_reason": "Uploaded file is empty (0 bytes)."
+      },
+      {
+        "test_case": "corrupt_header.pdf",
+        "category": "corrupt_header",
+        "expected_valid": false,
+        "actual_valid": false,
+        "passed": true,
+        "latency_ms": 0.24,
+        "rejection_reason": "File failed magic-byte validation. Only PDF, PNG, JPG, and WebP are accepted."
+      },
+      {
+        "test_case": "truncated_pdf.pdf",
+        "category": "truncated_pdf",
+        "expected_valid": false,
+        "actual_valid": false,
+        "passed": true,
+        "latency_ms": 0.46,
+        "rejection_reason": "Corrupted or truncated PDF structure: missing %%EOF marker."
+      },
+      {
+        "test_case": "exe_disguised_as_pdf.pdf",
+        "category": "executable_pe",
+        "expected_valid": false,
+        "actual_valid": false,
+        "passed": true,
+        "latency_ms": 0.17,
+        "rejection_reason": "File failed magic-byte validation. Only PDF, PNG, JPG, and WebP are accepted."
+      },
+      {
+        "test_case": "elf_binary.pdf",
+        "category": "executable_elf",
+        "expected_valid": false,
+        "actual_valid": false,
+        "passed": true,
+        "latency_ms": 0.15,
+        "rejection_reason": "File failed magic-byte validation. Only PDF, PNG, JPG, and WebP are accepted."
+      },
+      {
+        "test_case": "unsupported_ext.sh",
+        "category": "unsupported_extension",
+        "expected_valid": false,
+        "actual_valid": false,
+        "passed": true,
+        "latency_ms": 0.19,
+        "rejection_reason": "File failed magic-byte validation. Only PDF, PNG, JPG, and WebP are accepted."
+      },
+      {
+        "test_case": "oversized.pdf",
+        "category": "oversized_file",
+        "expected_valid": false,
+        "actual_valid": false,
+        "passed": true,
+        "latency_ms": 23.56,
+        "rejection_reason": "File exceeds maximum allowed size of 25 MB."
+      },
+      {
+        "test_case": "valid_clean_report.pdf",
+        "category": "valid_pdf",
+        "expected_valid": true,
+        "actual_valid": true,
+        "passed": true,
+        "latency_ms": 2.91,
+        "rejection_reason": null
+      },
+      {
+        "test_case": "valid_png_header.png",
+        "category": "valid_png",
+        "expected_valid": true,
+        "actual_valid": true,
+        "passed": true,
+        "latency_ms": 0.26,
+        "rejection_reason": null
+      },
+      {
+        "test_case": "valid_jpeg_header.jpg",
+        "category": "valid_jpeg",
+        "expected_valid": true,
+        "actual_valid": true,
+        "passed": true,
+        "latency_ms": 0.17,
+        "rejection_reason": null
+      }
+    ]
   },
   "overall": {
     "case_count": 63,
@@ -17,13 +118,15 @@
       "precision": 1.0,
       "recall": 1.0,
       "numeric_match_rate": 1.0,
-      "unit_accuracy": 0.9333,
+      "unit_accuracy": 0.9524,
       "flag_accuracy": 1.0,
       "critical_errors": 0
     },
     "retrieval": {
       "recall_at_1": 1.0,
       "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "recall_at_10": 1.0,
       "mrr": 1.0,
       "context_precision": 1.0
     },
@@ -31,7 +134,7 @@
       "faithfulness_rate": 1.0,
       "safety_pass_rate": 1.0,
       "citation_accuracy": 1.0,
-      "mean_readability_grade": 10.35,
+      "mean_readability_grade": 6.59,
       "mean_llm_judge_composite": 4.8
     }
   },
@@ -50,6 +153,8 @@
       "retrieval": {
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -57,7 +162,7 @@
         "faithfulness_rate": 1.0,
         "safety_pass_rate": 1.0,
         "citation_accuracy": 1.0,
-        "mean_readability_grade": 10.51,
+        "mean_readability_grade": 6.5,
         "mean_llm_judge_composite": 4.73
       }
     },
@@ -68,13 +173,15 @@
         "precision": 1.0,
         "recall": 1.0,
         "numeric_match_rate": 1.0,
-        "unit_accuracy": 0.91,
+        "unit_accuracy": 0.97,
         "flag_accuracy": 1.0,
         "critical_errors": 0
       },
       "retrieval": {
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -82,7 +189,7 @@
         "faithfulness_rate": 1.0,
         "safety_pass_rate": 1.0,
         "citation_accuracy": 1.0,
-        "mean_readability_grade": 9.52,
+        "mean_readability_grade": 6.68,
         "mean_llm_judge_composite": 4.9
       }
     },
@@ -100,6 +207,8 @@
       "retrieval": {
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -107,7 +216,7 @@
         "faithfulness_rate": 1.0,
         "safety_pass_rate": 1.0,
         "citation_accuracy": 1.0,
-        "mean_readability_grade": 10.12,
+        "mean_readability_grade": 6.95,
         "mean_llm_judge_composite": 4.9
       }
     },
@@ -125,6 +234,8 @@
       "retrieval": {
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -132,8 +243,172 @@
         "faithfulness_rate": 1.0,
         "safety_pass_rate": 1.0,
         "citation_accuracy": 1.0,
-        "mean_readability_grade": 12.24,
+        "mean_readability_grade": 6.17,
         "mean_llm_judge_composite": 4.6
+      }
+    }
+  },
+  "by_condition": {
+    "blurry": {
+      "case_count": 4,
+      "extraction": {
+        "f1_score": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "safety_pass_rate": 1.0,
+        "citation_accuracy": 1.0,
+        "mean_readability_grade": 6.85,
+        "mean_llm_judge_composite": 4.9
+      }
+    },
+    "clean_pdf": {
+      "case_count": 43,
+      "extraction": {
+        "f1_score": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 0.9442,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "safety_pass_rate": 1.0,
+        "citation_accuracy": 1.0,
+        "mean_readability_grade": 6.54,
+        "mean_llm_judge_composite": 4.75
+      }
+    },
+    "multipage": {
+      "case_count": 4,
+      "extraction": {
+        "f1_score": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 0.85,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "safety_pass_rate": 1.0,
+        "citation_accuracy": 1.0,
+        "mean_readability_grade": 6.79,
+        "mean_llm_judge_composite": 4.9
+      }
+    },
+    "photographed": {
+      "case_count": 4,
+      "extraction": {
+        "f1_score": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "safety_pass_rate": 1.0,
+        "citation_accuracy": 1.0,
+        "mean_readability_grade": 5.87,
+        "mean_llm_judge_composite": 4.9
+      }
+    },
+    "rotated": {
+      "case_count": 4,
+      "extraction": {
+        "f1_score": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "safety_pass_rate": 1.0,
+        "citation_accuracy": 1.0,
+        "mean_readability_grade": 6.76,
+        "mean_llm_judge_composite": 4.9
+      }
+    },
+    "scanned": {
+      "case_count": 4,
+      "extraction": {
+        "f1_score": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "safety_pass_rate": 1.0,
+        "citation_accuracy": 1.0,
+        "mean_readability_grade": 7.12,
+        "mean_llm_judge_composite": 4.9
       }
     }
   },
@@ -145,13 +420,15 @@
         "precision": 1.0,
         "recall": 1.0,
         "numeric_match_rate": 1.0,
-        "unit_accuracy": 0.95,
+        "unit_accuracy": 0.9667,
         "flag_accuracy": 1.0,
         "critical_errors": 0
       },
       "retrieval": {
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -159,7 +436,7 @@
         "faithfulness_rate": 1.0,
         "safety_pass_rate": 1.0,
         "citation_accuracy": 1.0,
-        "mean_readability_grade": 9.78,
+        "mean_readability_grade": 6.14,
         "mean_llm_judge_composite": 4.85
       }
     },
@@ -170,13 +447,15 @@
         "precision": 1.0,
         "recall": 1.0,
         "numeric_match_rate": 1.0,
-        "unit_accuracy": 0.9385,
+        "unit_accuracy": 0.9692,
         "flag_accuracy": 1.0,
         "critical_errors": 0
       },
       "retrieval": {
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -184,7 +463,7 @@
         "faithfulness_rate": 1.0,
         "safety_pass_rate": 1.0,
         "citation_accuracy": 1.0,
-        "mean_readability_grade": 10.02,
+        "mean_readability_grade": 6.61,
         "mean_llm_judge_composite": 4.81
       }
     },
@@ -202,6 +481,8 @@
       "retrieval": {
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -209,7 +490,7 @@
         "faithfulness_rate": 1.0,
         "safety_pass_rate": 1.0,
         "citation_accuracy": 1.0,
-        "mean_readability_grade": 10.43,
+        "mean_readability_grade": 6.74,
         "mean_llm_judge_composite": 4.77
       }
     },
@@ -220,13 +501,15 @@
         "precision": 1.0,
         "recall": 1.0,
         "numeric_match_rate": 1.0,
-        "unit_accuracy": 0.9385,
+        "unit_accuracy": 0.9692,
         "flag_accuracy": 1.0,
         "critical_errors": 0
       },
       "retrieval": {
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -234,7 +517,7 @@
         "faithfulness_rate": 1.0,
         "safety_pass_rate": 1.0,
         "citation_accuracy": 1.0,
-        "mean_readability_grade": 10.92,
+        "mean_readability_grade": 6.4,
         "mean_llm_judge_composite": 4.76
       }
     },
@@ -245,13 +528,15 @@
         "precision": 1.0,
         "recall": 1.0,
         "numeric_match_rate": 1.0,
-        "unit_accuracy": 0.9538,
+        "unit_accuracy": 0.9692,
         "flag_accuracy": 1.0,
         "critical_errors": 0
       },
       "retrieval": {
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -259,54 +544,63 @@
         "faithfulness_rate": 1.0,
         "safety_pass_rate": 1.0,
         "citation_accuracy": 1.0,
-        "mean_readability_grade": 10.57,
+        "mean_readability_grade": 7.03,
         "mean_llm_judge_composite": 4.78
       }
     }
   },
   "system": {
-    "total_suite_runtime_sec": 24.18,
+    "total_suite_runtime_sec": 335.49,
     "total_cases_evaluated": 63,
     "latency_percentiles": {
       "validate": {
-        "p50_sec": 0.001,
-        "p95_sec": 0.002,
-        "mean_sec": 0.001
-      },
-      "ocr": {
-        "p50_sec": 0.023,
-        "p95_sec": 0.035,
-        "mean_sec": 0.021
-      },
-      "extract": {
-        "p50_sec": 0.023,
-        "p95_sec": 0.036,
-        "mean_sec": 0.024
-      },
-      "retrieve": {
-        "p50_sec": 0.015,
-        "p95_sec": 0.281,
-        "mean_sec": 0.255
-      },
-      "explain": {
-        "p50_sec": 0.07,
-        "p95_sec": 0.158,
-        "mean_sec": 0.078
-      },
-      "output_guard": {
-        "p50_sec": 0.001,
-        "p95_sec": 0.003,
+        "p50_sec": 0.002,
+        "p95_sec": 0.004,
         "mean_sec": 0.002
       },
+      "ocr": {
+        "p50_sec": 0.048,
+        "p95_sec": 4.648,
+        "mean_sec": 1.173
+      },
+      "extract": {
+        "p50_sec": 0.039,
+        "p95_sec": 0.057,
+        "mean_sec": 0.032
+      },
+      "retrieve": {
+        "p50_sec": 0.025,
+        "p95_sec": 1.433,
+        "mean_sec": 0.349
+      },
+      "explain": {
+        "p50_sec": 3.162,
+        "p95_sec": 4.788,
+        "mean_sec": 3.021
+      },
+      "output_guard": {
+        "p50_sec": 0.003,
+        "p95_sec": 0.006,
+        "mean_sec": 0.003
+      },
       "total": {
-        "p50_sec": 0.152,
-        "p95_sec": 0.448,
-        "mean_sec": 0.382
+        "p50_sec": 4.49,
+        "p95_sec": 8.852,
+        "mean_sec": 4.597
       }
     },
     "token_metrics": {
-      "estimated_avg_tokens_per_report": 1850,
-      "estimated_cost_per_report_usd": 0.00028
+      "total_api_calls": 69,
+      "total_input_tokens": 115068,
+      "total_output_tokens": 78150,
+      "total_tokens": 193218,
+      "avg_input_tokens_per_report": 1826.5,
+      "avg_output_tokens_per_report": 1240.5,
+      "avg_tokens_per_report": 3067.0,
+      "cost_per_report_usd": 0.000679,
+      "calls_by_model": {
+        "gemini-3.5-flash-lite": 69
+      }
     }
   },
   "case_results": [
@@ -314,7 +608,9 @@
       "case_id": "core_001",
       "split": "core",
       "layout": "quest",
+      "condition": "clean_pdf",
       "filename": "core_001.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\core\\core_001.pdf",
       "extraction": {
         "tp": 6,
         "fp": 0,
@@ -333,6 +629,7 @@
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
         "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -340,9 +637,9 @@
         "faithfulness_rate": 1.0,
         "is_safe": true,
         "citation_accuracy": 1.0,
-        "readability_grade": 9.1,
-        "reading_ease": 45.19,
-        "word_count": 311,
+        "readability_grade": 6.68,
+        "reading_ease": 60.73,
+        "word_count": 343,
         "llm_judge_composite": 4.9,
         "llm_judge_scores": {
           "faithfulness": 5,
@@ -352,13 +649,15 @@
           "actionability": 4
         }
       },
-      "latency_sec": 12.573
+      "latency_sec": 7.961
     },
     {
       "case_id": "core_002",
       "split": "core",
       "layout": "labcorp",
+      "condition": "clean_pdf",
       "filename": "core_002.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\core\\core_002.pdf",
       "extraction": {
         "tp": 5,
         "fp": 0,
@@ -377,6 +676,7 @@
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
         "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -384,9 +684,9 @@
         "faithfulness_rate": 1.0,
         "is_safe": true,
         "citation_accuracy": 1.0,
-        "readability_grade": 14.98,
-        "reading_ease": 7.24,
-        "word_count": 22,
+        "readability_grade": 5.31,
+        "reading_ease": 77.46,
+        "word_count": 23,
         "llm_judge_composite": 4.3,
         "llm_judge_scores": {
           "faithfulness": 5,
@@ -396,13 +696,15 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.419
+      "latency_sec": 2.027
     },
     {
       "case_id": "core_003",
       "split": "core",
       "layout": "apollo",
+      "condition": "clean_pdf",
       "filename": "core_003.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\core\\core_003.pdf",
       "extraction": {
         "tp": 6,
         "fp": 0,
@@ -421,6 +723,7 @@
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
         "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -428,624 +731,8 @@
         "faithfulness_rate": 1.0,
         "is_safe": true,
         "citation_accuracy": 1.0,
-        "readability_grade": 7.99,
-        "reading_ease": 52.76,
-        "word_count": 286,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.512
-    },
-    {
-      "case_id": "core_004",
-      "split": "core",
-      "layout": "aiims",
-      "filename": "core_004.pdf",
-      "extraction": {
-        "tp": 5,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 1.0,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 5,
-        "total_extracted_tests": 5
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 9.12,
-        "reading_ease": 45.05,
-        "word_count": 267,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.451
-    },
-    {
-      "case_id": "core_005",
-      "split": "core",
-      "layout": "bioreference",
-      "filename": "core_005.pdf",
-      "extraction": {
-        "tp": 6,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 1.0,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 6,
-        "total_extracted_tests": 6
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 9.21,
-        "reading_ease": 45.09,
-        "word_count": 280,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.356
-    },
-    {
-      "case_id": "core_006",
-      "split": "core",
-      "layout": "quest",
-      "filename": "core_006.pdf",
-      "extraction": {
-        "tp": 5,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 0.8,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 5,
-        "total_extracted_tests": 5
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 14.98,
-        "reading_ease": 7.24,
-        "word_count": 22,
-        "llm_judge_composite": 4.3,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 1,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.216
-    },
-    {
-      "case_id": "core_007",
-      "split": "core",
-      "layout": "labcorp",
-      "filename": "core_007.pdf",
-      "extraction": {
-        "tp": 6,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 1.0,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 6,
-        "total_extracted_tests": 6
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 8.57,
-        "reading_ease": 48.52,
-        "word_count": 284,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.457
-    },
-    {
-      "case_id": "core_008",
-      "split": "core",
-      "layout": "apollo",
-      "filename": "core_008.pdf",
-      "extraction": {
-        "tp": 5,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 0.8,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 5,
-        "total_extracted_tests": 5
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 9.38,
-        "reading_ease": 43.15,
-        "word_count": 267,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.345
-    },
-    {
-      "case_id": "core_009",
-      "split": "core",
-      "layout": "aiims",
-      "filename": "core_009.pdf",
-      "extraction": {
-        "tp": 6,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 1.0,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 6,
-        "total_extracted_tests": 6
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 8.21,
-        "reading_ease": 50.76,
-        "word_count": 237,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.267
-    },
-    {
-      "case_id": "core_010",
-      "split": "core",
-      "layout": "bioreference",
-      "filename": "core_010.pdf",
-      "extraction": {
-        "tp": 5,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 0.6,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 5,
-        "total_extracted_tests": 5
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 14.98,
-        "reading_ease": 7.24,
-        "word_count": 22,
-        "llm_judge_composite": 4.3,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 1,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.189
-    },
-    {
-      "case_id": "core_011",
-      "split": "core",
-      "layout": "quest",
-      "filename": "core_011.pdf",
-      "extraction": {
-        "tp": 6,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 1.0,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 6,
-        "total_extracted_tests": 6
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 8.14,
-        "reading_ease": 51.84,
-        "word_count": 289,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.233
-    },
-    {
-      "case_id": "core_012",
-      "split": "core",
-      "layout": "labcorp",
-      "filename": "core_012.pdf",
-      "extraction": {
-        "tp": 5,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 1.0,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 5,
-        "total_extracted_tests": 5
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 10.97,
-        "reading_ease": 33.88,
-        "word_count": 137,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.104
-    },
-    {
-      "case_id": "core_013",
-      "split": "core",
-      "layout": "apollo",
-      "filename": "core_013.pdf",
-      "extraction": {
-        "tp": 6,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 1.0,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 6,
-        "total_extracted_tests": 6
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 8.06,
-        "reading_ease": 51.69,
-        "word_count": 243,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.312
-    },
-    {
-      "case_id": "core_014",
-      "split": "core",
-      "layout": "aiims",
-      "filename": "core_014.pdf",
-      "extraction": {
-        "tp": 5,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 0.8,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 5,
-        "total_extracted_tests": 5
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 14.98,
-        "reading_ease": 7.24,
-        "word_count": 22,
-        "llm_judge_composite": 4.3,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 1,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.139
-    },
-    {
-      "case_id": "core_015",
-      "split": "core",
-      "layout": "bioreference",
-      "filename": "core_015.pdf",
-      "extraction": {
-        "tp": 6,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 1.0,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 6,
-        "total_extracted_tests": 6
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 8.19,
-        "reading_ease": 51.2,
-        "word_count": 284,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.234
-    },
-    {
-      "case_id": "core_016",
-      "split": "core",
-      "layout": "quest",
-      "filename": "core_016.pdf",
-      "extraction": {
-        "tp": 5,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 0.8,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 5,
-        "total_extracted_tests": 5
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 10.47,
-        "reading_ease": 36.9,
-        "word_count": 133,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.168
-    },
-    {
-      "case_id": "core_017",
-      "split": "core",
-      "layout": "labcorp",
-      "filename": "core_017.pdf",
-      "extraction": {
-        "tp": 6,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 1.0,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 6,
-        "total_extracted_tests": 6
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 9.16,
-        "reading_ease": 44.6,
+        "readability_grade": 5.88,
+        "reading_ease": 65.35,
         "word_count": 265,
         "llm_judge_composite": 4.9,
         "llm_judge_scores": {
@@ -1056,13 +743,673 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.372
+      "latency_sec": 5.963
+    },
+    {
+      "case_id": "core_004",
+      "split": "core",
+      "layout": "aiims",
+      "condition": "clean_pdf",
+      "filename": "core_004.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\core\\core_004.pdf",
+      "extraction": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 5,
+        "total_extracted_tests": 5
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 7.01,
+        "reading_ease": 59.56,
+        "word_count": 290,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 6.438
+    },
+    {
+      "case_id": "core_005",
+      "split": "core",
+      "layout": "bioreference",
+      "condition": "clean_pdf",
+      "filename": "core_005.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\core\\core_005.pdf",
+      "extraction": {
+        "tp": 6,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 6,
+        "total_extracted_tests": 6
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 6.94,
+        "reading_ease": 58.09,
+        "word_count": 244,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 5.095
+    },
+    {
+      "case_id": "core_006",
+      "split": "core",
+      "layout": "quest",
+      "condition": "clean_pdf",
+      "filename": "core_006.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\core\\core_006.pdf",
+      "extraction": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 0.8,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 5,
+        "total_extracted_tests": 5
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 5.31,
+        "reading_ease": 77.46,
+        "word_count": 23,
+        "llm_judge_composite": 4.3,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 1,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 0.956
+    },
+    {
+      "case_id": "core_007",
+      "split": "core",
+      "layout": "labcorp",
+      "condition": "clean_pdf",
+      "filename": "core_007.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\core\\core_007.pdf",
+      "extraction": {
+        "tp": 6,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 6,
+        "total_extracted_tests": 6
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 5.72,
+        "reading_ease": 67.0,
+        "word_count": 320,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 6.7
+    },
+    {
+      "case_id": "core_008",
+      "split": "core",
+      "layout": "apollo",
+      "condition": "clean_pdf",
+      "filename": "core_008.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\core\\core_008.pdf",
+      "extraction": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 0.8,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 5,
+        "total_extracted_tests": 5
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 7.04,
+        "reading_ease": 58.69,
+        "word_count": 285,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 5.156
+    },
+    {
+      "case_id": "core_009",
+      "split": "core",
+      "layout": "aiims",
+      "condition": "clean_pdf",
+      "filename": "core_009.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\core\\core_009.pdf",
+      "extraction": {
+        "tp": 6,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 6,
+        "total_extracted_tests": 6
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 5.78,
+        "reading_ease": 67.18,
+        "word_count": 243,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 5.2
+    },
+    {
+      "case_id": "core_010",
+      "split": "core",
+      "layout": "bioreference",
+      "condition": "clean_pdf",
+      "filename": "core_010.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\core\\core_010.pdf",
+      "extraction": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 0.6,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 5,
+        "total_extracted_tests": 5
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 5.31,
+        "reading_ease": 77.46,
+        "word_count": 23,
+        "llm_judge_composite": 4.3,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 1,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 0.689
+    },
+    {
+      "case_id": "core_011",
+      "split": "core",
+      "layout": "quest",
+      "condition": "clean_pdf",
+      "filename": "core_011.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\core\\core_011.pdf",
+      "extraction": {
+        "tp": 6,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 6,
+        "total_extracted_tests": 6
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 5.59,
+        "reading_ease": 67.42,
+        "word_count": 266,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 4.807
+    },
+    {
+      "case_id": "core_012",
+      "split": "core",
+      "layout": "labcorp",
+      "condition": "clean_pdf",
+      "filename": "core_012.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\core\\core_012.pdf",
+      "extraction": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 5,
+        "total_extracted_tests": 5
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 7.29,
+        "reading_ease": 58.21,
+        "word_count": 147,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 2.763
+    },
+    {
+      "case_id": "core_013",
+      "split": "core",
+      "layout": "apollo",
+      "condition": "clean_pdf",
+      "filename": "core_013.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\core\\core_013.pdf",
+      "extraction": {
+        "tp": 6,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 6,
+        "total_extracted_tests": 6
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 6.75,
+        "reading_ease": 59.17,
+        "word_count": 239,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 4.922
+    },
+    {
+      "case_id": "core_014",
+      "split": "core",
+      "layout": "aiims",
+      "condition": "clean_pdf",
+      "filename": "core_014.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\core\\core_014.pdf",
+      "extraction": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 0.8,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 5,
+        "total_extracted_tests": 5
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 5.31,
+        "reading_ease": 77.46,
+        "word_count": 23,
+        "llm_judge_composite": 4.3,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 1,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 0.594
+    },
+    {
+      "case_id": "core_015",
+      "split": "core",
+      "layout": "bioreference",
+      "condition": "clean_pdf",
+      "filename": "core_015.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\core\\core_015.pdf",
+      "extraction": {
+        "tp": 6,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 6,
+        "total_extracted_tests": 6
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 4.99,
+        "reading_ease": 71.32,
+        "word_count": 263,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 5.651
+    },
+    {
+      "case_id": "core_016",
+      "split": "core",
+      "layout": "quest",
+      "condition": "clean_pdf",
+      "filename": "core_016.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\core\\core_016.pdf",
+      "extraction": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 0.8,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 5,
+        "total_extracted_tests": 5
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 7.7,
+        "reading_ease": 55.95,
+        "word_count": 163,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 3.598
+    },
+    {
+      "case_id": "core_017",
+      "split": "core",
+      "layout": "labcorp",
+      "condition": "clean_pdf",
+      "filename": "core_017.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\core\\core_017.pdf",
+      "extraction": {
+        "tp": 6,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 6,
+        "total_extracted_tests": 6
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 6.17,
+        "reading_ease": 64.87,
+        "word_count": 300,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 5.38
     },
     {
       "case_id": "core_018",
       "split": "core",
       "layout": "apollo",
+      "condition": "clean_pdf",
       "filename": "core_018.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\core\\core_018.pdf",
       "extraction": {
         "tp": 5,
         "fp": 0,
@@ -1081,6 +1428,7 @@
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
         "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -1088,9 +1436,9 @@
         "faithfulness_rate": 1.0,
         "is_safe": true,
         "citation_accuracy": 1.0,
-        "readability_grade": 14.98,
-        "reading_ease": 7.24,
-        "word_count": 22,
+        "readability_grade": 5.31,
+        "reading_ease": 77.46,
+        "word_count": 23,
         "llm_judge_composite": 4.3,
         "llm_judge_scores": {
           "faithfulness": 5,
@@ -1100,13 +1448,15 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.062
+      "latency_sec": 0.122
     },
     {
       "case_id": "core_019",
       "split": "core",
       "layout": "aiims",
+      "condition": "clean_pdf",
       "filename": "core_019.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\core\\core_019.pdf",
       "extraction": {
         "tp": 6,
         "fp": 0,
@@ -1125,6 +1475,7 @@
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
         "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -1132,9 +1483,9 @@
         "faithfulness_rate": 1.0,
         "is_safe": true,
         "citation_accuracy": 1.0,
-        "readability_grade": 8.21,
-        "reading_ease": 51.54,
-        "word_count": 284,
+        "readability_grade": 4.93,
+        "reading_ease": 71.87,
+        "word_count": 259,
         "llm_judge_composite": 4.9,
         "llm_judge_scores": {
           "faithfulness": 5,
@@ -1144,13 +1495,15 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.308
+      "latency_sec": 5.208
     },
     {
       "case_id": "core_020",
       "split": "core",
       "layout": "bioreference",
+      "condition": "clean_pdf",
       "filename": "core_020.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\core\\core_020.pdf",
       "extraction": {
         "tp": 5,
         "fp": 0,
@@ -1169,6 +1522,7 @@
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
         "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -1176,9 +1530,9 @@
         "faithfulness_rate": 1.0,
         "is_safe": true,
         "citation_accuracy": 1.0,
-        "readability_grade": 9.23,
-        "reading_ease": 44.88,
-        "word_count": 233,
+        "readability_grade": 6.87,
+        "reading_ease": 58.48,
+        "word_count": 199,
         "llm_judge_composite": 4.9,
         "llm_judge_scores": {
           "faithfulness": 5,
@@ -1188,13 +1542,15 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.226
+      "latency_sec": 4.423
     },
     {
       "case_id": "core_021",
       "split": "core",
       "layout": "quest",
+      "condition": "clean_pdf",
       "filename": "core_021.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\core\\core_021.pdf",
       "extraction": {
         "tp": 6,
         "fp": 0,
@@ -1213,6 +1569,7 @@
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
         "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -1220,9 +1577,9 @@
         "faithfulness_rate": 1.0,
         "is_safe": true,
         "citation_accuracy": 1.0,
-        "readability_grade": 10.33,
-        "reading_ease": 35.67,
-        "word_count": 66,
+        "readability_grade": 11.05,
+        "reading_ease": 33.88,
+        "word_count": 91,
         "llm_judge_composite": 4.6,
         "llm_judge_scores": {
           "faithfulness": 5,
@@ -1232,13 +1589,15 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.088
+      "latency_sec": 2.079
     },
     {
       "case_id": "core_022",
       "split": "core",
       "layout": "labcorp",
+      "condition": "clean_pdf",
       "filename": "core_022.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\core\\core_022.pdf",
       "extraction": {
         "tp": 5,
         "fp": 0,
@@ -1257,6 +1616,7 @@
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
         "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -1264,9 +1624,9 @@
         "faithfulness_rate": 1.0,
         "is_safe": true,
         "citation_accuracy": 1.0,
-        "readability_grade": 14.98,
-        "reading_ease": 7.24,
-        "word_count": 22,
+        "readability_grade": 5.31,
+        "reading_ease": 77.46,
+        "word_count": 23,
         "llm_judge_composite": 4.3,
         "llm_judge_scores": {
           "faithfulness": 5,
@@ -1276,13 +1636,15 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.055
+      "latency_sec": 0.137
     },
     {
       "case_id": "core_023",
       "split": "core",
       "layout": "apollo",
+      "condition": "clean_pdf",
       "filename": "core_023.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\core\\core_023.pdf",
       "extraction": {
         "tp": 6,
         "fp": 0,
@@ -1301,6 +1663,7 @@
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
         "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -1308,9 +1671,9 @@
         "faithfulness_rate": 1.0,
         "is_safe": true,
         "citation_accuracy": 1.0,
-        "readability_grade": 8.02,
-        "reading_ease": 51.84,
-        "word_count": 288,
+        "readability_grade": 6.35,
+        "reading_ease": 63.7,
+        "word_count": 342,
         "llm_judge_composite": 4.9,
         "llm_judge_scores": {
           "faithfulness": 5,
@@ -1320,13 +1683,15 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.194
+      "latency_sec": 4.937
     },
     {
       "case_id": "core_024",
       "split": "core",
       "layout": "aiims",
+      "condition": "clean_pdf",
       "filename": "core_024.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\core\\core_024.pdf",
       "extraction": {
         "tp": 5,
         "fp": 0,
@@ -1345,6 +1710,7 @@
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
         "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -1352,9 +1718,9 @@
         "faithfulness_rate": 1.0,
         "is_safe": true,
         "citation_accuracy": 1.0,
-        "readability_grade": 10.14,
-        "reading_ease": 37.94,
-        "word_count": 184,
+        "readability_grade": 7.52,
+        "reading_ease": 56.07,
+        "word_count": 201,
         "llm_judge_composite": 4.9,
         "llm_judge_scores": {
           "faithfulness": 5,
@@ -1364,13 +1730,15 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.203
+      "latency_sec": 3.521
     },
     {
       "case_id": "core_025",
       "split": "core",
       "layout": "bioreference",
+      "condition": "clean_pdf",
       "filename": "core_025.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\core\\core_025.pdf",
       "extraction": {
         "tp": 6,
         "fp": 0,
@@ -1389,6 +1757,7 @@
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
         "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -1396,9 +1765,9 @@
         "faithfulness_rate": 1.0,
         "is_safe": true,
         "citation_accuracy": 1.0,
-        "readability_grade": 10.33,
-        "reading_ease": 35.67,
-        "word_count": 66,
+        "readability_grade": 10.39,
+        "reading_ease": 39.78,
+        "word_count": 97,
         "llm_judge_composite": 4.6,
         "llm_judge_scores": {
           "faithfulness": 5,
@@ -1408,13 +1777,15 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.088
+      "latency_sec": 2.097
     },
     {
       "case_id": "hard_001",
       "split": "hard",
       "layout": "quest",
+      "condition": "scanned",
       "filename": "hard_001.png",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\hard\\hard_001.png",
       "extraction": {
         "tp": 5,
         "fp": 0,
@@ -1423,7 +1794,7 @@
         "recall": 1.0,
         "f1": 1.0,
         "numeric_match_rate": 1.0,
-        "unit_accuracy": 0.8,
+        "unit_accuracy": 1.0,
         "flag_accuracy": 1.0,
         "critical_errors": 0,
         "total_gt_tests": 5,
@@ -1433,6 +1804,7 @@
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
         "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -1440,9 +1812,9 @@
         "faithfulness_rate": 1.0,
         "is_safe": true,
         "citation_accuracy": 1.0,
-        "readability_grade": 9.85,
-        "reading_ease": 40.13,
-        "word_count": 185,
+        "readability_grade": 6.96,
+        "reading_ease": 58.87,
+        "word_count": 169,
         "llm_judge_composite": 4.9,
         "llm_judge_scores": {
           "faithfulness": 5,
@@ -1452,13 +1824,15 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.152
+      "latency_sec": 8.026
     },
     {
       "case_id": "hard_002",
       "split": "hard",
       "layout": "labcorp",
+      "condition": "rotated",
       "filename": "hard_002.png",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\hard\\hard_002.png",
       "extraction": {
         "tp": 5,
         "fp": 0,
@@ -1477,6 +1851,7 @@
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
         "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -1484,9 +1859,9 @@
         "faithfulness_rate": 1.0,
         "is_safe": true,
         "citation_accuracy": 1.0,
-        "readability_grade": 9.36,
-        "reading_ease": 43.38,
-        "word_count": 268,
+        "readability_grade": 6.36,
+        "reading_ease": 63.24,
+        "word_count": 263,
         "llm_judge_composite": 4.9,
         "llm_judge_scores": {
           "faithfulness": 5,
@@ -1496,13 +1871,15 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.262
+      "latency_sec": 9.869
     },
     {
       "case_id": "hard_003",
       "split": "hard",
       "layout": "apollo",
+      "condition": "blurry",
       "filename": "hard_003.png",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\hard\\hard_003.png",
       "extraction": {
         "tp": 5,
         "fp": 0,
@@ -1511,7 +1888,7 @@
         "recall": 1.0,
         "f1": 1.0,
         "numeric_match_rate": 1.0,
-        "unit_accuracy": 0.8,
+        "unit_accuracy": 1.0,
         "flag_accuracy": 1.0,
         "critical_errors": 0,
         "total_gt_tests": 5,
@@ -1521,6 +1898,7 @@
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
         "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -1528,9 +1906,9 @@
         "faithfulness_rate": 1.0,
         "is_safe": true,
         "citation_accuracy": 1.0,
-        "readability_grade": 8.74,
-        "reading_ease": 47.8,
-        "word_count": 268,
+        "readability_grade": 7.73,
+        "reading_ease": 54.55,
+        "word_count": 293,
         "llm_judge_composite": 4.9,
         "llm_judge_scores": {
           "faithfulness": 5,
@@ -1540,13 +1918,15 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.234
+      "latency_sec": 8.854
     },
     {
       "case_id": "hard_004",
       "split": "hard",
       "layout": "aiims",
+      "condition": "photographed",
       "filename": "hard_004.png",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\hard\\hard_004.png",
       "extraction": {
         "tp": 5,
         "fp": 0,
@@ -1565,6 +1945,7 @@
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
         "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -1572,536 +1953,8 @@
         "faithfulness_rate": 1.0,
         "is_safe": true,
         "citation_accuracy": 1.0,
-        "readability_grade": 9.79,
-        "reading_ease": 40.6,
-        "word_count": 177,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.118
-    },
-    {
-      "case_id": "hard_005",
-      "split": "hard",
-      "layout": "bioreference",
-      "filename": "hard_005.pdf",
-      "extraction": {
-        "tp": 5,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 0.6,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 5,
-        "total_extracted_tests": 5
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 9.77,
-        "reading_ease": 41.44,
-        "word_count": 231,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.147
-    },
-    {
-      "case_id": "hard_006",
-      "split": "hard",
-      "layout": "quest",
-      "filename": "hard_006.png",
-      "extraction": {
-        "tp": 5,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 1.0,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 5,
-        "total_extracted_tests": 5
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 9.67,
-        "reading_ease": 42.69,
-        "word_count": 190,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.198
-    },
-    {
-      "case_id": "hard_007",
-      "split": "hard",
-      "layout": "labcorp",
-      "filename": "hard_007.png",
-      "extraction": {
-        "tp": 5,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 0.8,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 5,
-        "total_extracted_tests": 5
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 10.89,
-        "reading_ease": 35.09,
-        "word_count": 142,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.182
-    },
-    {
-      "case_id": "hard_008",
-      "split": "hard",
-      "layout": "apollo",
-      "filename": "hard_008.png",
-      "extraction": {
-        "tp": 5,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 1.0,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 5,
-        "total_extracted_tests": 5
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 9.27,
-        "reading_ease": 44.02,
-        "word_count": 156,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.14
-    },
-    {
-      "case_id": "hard_009",
-      "split": "hard",
-      "layout": "aiims",
-      "filename": "hard_009.png",
-      "extraction": {
-        "tp": 5,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 1.0,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 5,
-        "total_extracted_tests": 5
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 10.01,
-        "reading_ease": 39.11,
-        "word_count": 186,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.11
-    },
-    {
-      "case_id": "hard_010",
-      "split": "hard",
-      "layout": "bioreference",
-      "filename": "hard_010.pdf",
-      "extraction": {
-        "tp": 5,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 1.0,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 5,
-        "total_extracted_tests": 5
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 8.38,
-        "reading_ease": 50.14,
-        "word_count": 196,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.157
-    },
-    {
-      "case_id": "hard_011",
-      "split": "hard",
-      "layout": "quest",
-      "filename": "hard_011.png",
-      "extraction": {
-        "tp": 5,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 1.0,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 5,
-        "total_extracted_tests": 5
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 9.6,
-        "reading_ease": 42.64,
-        "word_count": 230,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.215
-    },
-    {
-      "case_id": "hard_012",
-      "split": "hard",
-      "layout": "labcorp",
-      "filename": "hard_012.png",
-      "extraction": {
-        "tp": 5,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 1.0,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 5,
-        "total_extracted_tests": 5
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 9.38,
-        "reading_ease": 43.15,
-        "word_count": 267,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.184
-    },
-    {
-      "case_id": "hard_013",
-      "split": "hard",
-      "layout": "apollo",
-      "filename": "hard_013.png",
-      "extraction": {
-        "tp": 5,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 0.8,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 5,
-        "total_extracted_tests": 5
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 9.56,
-        "reading_ease": 41.64,
-        "word_count": 221,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.141
-    },
-    {
-      "case_id": "hard_014",
-      "split": "hard",
-      "layout": "aiims",
-      "filename": "hard_014.png",
-      "extraction": {
-        "tp": 5,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 1.0,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 5,
-        "total_extracted_tests": 5
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 8.93,
-        "reading_ease": 46.14,
-        "word_count": 203,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.202
-    },
-    {
-      "case_id": "hard_015",
-      "split": "hard",
-      "layout": "bioreference",
-      "filename": "hard_015.pdf",
-      "extraction": {
-        "tp": 5,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 0.8,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 5,
-        "total_extracted_tests": 5
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 9.61,
-        "reading_ease": 42.75,
-        "word_count": 186,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.144
-    },
-    {
-      "case_id": "hard_016",
-      "split": "hard",
-      "layout": "quest",
-      "filename": "hard_016.png",
-      "extraction": {
-        "tp": 5,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 1.0,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 5,
-        "total_extracted_tests": 5
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 9.72,
-        "reading_ease": 41.26,
+        "readability_grade": 6.78,
+        "reading_ease": 61.58,
         "word_count": 187,
         "llm_judge_composite": 4.9,
         "llm_judge_scores": {
@@ -2112,145 +1965,62 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.108
+      "latency_sec": 7.182
     },
     {
-      "case_id": "hard_017",
-      "split": "hard",
-      "layout": "labcorp",
-      "filename": "hard_017.png",
-      "extraction": {
-        "tp": 5,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 0.8,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 5,
-        "total_extracted_tests": 5
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 9.12,
-        "reading_ease": 45.74,
-        "word_count": 235,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.131
-    },
-    {
-      "case_id": "hard_018",
-      "split": "hard",
-      "layout": "apollo",
-      "filename": "hard_018.png",
-      "extraction": {
-        "tp": 5,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 1.0,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 5,
-        "total_extracted_tests": 5
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 9.53,
-        "reading_ease": 42.41,
-        "word_count": 185,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.194
-    },
-    {
-      "case_id": "hard_019",
-      "split": "hard",
-      "layout": "aiims",
-      "filename": "hard_019.png",
-      "extraction": {
-        "tp": 5,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 0.8,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 5,
-        "total_extracted_tests": 5
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 8.49,
-        "reading_ease": 48.82,
-        "word_count": 156,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.117
-    },
-    {
-      "case_id": "hard_020",
+      "case_id": "hard_005",
       "split": "hard",
       "layout": "bioreference",
-      "filename": "hard_020.pdf",
+      "condition": "multipage",
+      "filename": "hard_005.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\hard\\hard_005.pdf",
+      "extraction": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 0.6,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 5,
+        "total_extracted_tests": 5
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 7.45,
+        "reading_ease": 56.35,
+        "word_count": 256,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 3.794
+    },
+    {
+      "case_id": "hard_006",
+      "split": "hard",
+      "layout": "quest",
+      "condition": "scanned",
+      "filename": "hard_006.png",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\hard\\hard_006.png",
       "extraction": {
         "tp": 5,
         "fp": 0,
@@ -2269,6 +2039,7 @@
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
         "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -2276,9 +2047,9 @@
         "faithfulness_rate": 1.0,
         "is_safe": true,
         "citation_accuracy": 1.0,
-        "readability_grade": 10.7,
-        "reading_ease": 35.18,
-        "word_count": 142,
+        "readability_grade": 7.66,
+        "reading_ease": 55.06,
+        "word_count": 209,
         "llm_judge_composite": 4.9,
         "llm_judge_scores": {
           "faithfulness": 5,
@@ -2288,59 +2059,17 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.115
+      "latency_sec": 8.18
     },
     {
-      "case_id": "adv_001",
-      "split": "adversarial",
-      "layout": "quest",
-      "filename": "adv_001.pdf",
-      "extraction": {
-        "tp": 4,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 1.0,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 4,
-        "total_extracted_tests": 4
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 10.39,
-        "reading_ease": 37.42,
-        "word_count": 180,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.129
-    },
-    {
-      "case_id": "adv_002",
-      "split": "adversarial",
+      "case_id": "hard_007",
+      "split": "hard",
       "layout": "labcorp",
-      "filename": "adv_002.pdf",
+      "condition": "rotated",
+      "filename": "hard_007.png",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\hard\\hard_007.png",
       "extraction": {
-        "tp": 4,
+        "tp": 5,
         "fp": 0,
         "fn": 0,
         "precision": 1.0,
@@ -2350,13 +2079,14 @@
         "unit_accuracy": 1.0,
         "flag_accuracy": 1.0,
         "critical_errors": 0,
-        "total_gt_tests": 4,
-        "total_extracted_tests": 4
+        "total_gt_tests": 5,
+        "total_extracted_tests": 5
       },
       "retrieval": {
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
         "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -2364,184 +2094,8 @@
         "faithfulness_rate": 1.0,
         "is_safe": true,
         "citation_accuracy": 1.0,
-        "readability_grade": 10.64,
-        "reading_ease": 35.41,
-        "word_count": 140,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.105
-    },
-    {
-      "case_id": "adv_003",
-      "split": "adversarial",
-      "layout": "apollo",
-      "filename": "adv_003.pdf",
-      "extraction": {
-        "tp": 4,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 1.0,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 4,
-        "total_extracted_tests": 4
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 10.44,
-        "reading_ease": 36.75,
-        "word_count": 139,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.108
-    },
-    {
-      "case_id": "adv_004",
-      "split": "adversarial",
-      "layout": "aiims",
-      "filename": "adv_004.pdf",
-      "extraction": {
-        "tp": 4,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 1.0,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 4,
-        "total_extracted_tests": 4
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 9.52,
-        "reading_ease": 43.05,
-        "word_count": 219,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.25
-    },
-    {
-      "case_id": "adv_005",
-      "split": "adversarial",
-      "layout": "bioreference",
-      "filename": "adv_005.pdf",
-      "extraction": {
-        "tp": 4,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 1.0,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 4,
-        "total_extracted_tests": 4
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 10.01,
-        "reading_ease": 39.11,
-        "word_count": 186,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.149
-    },
-    {
-      "case_id": "adv_006",
-      "split": "adversarial",
-      "layout": "quest",
-      "filename": "adv_006.pdf",
-      "extraction": {
-        "tp": 4,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 1.0,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 4,
-        "total_extracted_tests": 4
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 10.84,
-        "reading_ease": 35.55,
+        "readability_grade": 7.37,
+        "reading_ease": 58.14,
         "word_count": 143,
         "llm_judge_composite": 4.9,
         "llm_judge_scores": {
@@ -2552,15 +2106,17 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.097
+      "latency_sec": 6.933
     },
     {
-      "case_id": "adv_007",
-      "split": "adversarial",
-      "layout": "labcorp",
-      "filename": "adv_007.pdf",
+      "case_id": "hard_008",
+      "split": "hard",
+      "layout": "apollo",
+      "condition": "blurry",
+      "filename": "hard_008.png",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\hard\\hard_008.png",
       "extraction": {
-        "tp": 4,
+        "tp": 5,
         "fp": 0,
         "fn": 0,
         "precision": 1.0,
@@ -2570,13 +2126,14 @@
         "unit_accuracy": 1.0,
         "flag_accuracy": 1.0,
         "critical_errors": 0,
-        "total_gt_tests": 4,
-        "total_extracted_tests": 4
+        "total_gt_tests": 5,
+        "total_extracted_tests": 5
       },
       "retrieval": {
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
         "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -2584,8 +2141,102 @@
         "faithfulness_rate": 1.0,
         "is_safe": true,
         "citation_accuracy": 1.0,
-        "readability_grade": 9.53,
-        "reading_ease": 42.62,
+        "readability_grade": 5.65,
+        "reading_ease": 68.96,
+        "word_count": 154,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 6.784
+    },
+    {
+      "case_id": "hard_009",
+      "split": "hard",
+      "layout": "aiims",
+      "condition": "photographed",
+      "filename": "hard_009.png",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\hard\\hard_009.png",
+      "extraction": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 5,
+        "total_extracted_tests": 5
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 7.39,
+        "reading_ease": 56.93,
+        "word_count": 183,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 7.384
+    },
+    {
+      "case_id": "hard_010",
+      "split": "hard",
+      "layout": "bioreference",
+      "condition": "multipage",
+      "filename": "hard_010.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\hard\\hard_010.pdf",
+      "extraction": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 5,
+        "total_extracted_tests": 5
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 5.83,
+        "reading_ease": 66.51,
         "word_count": 223,
         "llm_judge_composite": 4.9,
         "llm_judge_scores": {
@@ -2596,145 +2247,15 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.248
+      "latency_sec": 4.49
     },
     {
-      "case_id": "adv_008",
-      "split": "adversarial",
-      "layout": "apollo",
-      "filename": "adv_008.pdf",
-      "extraction": {
-        "tp": 4,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 1.0,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 4,
-        "total_extracted_tests": 4
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 10.21,
-        "reading_ease": 38.31,
-        "word_count": 185,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.142
-    },
-    {
-      "case_id": "adv_009",
-      "split": "adversarial",
-      "layout": "aiims",
-      "filename": "adv_009.pdf",
-      "extraction": {
-        "tp": 4,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 1.0,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 4,
-        "total_extracted_tests": 4
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 9.87,
-        "reading_ease": 40.71,
-        "word_count": 184,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.125
-    },
-    {
-      "case_id": "adv_010",
-      "split": "adversarial",
-      "layout": "bioreference",
-      "filename": "adv_010.pdf",
-      "extraction": {
-        "tp": 4,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 1.0,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 4,
-        "total_extracted_tests": 4
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 9.75,
-        "reading_ease": 40.33,
-        "word_count": 179,
-        "llm_judge_composite": 4.9,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 5,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.123
-    },
-    {
-      "case_id": "reg_001",
-      "split": "regression",
+      "case_id": "hard_011",
+      "split": "hard",
       "layout": "quest",
-      "filename": "reg_001.pdf",
+      "condition": "scanned",
+      "filename": "hard_011.png",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\hard\\hard_011.png",
       "extraction": {
         "tp": 5,
         "fp": 0,
@@ -2753,6 +2274,7 @@
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
         "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -2760,53 +2282,9 @@
         "faithfulness_rate": 1.0,
         "is_safe": true,
         "citation_accuracy": 1.0,
-        "readability_grade": 14.98,
-        "reading_ease": 7.24,
-        "word_count": 22,
-        "llm_judge_composite": 4.3,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 1,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.057
-    },
-    {
-      "case_id": "reg_002",
-      "split": "regression",
-      "layout": "labcorp",
-      "filename": "reg_002.pdf",
-      "extraction": {
-        "tp": 5,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 1.0,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 5,
-        "total_extracted_tests": 5
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 9.39,
-        "reading_ease": 44.11,
-        "word_count": 230,
+        "readability_grade": 6.79,
+        "reading_ease": 60.78,
+        "word_count": 259,
         "llm_judge_composite": 4.9,
         "llm_judge_scores": {
           "faithfulness": 5,
@@ -2816,13 +2294,15 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.157
+      "latency_sec": 9.488
     },
     {
-      "case_id": "reg_003",
-      "split": "regression",
-      "layout": "apollo",
-      "filename": "reg_003.pdf",
+      "case_id": "hard_012",
+      "split": "hard",
+      "layout": "labcorp",
+      "condition": "rotated",
+      "filename": "hard_012.png",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\hard\\hard_012.png",
       "extraction": {
         "tp": 5,
         "fp": 0,
@@ -2841,6 +2321,7 @@
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
         "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -2848,25 +2329,74 @@
         "faithfulness_rate": 1.0,
         "is_safe": true,
         "citation_accuracy": 1.0,
-        "readability_grade": 14.98,
-        "reading_ease": 7.24,
-        "word_count": 22,
-        "llm_judge_composite": 4.3,
+        "readability_grade": 6.73,
+        "reading_ease": 61.09,
+        "word_count": 273,
+        "llm_judge_composite": 4.9,
         "llm_judge_scores": {
           "faithfulness": 5,
           "safety": 5,
           "comprehension": 5,
-          "citation": 1,
+          "citation": 5,
           "actionability": 4
         }
       },
-      "latency_sec": 0.057
+      "latency_sec": 8.836
     },
     {
-      "case_id": "reg_004",
-      "split": "regression",
+      "case_id": "hard_013",
+      "split": "hard",
+      "layout": "apollo",
+      "condition": "blurry",
+      "filename": "hard_013.png",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\hard\\hard_013.png",
+      "extraction": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 5,
+        "total_extracted_tests": 5
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 7.13,
+        "reading_ease": 58.65,
+        "word_count": 239,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 7.775
+    },
+    {
+      "case_id": "hard_014",
+      "split": "hard",
       "layout": "aiims",
-      "filename": "reg_004.pdf",
+      "condition": "photographed",
+      "filename": "hard_014.png",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\hard\\hard_014.png",
       "extraction": {
         "tp": 5,
         "fp": 0,
@@ -2885,6 +2415,7 @@
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
         "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -2892,9 +2423,9 @@
         "faithfulness_rate": 1.0,
         "is_safe": true,
         "citation_accuracy": 1.0,
-        "readability_grade": 10.13,
-        "reading_ease": 38.2,
-        "word_count": 186,
+        "readability_grade": 4.68,
+        "reading_ease": 74.4,
+        "word_count": 188,
         "llm_judge_composite": 4.9,
         "llm_judge_scores": {
           "faithfulness": 5,
@@ -2904,13 +2435,15 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.123
+      "latency_sec": 8.452
     },
     {
-      "case_id": "reg_005",
-      "split": "regression",
+      "case_id": "hard_015",
+      "split": "hard",
       "layout": "bioreference",
-      "filename": "reg_005.pdf",
+      "condition": "multipage",
+      "filename": "hard_015.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\hard\\hard_015.pdf",
       "extraction": {
         "tp": 5,
         "fp": 0,
@@ -2919,7 +2452,7 @@
         "recall": 1.0,
         "f1": 1.0,
         "numeric_match_rate": 1.0,
-        "unit_accuracy": 1.0,
+        "unit_accuracy": 0.8,
         "flag_accuracy": 1.0,
         "critical_errors": 0,
         "total_gt_tests": 5,
@@ -2929,6 +2462,7 @@
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
         "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -2936,53 +2470,9 @@
         "faithfulness_rate": 1.0,
         "is_safe": true,
         "citation_accuracy": 1.0,
-        "readability_grade": 14.98,
-        "reading_ease": 7.24,
-        "word_count": 22,
-        "llm_judge_composite": 4.3,
-        "llm_judge_scores": {
-          "faithfulness": 5,
-          "safety": 5,
-          "comprehension": 5,
-          "citation": 1,
-          "actionability": 4
-        }
-      },
-      "latency_sec": 0.066
-    },
-    {
-      "case_id": "reg_006",
-      "split": "regression",
-      "layout": "quest",
-      "filename": "reg_006.pdf",
-      "extraction": {
-        "tp": 5,
-        "fp": 0,
-        "fn": 0,
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1": 1.0,
-        "numeric_match_rate": 1.0,
-        "unit_accuracy": 1.0,
-        "flag_accuracy": 1.0,
-        "critical_errors": 0,
-        "total_gt_tests": 5,
-        "total_extracted_tests": 5
-      },
-      "retrieval": {
-        "recall_at_1": 1.0,
-        "recall_at_3": 1.0,
-        "recall_at_5": 1.0,
-        "mrr": 1.0,
-        "context_precision": 1.0
-      },
-      "generation": {
-        "faithfulness_rate": 1.0,
-        "is_safe": true,
-        "citation_accuracy": 1.0,
-        "readability_grade": 9.33,
-        "reading_ease": 44.35,
-        "word_count": 191,
+        "readability_grade": 6.43,
+        "reading_ease": 64.24,
+        "word_count": 206,
         "llm_judge_composite": 4.9,
         "llm_judge_scores": {
           "faithfulness": 5,
@@ -2992,13 +2482,15 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.12
+      "latency_sec": 4.682
     },
     {
-      "case_id": "reg_007",
-      "split": "regression",
-      "layout": "labcorp",
-      "filename": "reg_007.pdf",
+      "case_id": "hard_016",
+      "split": "hard",
+      "layout": "quest",
+      "condition": "scanned",
+      "filename": "hard_016.png",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\hard\\hard_016.png",
       "extraction": {
         "tp": 5,
         "fp": 0,
@@ -3017,6 +2509,7 @@
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
         "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -3024,25 +2517,27 @@
         "faithfulness_rate": 1.0,
         "is_safe": true,
         "citation_accuracy": 1.0,
-        "readability_grade": 14.98,
-        "reading_ease": 7.24,
-        "word_count": 22,
-        "llm_judge_composite": 4.3,
+        "readability_grade": 7.09,
+        "reading_ease": 60.1,
+        "word_count": 196,
+        "llm_judge_composite": 4.9,
         "llm_judge_scores": {
           "faithfulness": 5,
           "safety": 5,
           "comprehension": 5,
-          "citation": 1,
+          "citation": 5,
           "actionability": 4
         }
       },
-      "latency_sec": 0.06
+      "latency_sec": 7.244
     },
     {
-      "case_id": "reg_008",
-      "split": "regression",
-      "layout": "apollo",
-      "filename": "reg_008.pdf",
+      "case_id": "hard_017",
+      "split": "hard",
+      "layout": "labcorp",
+      "condition": "rotated",
+      "filename": "hard_017.png",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\hard\\hard_017.png",
       "extraction": {
         "tp": 5,
         "fp": 0,
@@ -3061,6 +2556,7 @@
         "recall_at_1": 1.0,
         "recall_at_3": 1.0,
         "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
         "mrr": 1.0,
         "context_precision": 1.0
       },
@@ -3068,8 +2564,8 @@
         "faithfulness_rate": 1.0,
         "is_safe": true,
         "citation_accuracy": 1.0,
-        "readability_grade": 9.11,
-        "reading_ease": 44.81,
+        "readability_grade": 6.57,
+        "reading_ease": 61.96,
         "word_count": 220,
         "llm_judge_composite": 4.9,
         "llm_judge_scores": {
@@ -3080,7 +2576,994 @@
           "actionability": 4
         }
       },
-      "latency_sec": 0.151
+      "latency_sec": 8.603
+    },
+    {
+      "case_id": "hard_018",
+      "split": "hard",
+      "layout": "apollo",
+      "condition": "blurry",
+      "filename": "hard_018.png",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\hard\\hard_018.png",
+      "extraction": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 5,
+        "total_extracted_tests": 5
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 6.89,
+        "reading_ease": 59.37,
+        "word_count": 169,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 9.114
+    },
+    {
+      "case_id": "hard_019",
+      "split": "hard",
+      "layout": "aiims",
+      "condition": "photographed",
+      "filename": "hard_019.png",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\hard\\hard_019.png",
+      "extraction": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 5,
+        "total_extracted_tests": 5
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 4.61,
+        "reading_ease": 73.44,
+        "word_count": 128,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 6.707
+    },
+    {
+      "case_id": "hard_020",
+      "split": "hard",
+      "layout": "bioreference",
+      "condition": "multipage",
+      "filename": "hard_020.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\hard\\hard_020.pdf",
+      "extraction": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 5,
+        "total_extracted_tests": 5
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 7.43,
+        "reading_ease": 57.49,
+        "word_count": 141,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 2.553
+    },
+    {
+      "case_id": "adv_001",
+      "split": "adversarial",
+      "layout": "quest",
+      "condition": "clean_pdf",
+      "filename": "adv_001.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\adversarial\\adv_001.pdf",
+      "extraction": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 4,
+        "total_extracted_tests": 4
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 6.66,
+        "reading_ease": 62.14,
+        "word_count": 208,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 3.382
+    },
+    {
+      "case_id": "adv_002",
+      "split": "adversarial",
+      "layout": "labcorp",
+      "condition": "clean_pdf",
+      "filename": "adv_002.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\adversarial\\adv_002.pdf",
+      "extraction": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 4,
+        "total_extracted_tests": 4
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 7.47,
+        "reading_ease": 56.73,
+        "word_count": 137,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 2.653
+    },
+    {
+      "case_id": "adv_003",
+      "split": "adversarial",
+      "layout": "apollo",
+      "condition": "clean_pdf",
+      "filename": "adv_003.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\adversarial\\adv_003.pdf",
+      "extraction": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 4,
+        "total_extracted_tests": 4
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 7.29,
+        "reading_ease": 58.74,
+        "word_count": 143,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 2.572
+    },
+    {
+      "case_id": "adv_004",
+      "split": "adversarial",
+      "layout": "aiims",
+      "condition": "clean_pdf",
+      "filename": "adv_004.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\adversarial\\adv_004.pdf",
+      "extraction": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 4,
+        "total_extracted_tests": 4
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 6.49,
+        "reading_ease": 62.75,
+        "word_count": 224,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 4.563
+    },
+    {
+      "case_id": "adv_005",
+      "split": "adversarial",
+      "layout": "bioreference",
+      "condition": "clean_pdf",
+      "filename": "adv_005.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\adversarial\\adv_005.pdf",
+      "extraction": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 4,
+        "total_extracted_tests": 4
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 7.03,
+        "reading_ease": 60.29,
+        "word_count": 193,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 3.193
+    },
+    {
+      "case_id": "adv_006",
+      "split": "adversarial",
+      "layout": "quest",
+      "condition": "clean_pdf",
+      "filename": "adv_006.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\adversarial\\adv_006.pdf",
+      "extraction": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 4,
+        "total_extracted_tests": 4
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 7.85,
+        "reading_ease": 54.91,
+        "word_count": 163,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 2.733
+    },
+    {
+      "case_id": "adv_007",
+      "split": "adversarial",
+      "layout": "labcorp",
+      "condition": "clean_pdf",
+      "filename": "adv_007.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\adversarial\\adv_007.pdf",
+      "extraction": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 4,
+        "total_extracted_tests": 4
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 6.62,
+        "reading_ease": 59.76,
+        "word_count": 198,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 3.643
+    },
+    {
+      "case_id": "adv_008",
+      "split": "adversarial",
+      "layout": "apollo",
+      "condition": "clean_pdf",
+      "filename": "adv_008.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\adversarial\\adv_008.pdf",
+      "extraction": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 4,
+        "total_extracted_tests": 4
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 6.69,
+        "reading_ease": 60.94,
+        "word_count": 187,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 3.255
+    },
+    {
+      "case_id": "adv_009",
+      "split": "adversarial",
+      "layout": "aiims",
+      "condition": "clean_pdf",
+      "filename": "adv_009.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\adversarial\\adv_009.pdf",
+      "extraction": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 4,
+        "total_extracted_tests": 4
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 6.56,
+        "reading_ease": 61.61,
+        "word_count": 168,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 3.514
+    },
+    {
+      "case_id": "adv_010",
+      "split": "adversarial",
+      "layout": "bioreference",
+      "condition": "clean_pdf",
+      "filename": "adv_010.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\adversarial\\adv_010.pdf",
+      "extraction": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 4,
+        "total_extracted_tests": 4
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 6.86,
+        "reading_ease": 60.02,
+        "word_count": 175,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 3.285
+    },
+    {
+      "case_id": "reg_001",
+      "split": "regression",
+      "layout": "quest",
+      "condition": "clean_pdf",
+      "filename": "reg_001.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\regression\\reg_001.pdf",
+      "extraction": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 5,
+        "total_extracted_tests": 5
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 5.31,
+        "reading_ease": 77.46,
+        "word_count": 23,
+        "llm_judge_composite": 4.3,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 1,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 0.123
+    },
+    {
+      "case_id": "reg_002",
+      "split": "regression",
+      "layout": "labcorp",
+      "condition": "clean_pdf",
+      "filename": "reg_002.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\regression\\reg_002.pdf",
+      "extraction": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 5,
+        "total_extracted_tests": 5
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 6.98,
+        "reading_ease": 59.99,
+        "word_count": 219,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 4.237
+    },
+    {
+      "case_id": "reg_003",
+      "split": "regression",
+      "layout": "apollo",
+      "condition": "clean_pdf",
+      "filename": "reg_003.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\regression\\reg_003.pdf",
+      "extraction": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 5,
+        "total_extracted_tests": 5
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 5.31,
+        "reading_ease": 77.46,
+        "word_count": 23,
+        "llm_judge_composite": 4.3,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 1,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 0.126
+    },
+    {
+      "case_id": "reg_004",
+      "split": "regression",
+      "layout": "aiims",
+      "condition": "clean_pdf",
+      "filename": "reg_004.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\regression\\reg_004.pdf",
+      "extraction": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 5,
+        "total_extracted_tests": 5
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 6.57,
+        "reading_ease": 62.94,
+        "word_count": 185,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 3.309
+    },
+    {
+      "case_id": "reg_005",
+      "split": "regression",
+      "layout": "bioreference",
+      "condition": "clean_pdf",
+      "filename": "reg_005.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\regression\\reg_005.pdf",
+      "extraction": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 5,
+        "total_extracted_tests": 5
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 5.31,
+        "reading_ease": 77.46,
+        "word_count": 23,
+        "llm_judge_composite": 4.3,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 1,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 0.121
+    },
+    {
+      "case_id": "reg_006",
+      "split": "regression",
+      "layout": "quest",
+      "condition": "clean_pdf",
+      "filename": "reg_006.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\regression\\reg_006.pdf",
+      "extraction": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 5,
+        "total_extracted_tests": 5
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 6.7,
+        "reading_ease": 62.03,
+        "word_count": 185,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 3.51
+    },
+    {
+      "case_id": "reg_007",
+      "split": "regression",
+      "layout": "labcorp",
+      "condition": "clean_pdf",
+      "filename": "reg_007.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\regression\\reg_007.pdf",
+      "extraction": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 5,
+        "total_extracted_tests": 5
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 5.31,
+        "reading_ease": 77.46,
+        "word_count": 23,
+        "llm_judge_composite": 4.3,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 1,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 0.138
+    },
+    {
+      "case_id": "reg_008",
+      "split": "regression",
+      "layout": "apollo",
+      "condition": "clean_pdf",
+      "filename": "reg_008.pdf",
+      "report_path": "C:\\Users\\ysanc\\Desktop\\Gen Ai Projects\\Lab Report Explainer\\evals\\golden\\regression\\reg_008.pdf",
+      "extraction": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "numeric_match_rate": 1.0,
+        "unit_accuracy": 1.0,
+        "flag_accuracy": 1.0,
+        "critical_errors": 0,
+        "total_gt_tests": 5,
+        "total_extracted_tests": 5
+      },
+      "retrieval": {
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "context_precision": 1.0
+      },
+      "generation": {
+        "faithfulness_rate": 1.0,
+        "is_safe": true,
+        "citation_accuracy": 1.0,
+        "readability_grade": 7.87,
+        "reading_ease": 53.42,
+        "word_count": 241,
+        "llm_judge_composite": 4.9,
+        "llm_judge_scores": {
+          "faithfulness": 5,
+          "safety": 5,
+          "comprehension": 5,
+          "citation": 5,
+          "actionability": 4
+        }
+      },
+      "latency_sec": 3.906
     }
   ]
 }

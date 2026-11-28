@@ -10,16 +10,14 @@ For every generated report, automatically writes a ground-truth JSON file next t
 
 from __future__ import annotations
 
-import io
 import json
 import math
-import os
-from pathlib import Path
 import random
-from typing import Any, Dict, List, Optional, Tuple
+from pathlib import Path
+from typing import Any, Dict, List, Tuple
 
-from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
 import pypdfium2 as pdfium
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
@@ -217,13 +215,25 @@ class ReportGenerator:
             "name": "Apollo Diagnostics",
             "primary_color": colors.HexColor("#006633"),
             "accent_color": colors.HexColor("#339966"),
-            "table_headers": ["Investigation", "Observed Value", "Flag", "Biological Reference", "Unit"],
+            "table_headers": [
+                "Investigation",
+                "Observed Value",
+                "Flag",
+                "Biological Reference",
+                "Unit",
+            ],
         },
         "aiims": {
             "name": "AIIMS Central Diagnostic Labs",
             "primary_color": colors.HexColor("#800000"),
             "accent_color": colors.HexColor("#A52A2A"),
-            "table_headers": ["Test / Parameter", "Measured Value", "Status", "Reference Range", "Unit"],
+            "table_headers": [
+                "Test / Parameter",
+                "Measured Value",
+                "Status",
+                "Reference Range",
+                "Unit",
+            ],
         },
         "bioreference": {
             "name": "BioReference Laboratories",
@@ -252,13 +262,15 @@ class ReportGenerator:
 
         layout_info = self.LAYOUT_STYLES.get(layout, self.LAYOUT_STYLES["quest"])
         patient = self.rng.choice(SYNTHETIC_PATIENTS)
-        chosen_profiles = self.rng.sample(ANALYTE_PROFILES, min(analytes_count, len(ANALYTE_PROFILES)))
+        chosen_profiles = self.rng.sample(
+            ANALYTE_PROFILES, min(analytes_count, len(ANALYTE_PROFILES))
+        )
 
         tests_ground_truth: List[Dict[str, Any]] = []
         table_rows: List[List[str]] = [layout_info["table_headers"]]
 
         for p in chosen_profiles:
-            is_si = (unit_system == "mmol_L")
+            is_si = unit_system == "mmol_L"
             unit = p["unit_si"] if is_si else p["unit_mg"]
             ref_low = p["low_si"] if is_si else p["low_mg"]
             ref_high = p["high_si"] if is_si else p["high_mg"]
@@ -273,48 +285,66 @@ class ReportGenerator:
             elif value_profile == "has_critical":
                 cond = self.rng.choice(["critical_high", "critical_low", "high", "normal"])
             else:  # mixed
-                cond = self.rng.choices(["normal", "high", "low", "critical_high"], weights=[0.4, 0.3, 0.2, 0.1])[0]
+                cond = self.rng.choices(
+                    ["normal", "high", "low", "critical_high"], weights=[0.4, 0.3, 0.2, 0.1]
+                )[0]
 
             val: float
             flag: str
             if cond == "normal":
                 margin = (ref_high - ref_low) * 0.1
-                val = round(self.rng.uniform(ref_low + margin, ref_high - margin), 1 if ref_low >= 2.0 else 2)
+                val = round(
+                    self.rng.uniform(ref_low + margin, ref_high - margin),
+                    1 if ref_low >= 2.0 else 2,
+                )
                 flag = "normal"
             elif cond == "low":
                 delta = 0.1 if ref_low >= 2.0 else 0.05
-                val = round(self.rng.uniform(ref_low * 0.5, ref_low - delta), 1 if ref_low >= 2.0 else 2)
+                val = round(
+                    self.rng.uniform(ref_low * 0.5, ref_low - delta), 1 if ref_low >= 2.0 else 2
+                )
                 if val >= ref_low:
                     val = round(ref_low - 0.05, 2)
                 flag = "low"
             elif cond == "high":
                 delta = 0.1 if ref_high >= 2.0 else 0.05
-                val = round(self.rng.uniform(ref_high + delta, ref_high * 1.3), 1 if ref_high >= 2.0 else 2)
+                val = round(
+                    self.rng.uniform(ref_high + delta, ref_high * 1.3), 1 if ref_high >= 2.0 else 2
+                )
                 if val <= ref_high:
                     val = round(ref_high + 0.05, 2)
                 flag = "high"
             elif cond == "critical_high":
-                val = round(self.rng.uniform(panic_high * 1.05, panic_high * 1.25), 1 if panic_high >= 2.0 else 2)
+                val = round(
+                    self.rng.uniform(panic_high * 1.05, panic_high * 1.25),
+                    1 if panic_high >= 2.0 else 2,
+                )
                 flag = "critical_high"
             else:  # critical_low
-                val = round(self.rng.uniform(panic_low * 0.5, panic_low * 0.9), 1 if panic_low >= 2.0 else 2)
+                val = round(
+                    self.rng.uniform(panic_low * 0.5, panic_low * 0.9), 1 if panic_low >= 2.0 else 2
+                )
                 flag = "critical_low"
 
-            tests_ground_truth.append({
-                "test_name": p["name"],
-                "value": val,
-                "unit": unit,
-                "ref_low": ref_low,
-                "ref_high": ref_high,
-                "flag": flag,
-                "category": p["category"],
-            })
+            tests_ground_truth.append(
+                {
+                    "test_name": p["name"],
+                    "value": val,
+                    "unit": unit,
+                    "ref_low": ref_low,
+                    "ref_high": ref_high,
+                    "flag": flag,
+                    "category": p["category"],
+                }
+            )
 
             # Assemble row based on layout column structure
             ref_str = f"{ref_low} - {ref_high}"
             if layout == "quest":
                 in_range = f"{val}" if flag == "normal" else ""
-                out_range = f"{val} (H)" if "high" in flag else (f"{val} (L)" if "low" in flag else "")
+                out_range = (
+                    f"{val} (H)" if "high" in flag else (f"{val} (L)" if "low" in flag else "")
+                )
                 table_rows.append([p["name"], in_range, out_range, ref_str, unit])
             else:
                 flag_display = flag.upper() if flag != "normal" else "NORMAL"
@@ -352,8 +382,8 @@ class ReportGenerator:
             img = self._render_pdf_to_image(clean_pdf_path)
 
             # Extract underlying text layer and tables to embed as PNG metadata
-            from PIL.PngImagePlugin import PngInfo
             import pdfplumber
+            from PIL.PngImagePlugin import PngInfo
 
             ocr_text = ""
             try:
@@ -446,37 +476,59 @@ class ReportGenerator:
         # Header block
         elements.append(Paragraph(layout_info["name"].upper(), title_style))
         elements.append(Paragraph("CLINICAL LABORATORY DIAGNOSTIC EXAMINATION REPORT", sub_style))
-        elements.append(HRFlowable(width="100%", thickness=1.5, color=layout_info["accent_color"], spaceAfter=10))
+        elements.append(
+            HRFlowable(
+                width="100%", thickness=1.5, color=layout_info["accent_color"], spaceAfter=10
+            )
+        )
 
         # Patient demographics table
         patient_data = [
-            [f"Patient: {patient['name']}", f"Age: {patient['age']} Y", f"Gender: {patient['gender']}"],
-            ["Specimen: Whole Blood (Serum)", "Collected: 2026-11-15 08:30", "Reported: 2026-11-15 14:15"],
+            [
+                f"Patient: {patient['name']}",
+                f"Age: {patient['age']} Y",
+                f"Gender: {patient['gender']}",
+            ],
+            [
+                "Specimen: Whole Blood (Serum)",
+                "Collected: 2026-11-15 08:30",
+                "Reported: 2026-11-15 14:15",
+            ],
         ]
         t_pat = Table(patient_data, colWidths=[2.5 * inch, 2.0 * inch, 2.5 * inch])
-        t_pat.setStyle(TableStyle([
-            ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
-            ("FONTSIZE", (0, 0), (-1, -1), 8.5),
-            ("TEXTCOLOR", (0, 0), (-1, -1), colors.HexColor("#333333")),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-        ]))
+        t_pat.setStyle(
+            TableStyle(
+                [
+                    ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+                    ("FONTSIZE", (0, 0), (-1, -1), 8.5),
+                    ("TEXTCOLOR", (0, 0), (-1, -1), colors.HexColor("#333333")),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+                ]
+            )
+        )
         elements.append(t_pat)
         elements.append(Spacer(1, 10))
 
         # Diagnostic Analytes Table
-        t_analytes = Table(table_rows, colWidths=[2.3 * inch, 1.3 * inch, 1.2 * inch, 1.4 * inch, 1.0 * inch])
-        t_analytes.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), layout_info["primary_color"]),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-            ("FONTSIZE", (0, 0), (-1, 0), 9),
-            ("BOTTOMPADDING", (0, 0), (-1, 0), 6),
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#E0E0E0")),
-            ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
-            ("FONTSIZE", (0, 1), (-1, -1), 8.5),
-            ("TOPPADDING", (0, 1), (-1, -1), 4),
-            ("BOTTOMPADDING", (0, 1), (-1, -1), 4),
-        ]))
+        t_analytes = Table(
+            table_rows, colWidths=[2.3 * inch, 1.3 * inch, 1.2 * inch, 1.4 * inch, 1.0 * inch]
+        )
+        t_analytes.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), layout_info["primary_color"]),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("FONTSIZE", (0, 0), (-1, 0), 9),
+                    ("BOTTOMPADDING", (0, 0), (-1, 0), 6),
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#E0E0E0")),
+                    ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
+                    ("FONTSIZE", (0, 1), (-1, -1), 8.5),
+                    ("TOPPADDING", (0, 1), (-1, -1), 4),
+                    ("BOTTOMPADDING", (0, 1), (-1, -1), 4),
+                ]
+            )
+        )
         elements.append(t_analytes)
 
         if multipage:
@@ -485,11 +537,17 @@ class ReportGenerator:
             elements.append(Spacer(1, 10))
             elements.append(Paragraph("ADDITIONAL CLINICAL OBSERVATIONS & NOTES:", body_style))
             elements.append(Spacer(1, 6))
-            elements.append(Paragraph("• Fasting status confirmed prior to venipuncture.", body_style))
-            elements.append(Paragraph("• Analytical method: Enzymatic spectrophotometric assay.", body_style))
+            elements.append(
+                Paragraph("• Fasting status confirmed prior to venipuncture.", body_style)
+            )
+            elements.append(
+                Paragraph("• Analytical method: Enzymatic spectrophotometric assay.", body_style)
+            )
 
         elements.append(Spacer(1, 15))
-        elements.append(Paragraph("Electronically verified and signed by Consultant Pathologist.", sub_style))
+        elements.append(
+            Paragraph("Electronically verified and signed by Consultant Pathologist.", sub_style)
+        )
 
         doc.build(elements)
 

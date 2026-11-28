@@ -13,12 +13,12 @@ Outputs real numbers to /evals/results/<timestamp>/ with git commit hash and mod
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import json
-from pathlib import Path
 import subprocess
 import sys
 import time
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Dict, List
 
 # Ensure repository root is on Python sys.path
@@ -27,8 +27,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from src.extraction.router import ExtractionRouter
-from src.extraction.schema import FlagStatus, LabReport
-
+from src.extraction.schema import FlagStatus
 
 FIXTURES_DIR = Path("tests/fixtures/scanned")
 RESULTS_ROOT = Path("evals/results")
@@ -116,11 +115,11 @@ def evaluate_all_scanned_fixtures() -> Dict[str, Any]:
 
     per_condition_results: List[Dict[str, Any]] = []
 
-    print(f"\n========================================================")
+    print("\n========================================================")
     print(f"RUNNING SCANNED EXTRACTION BENCHMARK ({timestamp})")
     print(f"Git Commit: {git_hash}")
     print(f"Model: {router.tier3.config.models.vision_fallback}")
-    print(f"========================================================\n")
+    print("========================================================\n")
 
     for filename, condition in fixture_files:
         file_path = FIXTURES_DIR / filename
@@ -155,7 +154,9 @@ def evaluate_all_scanned_fixtures() -> Dict[str, Any]:
             for idx, gt in enumerate(gt_tests):
                 if idx in matched_gt_indices:
                     continue
-                if normalize_name(gt["test_name"]) == ext_norm or ext_norm in normalize_name(gt["test_name"]):
+                if normalize_name(gt["test_name"]) == ext_norm or ext_norm in normalize_name(
+                    gt["test_name"]
+                ):
                     match_idx = idx
                     break
 
@@ -170,20 +171,28 @@ def evaluate_all_scanned_fixtures() -> Dict[str, Any]:
                         cond_numeric_matches += 1
                     else:
                         cond_critical_errors += 1
-                        print(f"  [CRITICAL VALUE MISMATCH] {ext_test.test_name}: got {ext_test.value}, expected {gt['value']}")
+                        print(
+                            f"  [CRITICAL VALUE MISMATCH] {ext_test.test_name}: got {ext_test.value}, expected {gt['value']}"
+                        )
 
                 # Check unit
                 if normalize_unit(ext_test.unit) == normalize_unit(gt["unit"]):
                     cond_unit_matches += 1
 
                 # Check flag
-                ext_flag = ext_test.flag.value if isinstance(ext_test.flag, FlagStatus) else str(ext_test.flag).lower()
+                ext_flag = (
+                    ext_test.flag.value
+                    if isinstance(ext_test.flag, FlagStatus)
+                    else str(ext_test.flag).lower()
+                )
                 gt_flag = gt["flag"].lower()
                 if ext_flag == gt_flag:
                     cond_flag_matches += 1
                 else:
                     cond_critical_errors += 1
-                    print(f"  [CRITICAL FLAG MISMATCH] {ext_test.test_name}: got {ext_flag}, expected {gt_flag}")
+                    print(
+                        f"  [CRITICAL FLAG MISMATCH] {ext_test.test_name}: got {ext_flag}, expected {gt_flag}"
+                    )
 
         cond_fp = len(extracted_report.tests) - cond_tp
         cond_fn = len(gt_tests) - cond_tp
@@ -198,33 +207,53 @@ def evaluate_all_scanned_fixtures() -> Dict[str, Any]:
 
         cond_precision = cond_tp / (cond_tp + cond_fp) if (cond_tp + cond_fp) > 0 else 0.0
         cond_recall = cond_tp / len(gt_tests) if len(gt_tests) > 0 else 0.0
-        cond_f1 = (2 * cond_precision * cond_recall) / (cond_precision + cond_recall) if (cond_precision + cond_recall) > 0 else 0.0
+        cond_f1 = (
+            (2 * cond_precision * cond_recall) / (cond_precision + cond_recall)
+            if (cond_precision + cond_recall) > 0
+            else 0.0
+        )
 
-        per_condition_results.append({
-            "fixture": filename,
-            "condition": condition,
-            "ground_truth_tests": len(gt_tests),
-            "extracted_tests": len(extracted_report.tests),
-            "tp": cond_tp,
-            "fp": cond_fp,
-            "fn": cond_fn,
-            "precision": round(cond_precision, 4),
-            "recall": round(cond_recall, 4),
-            "f1": round(cond_f1, 4),
-            "numeric_exact_match_pct": round((cond_numeric_matches / len(gt_tests)) * 100, 2) if len(gt_tests) > 0 else 0.0,
-            "unit_accuracy_pct": round((cond_unit_matches / len(gt_tests)) * 100, 2) if len(gt_tests) > 0 else 0.0,
-            "flag_accuracy_pct": round((cond_flag_matches / len(gt_tests)) * 100, 2) if len(gt_tests) > 0 else 0.0,
-            "critical_errors": cond_critical_errors,
-            "latency_seconds": elapsed_sec,
-        })
+        per_condition_results.append(
+            {
+                "fixture": filename,
+                "condition": condition,
+                "ground_truth_tests": len(gt_tests),
+                "extracted_tests": len(extracted_report.tests),
+                "tp": cond_tp,
+                "fp": cond_fp,
+                "fn": cond_fn,
+                "precision": round(cond_precision, 4),
+                "recall": round(cond_recall, 4),
+                "f1": round(cond_f1, 4),
+                "numeric_exact_match_pct": round((cond_numeric_matches / len(gt_tests)) * 100, 2)
+                if len(gt_tests) > 0
+                else 0.0,
+                "unit_accuracy_pct": round((cond_unit_matches / len(gt_tests)) * 100, 2)
+                if len(gt_tests) > 0
+                else 0.0,
+                "flag_accuracy_pct": round((cond_flag_matches / len(gt_tests)) * 100, 2)
+                if len(gt_tests) > 0
+                else 0.0,
+                "critical_errors": cond_critical_errors,
+                "latency_seconds": elapsed_sec,
+            }
+        )
 
-        print(f"[{condition}] {filename}: {cond_tp}/{len(gt_tests)} matched | F1: {cond_f1:.2f} | Num Match: {cond_numeric_matches}/{len(gt_tests)} | Latency: {elapsed_sec}s")
+        print(
+            f"[{condition}] {filename}: {cond_tp}/{len(gt_tests)} matched | F1: {cond_f1:.2f} | Num Match: {cond_numeric_matches}/{len(gt_tests)} | Latency: {elapsed_sec}s"
+        )
 
     # Aggregate metrics
     overall_precision = total_tp / (total_tp + total_fp) if (total_tp + total_fp) > 0 else 0.0
     overall_recall = total_tp / total_gt_tests if total_gt_tests > 0 else 0.0
-    overall_f1 = (2 * overall_precision * overall_recall) / (overall_precision + overall_recall) if (overall_precision + overall_recall) > 0 else 0.0
-    numeric_exact_match_pct = (total_numeric_matches / total_gt_tests) * 100 if total_gt_tests > 0 else 0.0
+    overall_f1 = (
+        (2 * overall_precision * overall_recall) / (overall_precision + overall_recall)
+        if (overall_precision + overall_recall) > 0
+        else 0.0
+    )
+    numeric_exact_match_pct = (
+        (total_numeric_matches / total_gt_tests) * 100 if total_gt_tests > 0 else 0.0
+    )
     unit_accuracy_pct = (total_unit_matches / total_gt_tests) * 100 if total_gt_tests > 0 else 0.0
     flag_accuracy_pct = (total_flag_matches / total_gt_tests) * 100 if total_gt_tests > 0 else 0.0
 
@@ -260,28 +289,40 @@ def evaluate_all_scanned_fixtures() -> Dict[str, Any]:
     # Save Markdown report
     md_path = output_dir / "scanned_extraction_eval.md"
     with open(md_path, "w", encoding="utf-8") as f:
-        f.write(f"# Scanned Report Extraction Benchmark Results\n\n")
+        f.write("# Scanned Report Extraction Benchmark Results\n\n")
         f.write(f"- **Timestamp:** `{timestamp}`\n")
         f.write(f"- **Git Commit Hash:** `{git_hash}`\n")
         f.write(f"- **Multimodal Vision Model:** `{router.tier3.config.models.vision_fallback}`\n")
-        f.write(f"- **Flagging Engine:** `Flagger (Deterministic Python Mathematical Interval)`\n\n")
-        f.write(f"## Summary Metrics\n\n")
-        f.write(f"| Metric | Result |\n")
-        f.write(f"| :--- | :--- |\n")
+        f.write("- **Flagging Engine:** `Flagger (Deterministic Python Mathematical Interval)`\n\n")
+        f.write("## Summary Metrics\n\n")
+        f.write("| Metric | Result |\n")
+        f.write("| :--- | :--- |\n")
         f.write(f"| **Field-Level Precision** | {overall_precision * 100:.2f}% |\n")
         f.write(f"| **Field-Level Recall** | {overall_recall * 100:.2f}% |\n")
         f.write(f"| **Field-Level F1 Score** | {overall_f1:.4f} |\n")
-        f.write(f"| **Numeric Exact-Match Accuracy** | {numeric_exact_match_pct:.2f}% ({total_numeric_matches}/{total_gt_tests}) |\n")
-        f.write(f"| **Unit Extraction Accuracy** | {unit_accuracy_pct:.2f}% ({total_unit_matches}/{total_gt_tests}) |\n")
-        f.write(f"| **Deterministic Flag Accuracy** | {flag_accuracy_pct:.2f}% ({total_flag_matches}/{total_gt_tests}) |\n")
-        f.write(f"| **Critical Clinical Errors** | **{total_critical_errors}** (wrong number or flag) |\n\n")
-        f.write(f"## Per-Condition Performance Breakdown\n\n")
-        f.write(f"| Condition | Fixture | GT Tests | Extracted | F1 | Numeric Match | Flag Accuracy | Critical Errors | Latency |\n")
-        f.write(f"| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |\n")
+        f.write(
+            f"| **Numeric Exact-Match Accuracy** | {numeric_exact_match_pct:.2f}% ({total_numeric_matches}/{total_gt_tests}) |\n"
+        )
+        f.write(
+            f"| **Unit Extraction Accuracy** | {unit_accuracy_pct:.2f}% ({total_unit_matches}/{total_gt_tests}) |\n"
+        )
+        f.write(
+            f"| **Deterministic Flag Accuracy** | {flag_accuracy_pct:.2f}% ({total_flag_matches}/{total_gt_tests}) |\n"
+        )
+        f.write(
+            f"| **Critical Clinical Errors** | **{total_critical_errors}** (wrong number or flag) |\n\n"
+        )
+        f.write("## Per-Condition Performance Breakdown\n\n")
+        f.write(
+            "| Condition | Fixture | GT Tests | Extracted | F1 | Numeric Match | Flag Accuracy | Critical Errors | Latency |\n"
+        )
+        f.write("| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |\n")
         for c in per_condition_results:
-            f.write(f"| `{c['condition']}` | `{c['fixture']}` | {c['ground_truth_tests']} | {c['extracted_tests']} | {c['f1']:.2f} | {c['numeric_exact_match_pct']}% | {c['flag_accuracy_pct']}% | {c['critical_errors']} | {c['latency_seconds']}s |\n")
+            f.write(
+                f"| `{c['condition']}` | `{c['fixture']}` | {c['ground_truth_tests']} | {c['extracted_tests']} | {c['f1']:.2f} | {c['numeric_exact_match_pct']}% | {c['flag_accuracy_pct']}% | {c['critical_errors']} | {c['latency_seconds']}s |\n"
+            )
 
-    print(f"\nSaved evaluation results to:")
+    print("\nSaved evaluation results to:")
     print(f"  JSON: {json_path}")
     print(f"  MD:   {md_path}\n")
 

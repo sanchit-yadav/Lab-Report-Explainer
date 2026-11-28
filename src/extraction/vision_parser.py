@@ -21,7 +21,7 @@ from google import genai
 from google.genai import types
 from PIL import Image
 
-from src.config import get_config
+from src.config import available_models, get_config, mark_model_cooldown, record_llm_usage
 from src.extraction.preprocessing import DocumentPreprocessor
 from src.extraction.schema import LabReport, TestResult
 from src.flagging.flagger import Flagger
@@ -88,7 +88,9 @@ class VisionExtractor:
             raise ValueError(
                 "GEMINI_API_KEY is not configured. Multimodal Vision fallback requires a valid Gemini API key."
             )
-        return genai.Client(api_key=api_key, http_options={"api_version": "v1beta"})
+        return genai.Client(
+            api_key=api_key, http_options={"api_version": "v1beta", "timeout": 15000}
+        )
 
     def _call_model_with_fallback(
         self,
@@ -96,17 +98,20 @@ class VisionExtractor:
         content_part: types.Part,
         prompt: str,
     ) -> str:
-        """Call primary vision model with automatic fallback to secondary models if unavailable."""
+        """Call primary vision model with automatic fallback and cooldown circuit-breaking."""
         models_to_try = [
-            getattr(self.config.models, "vision_fallback", "gemini-2.5-flash"),
-            "gemini-2.5-flash",
+            getattr(self.config.models, "vision_fallback", "gemini-3.5-flash-lite"),
+            "gemini-3.5-flash-lite",
+            "gemini-3.6-flash",
+            "gemini-3.1-flash-lite",
+            "gemini-2.5-flash-lite",
             "gemini-3.5-flash",
-            "gemini-2.0-flash",
-            "gemini-1.5-flash",
         ]
-        # Deduplicate while preserving priority order
+        # Deduplicate while preserving priority order, skipping models in active cooldown
         seen = set()
-        deduped_models = [m for m in models_to_try if m and not (m in seen or seen.add(m))]
+        deduped_models = available_models(
+            [m for m in models_to_try if m and not (m in seen or seen.add(m))]
+        )
 
         last_err = None
         for model_name in deduped_models:
@@ -121,8 +126,11 @@ class VisionExtractor:
                     ),
                 )
                 if response.text:
+                    record_llm_usage(model_name, response)
                     return response.text.strip()
             except Exception as e:
+                err_str = str(e)
+                mark_model_cooldown(model_name, err_str)
                 logger.warning(
                     f"Vision model '{model_name}' encountered error: {e}. Trying next model."
                 )
@@ -156,15 +164,46 @@ class VisionExtractor:
 
         all_tests: List[TestResult] = []
         for t in parsed_dict.get("tests", []):
+            val = t.get("value")
+            raw_val = str(t.get("raw_value") or "").strip()
+            if val is None and raw_val:
+                m = re.search(r"[-+]?(?:\d*\.\d+|\d+)", raw_val)
+                if m:
+                    try:
+                        val = float(m.group(0))
+                    except ValueError:
+                        pass
+
+            ref_low = t.get("ref_low")
+            ref_high = t.get("ref_high")
+            ref_raw = str(t.get("ref_raw") or "").strip()
+            if (ref_low is None or ref_high is None) and ref_raw:
+                nums = re.findall(r"[-+]?(?:\d*\.\d+|\d+)", ref_raw)
+                if len(nums) >= 2:
+                    try:
+                        if ref_low is None:
+                            ref_low = float(nums[0])
+                        if ref_high is None:
+                            ref_high = float(nums[1])
+                    except ValueError:
+                        pass
+                elif len(nums) == 1:
+                    try:
+                        if "<" in ref_raw and ref_high is None:
+                            ref_high = float(nums[0])
+                        elif ">" in ref_raw and ref_low is None:
+                            ref_low = float(nums[0])
+                    except ValueError:
+                        pass
+
             test_obj = TestResult(
                 test_name=t.get("test_name", ""),
-                value=t.get("value"),
-                raw_value=t.get("raw_value", "")
-                or (str(t.get("value")) if t.get("value") is not None else ""),
+                value=val,
+                raw_value=raw_val or (str(val) if val is not None else ""),
                 unit=t.get("unit", "") or "",
-                ref_low=t.get("ref_low"),
-                ref_high=t.get("ref_high"),
-                ref_raw=t.get("ref_raw", ""),
+                ref_low=ref_low,
+                ref_high=ref_high,
+                ref_raw=ref_raw,
                 source_page=page_idx,
                 source_location=t.get("source_location") or f"Page {page_idx}",
                 confidence=float(t.get("confidence", 0.95)),

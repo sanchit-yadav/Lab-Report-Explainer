@@ -9,10 +9,10 @@ from __future__ import annotations
 import argparse
 import datetime
 import json
-from pathlib import Path
 import shutil
 import sys
-from typing import Any, Dict
+from pathlib import Path
+from typing import Any, Dict, Optional
 
 
 def get_next_regression_id(regression_dir: Path) -> str:
@@ -87,12 +87,20 @@ def add_regression_case(
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Add permanent regression test case to golden dataset.")
+    parser = argparse.ArgumentParser(
+        description="Add permanent regression test case to golden dataset."
+    )
     parser.add_argument("report_file", type=Path, help="Path to failing report file (PDF or image)")
-    parser.add_argument("--ground-truth", "-g", type=Path, default=None, help="Path to companion ground truth JSON")
-    parser.add_argument("--reason", "-r", required=True, help="Detailed explanation of the failure or bug")
+    parser.add_argument(
+        "--ground-truth", "-g", type=Path, default=None, help="Path to companion ground truth JSON"
+    )
+    parser.add_argument(
+        "--reason", "-r", required=True, help="Detailed explanation of the failure or bug"
+    )
     parser.add_argument("--issue", "-i", default="", help="Issue reference (e.g. GH-42 or Bug-12)")
-    parser.add_argument("--author", "-a", default="CI / Pipeline Engineer", help="Author adding regression")
+    parser.add_argument(
+        "--author", "-a", default="CI / Pipeline Engineer", help="Author adding regression"
+    )
 
     args = parser.parse_args()
     try:

@@ -9,7 +9,9 @@ import re
 import time
 from typing import Any, Dict, List, Optional, Tuple
 
-from src.config import get_config
+from pydantic import BaseModel
+
+from src.config import available_models, get_config, mark_model_cooldown, record_llm_usage
 from src.explainer.prompts import build_explanation_prompt, get_system_prompt
 from src.explainer.schema import ReportExplanation, TestExplanation
 from src.extraction.schema import FlagStatus, LabReport, TestResult
@@ -191,7 +193,10 @@ class ExplanationGenerator:
                 from google import genai
                 from google.genai import types
 
-                client = genai.Client(api_key=self.api_key)
+                client = genai.Client(
+                    api_key=self.api_key,
+                    http_options={"api_version": "v1beta", "timeout": 15000},
+                )
                 prompt = build_explanation_prompt(test, context_chunks, source_urls)
                 system_prompt = get_system_prompt()
 
@@ -199,12 +204,12 @@ class ExplanationGenerator:
                 for fb in getattr(
                     self.config.models,
                     "fallback_models",
-                    ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"],
+                    ["gemini-3.6-flash", "gemini-3.1-flash-lite", "gemini-2.5-flash-lite"],
                 ):
                     if fb not in models_to_try:
                         models_to_try.append(fb)
 
-                for cand_model in models_to_try:
+                for cand_model in available_models(models_to_try):
                     try:
                         # For single biomarker definitions, skip thinking tokens by default unless explicitly configured,
                         # avoiding 2-4 seconds of unnecessary reasoning latency per analyte.
@@ -246,6 +251,7 @@ class ExplanationGenerator:
                         )
 
                         if response.text:
+                            record_llm_usage(cand_model, response)
                             clean_text = response.text.strip()
                             if clean_text.startswith("```"):
                                 clean_text = re.sub(r"^```(?:json)?\s*", "", clean_text)
@@ -258,11 +264,23 @@ class ExplanationGenerator:
 
                     except Exception as model_err:
                         err_str = str(model_err)
-                        if any(c in err_str for c in ("503", "UNAVAILABLE", "high demand", "429")):
-                            logger.warning(
-                                f"Gemini model '{cand_model}' temporarily unavailable (503 / high demand). Trying next candidate..."
+                        mark_model_cooldown(cand_model, err_str)
+                        if any(
+                            c in err_str.upper()
+                            for c in (
+                                "503",
+                                "UNAVAILABLE",
+                                "HIGH DEMAND",
+                                "429",
+                                "RESOURCE_EXHAUSTED",
+                                "504",
+                                "DEADLINE_EXCEEDED",
+                                "TIMEOUT",
                             )
-                            time.sleep(0.5)
+                        ):
+                            logger.warning(
+                                f"Gemini model '{cand_model}' unavailable/throttled. Trying next candidate..."
+                            )
                             continue
                         else:
                             logger.warning(
@@ -278,6 +296,170 @@ class ExplanationGenerator:
         # Offline / fallback mode
         return self._generate_mock_explanation(test, context_chunks, source_urls)
 
+    def explain_tests_batch(
+        self,
+        items_with_candidates: List[Tuple[TestResult, List[Dict[str, Any]]]],
+    ) -> List[TestExplanation]:
+        """Generate structured bilingual explanations for multiple test analytes in one LLM call."""
+        if not items_with_candidates:
+            return []
+        if len(items_with_candidates) == 1:
+            test, cands = items_with_candidates[0]
+            return [self.explain_test(test, cands)]
+
+        if self.api_key:
+            try:
+                from google import genai
+                from google.genai import types
+
+                from src.security.injection import delimit_untrusted_data
+
+                class BatchTestExplanations(BaseModel):
+                    explanations: List[TestExplanation]
+
+                sections = []
+                all_urls: List[str] = []
+                for idx, (test, candidates) in enumerate(items_with_candidates, start=1):
+                    ctx_chunks = [c.get("text", "") for c in candidates if c.get("text")][:2]
+                    urls: List[str] = []
+                    for c in candidates:
+                        u = c.get("source_url") or c.get("metadata", {}).get("source_url")
+                        if u and u not in urls:
+                            urls.append(u)
+                        if u and u not in all_urls:
+                            all_urls.append(u)
+                    raw_row = (
+                        f"Analyte: {test.test_name} | "
+                        f"Value: {test.value if test.value is not None else test.raw_value} {test.unit or ''} | "
+                        f"Ref: {test.ref_raw or f'{test.ref_low} - {test.ref_high}'} | "
+                        f"Flag: {test.flag.value.upper()}"
+                    )
+                    ctx_str = " ".join(c[:350] for c in ctx_chunks) or "General clinical guidance."
+                    sections.append(
+                        f"TEST {idx}: {test.test_name}\n"
+                        f"{delimit_untrusted_data(raw_row, tag_name='untrusted_clinical_report_data')}\n"
+                        f"{delimit_untrusted_data(ctx_str, tag_name='untrusted_rag_chunk')}\n"
+                        f"Citations: {', '.join(urls[:2]) or 'https://medlineplus.gov/lab-tests/'}"
+                    )
+
+                prompt = (
+                    f"Explain each of the {len(items_with_candidates)} laboratory tests below for a patient.\n"
+                    "Return JSON with key 'explanations', containing exactly one object per test with the EXACT matching 'test_name'.\n"
+                    "For every item:\n"
+                    "- Use plain, clear 6th-8th grade English in 'explanation_en' (~40-60 words) with exact numbers/units from the data.\n"
+                    "- Provide natural Hindi in 'explanation_hi'.\n"
+                    "- Never diagnose any disease or mention/prescribe any medication or dose.\n"
+                    "- Advise discussing with a doctor and include 2 'doctor_questions' and 'source_urls'.\n\n"
+                    + "\n\n".join(sections)
+                )
+
+                client = genai.Client(
+                    api_key=self.api_key,
+                    http_options={"api_version": "v1beta", "timeout": 15000},
+                )
+                system_prompt = get_system_prompt()
+
+                models_to_try = [self.model_name]
+                for fb in getattr(
+                    self.config.models,
+                    "fallback_models",
+                    ["gemini-3.6-flash", "gemini-3.1-flash-lite", "gemini-2.5-flash-lite"],
+                ):
+                    if fb not in models_to_try:
+                        models_to_try.append(fb)
+
+                for cand_model in available_models(models_to_try):
+                    try:
+                        response = client.models.generate_content(
+                            model=cand_model,
+                            contents=prompt,
+                            config=types.GenerateContentConfig(
+                                system_instruction=system_prompt,
+                                temperature=self.temperature,
+                                response_mime_type="application/json",
+                                response_schema=BatchTestExplanations,
+                            ),
+                        )
+                        if response.text:
+                            record_llm_usage(cand_model, response)
+                            clean_text = response.text.strip()
+                            if clean_text.startswith("```"):
+                                clean_text = re.sub(r"^```(?:json)?\s*", "", clean_text)
+                                clean_text = re.sub(r"\s*```$", "", clean_text)
+                            match = re.search(r"\{[\s\S]*\}", clean_text)
+                            if match:
+                                clean_text = match.group(0)
+                            parsed = BatchTestExplanations(**json.loads(clean_text))
+                            by_name = {
+                                re.sub(r"[^a-z0-9]", "", e.test_name.lower()): e
+                                for e in parsed.explanations
+                            }
+                            ordered: List[TestExplanation] = []
+                            for idx, (test, candidates) in enumerate(items_with_candidates):
+                                norm_key = re.sub(r"[^a-z0-9]", "", test.test_name.lower())
+                                matched = by_name.get(norm_key)
+                                if not matched and idx < len(parsed.explanations):
+                                    cand_e = parsed.explanations[idx]
+                                    if norm_key in re.sub(
+                                        r"[^a-z0-9]", "", cand_e.test_name.lower()
+                                    ):
+                                        matched = cand_e
+                                if matched:
+                                    # Guarantee canonical test_name and deterministic flag
+                                    matched.test_name = test.test_name
+                                    matched.flag = test.flag
+                                    ordered.append(matched)
+                                else:
+                                    ctx = [c.get("text", "") for c in candidates if c.get("text")]
+                                    u = [
+                                        c.get("source_url")
+                                        or c.get("metadata", {}).get("source_url", "")
+                                        for c in candidates
+                                    ]
+                                    ordered.append(
+                                        self._generate_mock_explanation(
+                                            test, ctx, [x for x in u if x]
+                                        )
+                                    )
+                            return ordered
+                    except Exception as model_err:
+                        err_str = str(model_err)
+                        mark_model_cooldown(cand_model, err_str)
+                        if any(
+                            c in err_str.upper()
+                            for c in (
+                                "503",
+                                "UNAVAILABLE",
+                                "HIGH DEMAND",
+                                "429",
+                                "RESOURCE_EXHAUSTED",
+                                "504",
+                                "DEADLINE_EXCEEDED",
+                                "TIMEOUT",
+                            )
+                        ):
+                            logger.warning(
+                                f"Gemini batch model '{cand_model}' unavailable/throttled. Trying next candidate..."
+                            )
+                            continue
+                        logger.warning(
+                            f"Gemini batch API model '{cand_model}' error: {model_err}"
+                        )
+                        break
+            except Exception as exc:
+                logger.warning(f"Gemini batch explanation failed: {exc}. Falling back offline.")
+
+        # Offline fallback for all items
+        results: List[TestExplanation] = []
+        for test, candidates in items_with_candidates:
+            ctx = [c.get("text", "") for c in candidates if c.get("text")]
+            urls = [
+                c.get("source_url") or c.get("metadata", {}).get("source_url", "")
+                for c in candidates
+            ]
+            results.append(self._generate_mock_explanation(test, ctx, [u for u in urls if u]))
+        return results
+
     def answer_question(
         self,
         question: str,
@@ -290,7 +472,9 @@ class ExplanationGenerator:
                 from google import genai
                 from google.genai import types
 
-                client = genai.Client(api_key=self.api_key)
+                client = genai.Client(
+                    api_key=self.api_key, http_options={"api_version": "v1beta"}
+                )
                 system_prompt = get_system_prompt()
                 prompt = (
                     f"User Question: {question}\n\n"
@@ -339,6 +523,7 @@ class ExplanationGenerator:
                             config=types.GenerateContentConfig(**qa_config_kwargs),
                         )
                         if response.text:
+                            record_llm_usage(cand_model, response)
                             clean_text = response.text.strip()
                             if clean_text.startswith("```"):
                                 clean_text = re.sub(r"^```(?:json)?\s*", "", clean_text)
