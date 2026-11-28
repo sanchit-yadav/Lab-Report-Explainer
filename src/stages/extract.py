@@ -50,7 +50,11 @@ class ExtractValuesStage:
         else:
             source_payload = inp.raw_bytes if inp.raw_bytes else parsed.full_text.encode("utf-8")
             try:
-                extracted_report = self.router.extract(source_payload)
+                # If document was scanned (tier 3), route directly to Vision to avoid Camelot timeout
+                if getattr(parsed, "parsing_tier", 1) == 3:
+                    extracted_report = self.router.tier3.extract(source_payload)
+                else:
+                    extracted_report = self.router.extract(source_payload)
             except Exception as exc:
                 logger.warning(
                     "Router extraction warning, assembling from parsed pages",
@@ -79,7 +83,23 @@ class ExtractValuesStage:
                     tests=fallback_tests,
                     extraction_method="ocr_parsed_fallback",
                 )
-            elif not extracted_report:
+            elif inp.raw_bytes:
+                # Document was classified as digital text but had 0 extractable tests;
+                # fall back to Multimodal Vision to recover from scanned reports with superficial text layers
+                try:
+                    logger.info(
+                        "Zero tests extracted from text layer; attempting Vision recovery",
+                        inp.request_id,
+                    )
+                    vision_rec = self.router.tier3.extract(inp.raw_bytes)
+                    if vision_rec.tests:
+                        extracted_report = vision_rec
+                except Exception as e:
+                    logger.warning(
+                        "Vision recovery fallback error", inp.request_id, {"error": str(e)}
+                    )
+
+            if not extracted_report:
                 extracted_report = LabReport(
                     patient_name=inp.patient_name_hint,
                     tests=[],

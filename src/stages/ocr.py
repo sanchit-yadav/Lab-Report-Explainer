@@ -10,7 +10,9 @@ scoring, and seamless fallback to multimodal vision.
 from __future__ import annotations
 
 import io
+import shutil
 import time
+from concurrent.futures import ThreadPoolExecutor
 from typing import List
 
 import pdfplumber
@@ -82,14 +84,28 @@ class OCRParseStage:
                             )
                         )
 
-                    # Verify if document has a real text layer (not empty or just whitespace)
+                    # Verify if document has a real text layer with actual clinical data (not just a scanner header/watermark)
                     total_chars = sum(len(p.text.strip()) for p in extracted_pages)
-                    if total_chars >= 30:
+                    has_tables = any(len(p.tables or []) > 0 for p in extracted_pages)
+                    lab_keywords = (
+                        "test", "investigation", "analyte", "result", "reference", "interval",
+                        "unit", "range", "haemoglobin", "hemoglobin", "glucose", "cholesterol",
+                        "platelet", "creatinine", "bilirubin", "wbc", "rbc", "serum", "lipid", "cbc"
+                    )
+                    full_raw_text = " ".join(p.text.lower() for p in extracted_pages)
+                    keyword_matches = sum(1 for kw in lab_keywords if kw in full_raw_text)
+
+                    if total_chars >= 100 and (has_tables or keyword_matches >= 2):
                         has_digital_text = True
                         pages = extracted_pages
                         full_text_chunks = [p.text for p in pages]
                         logger.info(
-                            f"Digital PDF text layer detected with {total_chars} characters across {len(pages)} page(s).",
+                            f"Digital PDF text layer detected with {total_chars} characters and {keyword_matches} clinical keywords across {len(pages)} page(s).",
+                            inp.request_id,
+                        )
+                    else:
+                        logger.info(
+                            f"PDF text layer insufficient ({total_chars} chars, {keyword_matches} keywords, tables={has_tables}). Treating as scanned document.",
                             inp.request_id,
                         )
             except Exception as exc:
@@ -110,14 +126,14 @@ class OCRParseStage:
             page_images: List[Image.Image] = []
             if is_pdf:
                 logger.info(
-                    "Scanned / image-only PDF detected with empty text layer. Rasterizing pages at ~300 DPI.",
+                    "Scanned / image-only PDF detected with empty text layer. Rasterizing pages at ~180 DPI.",
                     inp.request_id,
                 )
                 try:
                     pdf = pdfium.PdfDocument(inp.file_bytes)
                     for page_idx in range(len(pdf)):
-                        # Scale 300 / 72 = 4.1667 (~300 DPI)
-                        pil_img = pdf[page_idx].render(scale=300.0 / 72.0).to_pil()
+                        # Scale 180 / 72 = 2.5 (~180 DPI, 3x faster rendering with optimal clarity)
+                        pil_img = pdf[page_idx].render(scale=180.0 / 72.0).to_pil()
                         page_images.append(pil_img)
                 except Exception as exc:
                     logger.error(
@@ -131,56 +147,61 @@ class OCRParseStage:
                     logger.error("Failed to open image file", inp.request_id, {"error": str(exc)})
 
             # Process each rasterized/scanned page
-            for page_idx, raw_img in enumerate(page_images, start=1):
-                clean_img, meta = self.preprocessor.preprocess(raw_img)
+            has_tesseract_bin = bool(shutil.which("tesseract"))
+
+            def _process_one_page(args):
+                p_idx, raw_img = args
+                clean_img, _meta = self.preprocessor.preprocess(raw_img)
 
                 ocr_lines: List[OCRLine] = []
                 page_text_lines: List[str] = []
                 avg_confidence = 0.0
+                extracted_tests = []
+                p_patient_name = None
+                p_lab_name = None
 
-                # 1. Check local Tesseract OCR if available
-                try:
-                    import pytesseract
+                # 1. Check local Tesseract OCR only if installed binary is present
+                if has_tesseract_bin:
+                    try:
+                        import pytesseract
 
-                    data = pytesseract.image_to_data(clean_img, output_type=pytesseract.Output.DICT)
-                    words = data.get("text", [])
-                    confs = [float(c) for c in data.get("conf", []) if float(c) > 0]
-                    if confs:
-                        avg_confidence = (sum(confs) / len(confs)) / 100.0
+                        data = pytesseract.image_to_data(clean_img, output_type=pytesseract.Output.DICT)
+                        words = data.get("text", [])
+                        confs = [float(c) for c in data.get("conf", []) if float(c) > 0]
+                        if confs:
+                            avg_confidence = (sum(confs) / len(confs)) / 100.0
 
-                    line_dict = {}
-                    for i, w in enumerate(words):
-                        w_clean = w.strip()
-                        if not w_clean:
-                            continue
-                        line_n = data["line_num"][i]
-                        line_dict.setdefault(line_n, []).append(w_clean)
+                        line_dict = {}
+                        for i, w in enumerate(words):
+                            w_clean = w.strip()
+                            if not w_clean:
+                                continue
+                            line_n = data["line_num"][i]
+                            line_dict.setdefault(line_n, []).append(w_clean)
 
-                    for l_idx, (num, w_list) in enumerate(sorted(line_dict.items()), start=1):
-                        l_text = " ".join(w_list)
-                        page_text_lines.append(l_text)
-                        ocr_lines.append(
-                            OCRLine(
-                                line_num=l_idx, text=l_text, confidence=round(avg_confidence, 2)
+                        for l_idx, (num, w_list) in enumerate(sorted(line_dict.items()), start=1):
+                            l_text = " ".join(w_list)
+                            page_text_lines.append(l_text)
+                            ocr_lines.append(
+                                OCRLine(
+                                    line_num=l_idx, text=l_text, confidence=round(avg_confidence, 2)
+                                )
                             )
-                        )
-                except Exception:
-                    pass
+                    except Exception:
+                        pass
 
-                # 2. If local OCR confidence is low (< 0.60) or yielded no lines, fall back to Vision
+                # 2. Fast-path to Multimodal Vision with preprocessed image flag
                 if not ocr_lines or avg_confidence < 0.60:
                     try:
                         from src.extraction.vision_parser import VisionExtractor
 
                         vision = VisionExtractor()
-                        page_report = vision.extract_from_image(clean_img, page_idx=page_idx)
+                        page_report = vision.extract_from_image(clean_img, page_idx=p_idx, preprocessed=True)
 
                         if page_report.tests:
-                            if not vision_patient_name and page_report.patient_name:
-                                vision_patient_name = page_report.patient_name
-                            if not vision_lab_name and page_report.lab_name:
-                                vision_lab_name = page_report.lab_name
-                            vision_tests.extend(page_report.tests)
+                            p_patient_name = page_report.patient_name
+                            p_lab_name = page_report.lab_name
+                            extracted_tests = page_report.tests
 
                             ocr_lines = []
                             page_text_lines = []
@@ -204,7 +225,7 @@ class OCRParseStage:
                             )
                     except Exception as exc:
                         logger.warning(
-                            f"Vision OCR fallback warning on page {page_idx}",
+                            f"Vision OCR fallback warning on page {p_idx}",
                             inp.request_id,
                             {"error": str(exc)},
                         )
@@ -217,17 +238,32 @@ class OCRParseStage:
                     else None
                 )
 
-                pages.append(
-                    OCRPage(
-                        page_num=page_idx,
-                        text=page_text,
-                        lines=ocr_lines,
-                        confidence=round(avg_confidence, 2),
-                        needs_clearer_image=needs_clearer,
-                        advisory=advisory,
-                    )
+                ocr_page = OCRPage(
+                    page_num=p_idx,
+                    text=page_text,
+                    lines=ocr_lines,
+                    confidence=round(avg_confidence, 2),
+                    needs_clearer_image=needs_clearer,
+                    advisory=advisory,
                 )
+                return ocr_page, page_text, extracted_tests, p_patient_name, p_lab_name
+
+            # Process pages (parallelized when multi-page)
+            if len(page_images) <= 1:
+                results = [_process_one_page((1, page_images[0]))] if page_images else []
+            else:
+                with ThreadPoolExecutor(max_workers=min(4, len(page_images))) as executor:
+                    results = list(executor.map(_process_one_page, enumerate(page_images, start=1)))
+
+            for ocr_page, page_text, page_tests, p_name, l_name in results:
+                pages.append(ocr_page)
                 full_text_chunks.append(page_text)
+                if page_tests:
+                    vision_tests.extend(page_tests)
+                    if not vision_patient_name and p_name:
+                        vision_patient_name = p_name
+                    if not vision_lab_name and l_name:
+                        vision_lab_name = l_name
 
         structured_report = None
         if vision_tests:
