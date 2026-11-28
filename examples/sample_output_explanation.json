@@ -1,0 +1,280 @@
+{
+  "patient_name": "Pooja Patel",
+  "report_date": null,
+  "report_summary_en": "Laboratory report summary for Pooja Patel. A total of 5 test parameter(s) were analyzed, with 5 parameter(s) outside standard reference intervals requiring clinical review. Additionally, 2 clinical ratio pattern(s) were analyzed (2 flagged for discussion).",
+  "report_summary_hi": "Pooja Patel की लैब जांच रिपोर्ट का सारांश। कुल 5 परीक्षणों का विश्लेषण किया गया, जिनमें से 5 परिणाम मानक संदर्भ सीमा से बाहर पाए गए हैं जिन पर डॉक्टर से परामर्श आवश्यक है। इसके अलावा, 2 नैदानिक अनुपातों का विश्लेषण किया गया है।",
+  "test_explanations": [
+    {
+      "test_name": "Total Cholesterol",
+      "flag": "high",
+      "explanation_en": "• What It Measures: Total cholesterol quantifies the cumulative amount of cholesterol in your bloodstream, comprising HDL, LDL, and roughly 20% of triglycerides.\n• What This Finding Indicates: Your observed value of 248.0 mg/dL is above the standard reference range of less than 200 mg/dL. High total cholesterol is a recognized risk factor for atherosclerosis, coronary artery disease, and cerebrovascular events, and it is important to discuss this finding with your physician.",
+      "explanation_hi": "• यह जांच क्या मापती है: कुल कोलेस्ट्रॉल आपके रक्त प्रवाह में कोलेस्ट्रॉल की कुल मात्रा को मापता है, जिसमें एचडीएल, एलडीएल और लगभग 20% ट्राइग्लिसराइड्स शामिल हैं।\n• आपके परिणाम का क्या अर्थ है: आपका 248.0 mg/dL का देखा गया मान 200 mg/dL से कम के मानक संदर्भ सीमा से अधिक है। उच्च कुल कोलेस्ट्रॉल एथेरोस्क्लेरोसिस, कोरोनरी धमनी रोग और सेरेब्रोवास्कुलर घटनाओं के लिए एक मान्यता प्राप्त जोखिम कारक है, और अपने चिकित्सक के साथ इस परिणाम पर चर्चा करना महत्वपूर्ण है।",
+      "source_urls": [
+        "https://medlineplus.gov/cholesterol.html",
+        "https://medlineplus.gov/hdlcholesterol.html",
+        "https://medlineplus.gov/lab-tests/triiodothyronine-t3-tests/"
+      ],
+      "doctor_questions": [
+        "What is my overall 10-year cardiovascular risk score based on this lipid profile?",
+        "Are dietary and lifestyle changes sufficient, or should we discuss medical risk management?"
+      ],
+      "disclaimer": "This information is for educational purposes only and should be discussed with a qualified healthcare provider."
+    },
+    {
+      "test_name": "Triglycerides",
+      "flag": "high",
+      "explanation_en": "• What It Measures: Triglycerides are the predominant form of dietary fat stored in adipose tissue and circulated for cellular energy.\n• What This Finding Indicates: Your observed value of 185.0 mg/dL is higher than the standard reference range of less than 150 mg/dL. High triglyceride levels are strongly linked to metabolic syndrome, [Medication - Consult Doctor] resistance, type 2 diabetes, alcohol excess, and cardiovascular disease. Please discuss this finding with your physician.",
+      "explanation_hi": "• यह जांच क्या मापती है: ट्राइग्लिसराइड्स आहार वसा का प्रमुख रूप हैं जो वसा ऊतक में संग्रहीत होते हैं और सेलुलर ऊर्जा के लिए प्रसारित होते हैं।\n• आपके परिणाम का क्या अर्थ है: आपका देखा गया मान 185.0 mg/dL मानक संदर्भ सीमा 150 से कम की तुलना में अधिक है। उच्च ट्राइग्लिसराइड का स्तर चयापचय सिंड्रोम, इंसुलिन प्रतिरोध, टाइप 2 मधुमेह, अत्यधिक शराब और हृदय रोग से मजबूती से जुड़ा हुआ है। कृपया अपने चिकित्सक के साथ इस परिणाम पर चर्चा करें।",
+      "source_urls": [
+        "https://medlineplus.gov/triglycerides.html",
+        "https://medlineplus.gov/lab-tests/mcv-mean-corpuscular-volume/",
+        "https://medlineplus.gov/lab-tests/thyroxine-t4-test/"
+      ],
+      "doctor_questions": [
+        "How much do my dietary carbohydrates and sugar intake influence my triglyceride count?",
+        "Was my fasting interval sufficient before this blood draw?"
+      ],
+      "disclaimer": "This information is for educational purposes only and should be discussed with a qualified healthcare provider."
+    },
+    {
+      "test_name": "HDL Cholesterol",
+      "flag": "low",
+      "explanation_en": "• What It Measures: High-Density Lipoprotein is known as good cholesterol because it transports excess cholesterol from your arterial walls back to the liver for removal.\n• What This Finding Indicates: Your observed level of 42.0 mg/dL falls below the standard reference range of greater than 50 mg/dL. Low HDL levels can increase cardiovascular risk, and factors such as physical inactivity, smoking, and metabolic factors can contribute to reduced levels.",
+      "explanation_hi": "• यह जांच क्या मापती है: हाई-डेंसिटी लिपोप्रोटीन को अच्छा कोलेस्ट्रॉल कहा जाता है क्योंकि यह अतिरिक्त कोलेस्ट्रॉल को आपकी धमनियों से वापस यकृत तक पहुंचाता है।\n• आपके परिणाम का क्या अर्थ है: आपका 42.0 mg/dL का स्तर 50 से अधिक के मानक संदर्भ दायरे से नीचे है। कम एचडीएल स्तर हृदय संबंधी जोखिम को बढ़ा सकता है, और कम शारीरिक गतिविधि जैसे कारक इस स्तर को प्रभावित कर सकते हैं।",
+      "source_urls": [
+        "https://medlineplus.gov/hdlcholesterol.html",
+        "https://medlineplus.gov/cholesterol.html",
+        "https://medlineplus.gov/ldlcholesterol.html"
+      ],
+      "doctor_questions": [
+        "How can I safely raise my protective HDL levels through exercise and nutrition?",
+        "What is my Total Cholesterol to HDL ratio?"
+      ],
+      "disclaimer": "This information is for educational purposes only and should be discussed with your physician for proper medical evaluation."
+    },
+    {
+      "test_name": "LDL Cholesterol",
+      "flag": "high",
+      "explanation_en": "• What It Measures: Low-Density Lipoprotein is commonly termed bad cholesterol because it deposits cholesterol into arterial walls, forming atherosclerotic plaques.\n• What This Finding Indicates: Your observed value of 162.0 mg/dL is higher than the standard reference range of below 100 mg/dL. Elevated LDL is a major causative factor in coronary heart disease, myocardial infarction, and stroke, with target thresholds depending on individual baseline cardiovascular risk profiles. Please discuss this finding with your physician.",
+      "explanation_hi": "• यह जांच क्या मापती है: कम घनत्व वाले लिपोप्रोटीन को आमतौर पर खराब कोलेस्ट्रॉल कहा जाता है क्योंकि यह धमनियों की दीवारों में कोलेस्ट्रॉल जमा करता है और पट्टिका बनाता है।\n• आपके परिणाम का क्या अर्थ है: आपका मापा गया मान 162.0 मिलीग्राम/डीएल मानक संदर्भ सीमा 100 से कम से अधिक है। बढ़ा हुआ एलडीएल हृदय रोग, दिल के दौरे और स्ट्रोक में एक प्रमुख कारक है, और इसका लक्ष्य स्तर व्यक्तिगत हृदय जोखिम प्रोफाइल पर निर्भर करता है। कृपया अपने चिकित्सक के साथ इस परिणाम पर चर्चा करें।",
+      "source_urls": [
+        "https://medlineplus.gov/ldlcholesterol.html",
+        "https://medlineplus.gov/cholesterol.html",
+        "https://medlineplus.gov/hdlcholesterol.html"
+      ],
+      "doctor_questions": [
+        "What is my personal target LDL goal based on my overall health history?",
+        "Should we consider additional testing such as ApoB or Lp(a)?"
+      ],
+      "disclaimer": "This information is for educational purposes only and should be discussed with a qualified healthcare provider."
+    },
+    {
+      "test_name": "VLDL Cholesterol",
+      "flag": "high",
+      "explanation_en": "• What It Measures: Total cholesterol quantifies the cumulative amount of cholesterol in your bloodstream, comprising HDL, LDL, and roughly 20% of triglycerides.\n• What This Finding Indicates: Your observed value of 37.0 mg/dL falls above the standard reference range of 10.0 to 30.0 mg/dL, indicating a high level. High total cholesterol is a recognized risk factor for atherosclerosis, coronary artery disease, and cerebrovascular events, with potential causes including high-saturated-fat diets, sedentary lifestyle, genetic familial hypercholesterolemia, and hypothyroidism. Please discuss this finding with your physician.",
+      "explanation_hi": "• यह जांच क्या मापती है: कुल कोलेस्ट्रॉल आपके रक्त प्रवाह में कोलेस्ट्रॉल की संचयी मात्रा को मापता है, जिसमें एचडीएल, एलडीएल और ट्राइग्लिसराइड्स का लगभग 20% हिस्सा शामिल है।\n• आपके परिणाम का क्या अर्थ है: आपका 37.0 mg/dL का परिणाम मानक संदर्भ सीमा 10.0 से 30.0 mg/dL से अधिक है, जो उच्च स्तर को दर्शाता है। उच्च कुल कोलेस्ट्रॉल एथेरोस्क्लेरोसिस, कोरोनरी धमनी रोग और सेरेब्रোভस्कुलर घटनाओं के लिए एक मान्यता प्राप्त जोखिम कारक है, कृपया इस परिणाम पर अपने चिकित्सक से चर्चा करें।",
+      "source_urls": [
+        "https://medlineplus.gov/cholesterol.html",
+        "https://medlineplus.gov/lab-tests/mcv-mean-corpuscular-volume/",
+        "https://medlineplus.gov/lab-tests/red-blood-cell-rbc-count/"
+      ],
+      "doctor_questions": [
+        "What is my overall 10-year cardiovascular risk score based on this lipid profile?",
+        "Are dietary and lifestyle changes sufficient, or should we discuss medical risk management?"
+      ],
+      "disclaimer": "This information is for educational purposes only and should be discussed with your healthcare provider."
+    }
+  ],
+  "flagged_count": 5,
+  "total_tests": 5,
+  "raw_report": {
+    "patient_name": "[PATIENT_NAME_1]",
+    "patient_age": null,
+    "patient_gender": null,
+    "report_date": null,
+    "lab_name": "[CLINICAL_LAB_1]",
+    "report_type": "blood_test",
+    "tests": [
+      {
+        "test_name": "Total Cholesterol",
+        "value": 248.0,
+        "raw_value": "248.0",
+        "unit": "mg/dL",
+        "ref_low": null,
+        "ref_high": 200.0,
+        "ref_raw": "< 200",
+        "flag": "high",
+        "source_page": 1,
+        "source_bbox_or_line": null,
+        "source_location": null,
+        "confidence": 1.0,
+        "extraction_tier": 1,
+        "loinc_code": "2093-3",
+        "loinc_name": "Cholesterol [Mass/volume] in Serum or Plasma",
+        "category": "Lipid Panel"
+      },
+      {
+        "test_name": "Triglycerides",
+        "value": 185.0,
+        "raw_value": "185.0",
+        "unit": "mg/dL",
+        "ref_low": null,
+        "ref_high": 150.0,
+        "ref_raw": "< 150",
+        "flag": "high",
+        "source_page": 1,
+        "source_bbox_or_line": null,
+        "source_location": null,
+        "confidence": 1.0,
+        "extraction_tier": 1,
+        "loinc_code": "2571-8",
+        "loinc_name": "Triglyceride [Mass/volume] in Serum or Plasma",
+        "category": "Lipid Panel"
+      },
+      {
+        "test_name": "HDL Cholesterol",
+        "value": 42.0,
+        "raw_value": "42.0",
+        "unit": "mg/dL",
+        "ref_low": 50.0,
+        "ref_high": null,
+        "ref_raw": "> 50",
+        "flag": "low",
+        "source_page": 1,
+        "source_bbox_or_line": null,
+        "source_location": null,
+        "confidence": 1.0,
+        "extraction_tier": 1,
+        "loinc_code": "2085-9",
+        "loinc_name": "Cholesterol in HDL [Mass/volume] in Serum or Plasma",
+        "category": "Lipid Panel"
+      },
+      {
+        "test_name": "LDL Cholesterol",
+        "value": 162.0,
+        "raw_value": "162.0",
+        "unit": "mg/dL",
+        "ref_low": null,
+        "ref_high": 100.0,
+        "ref_raw": "< 100",
+        "flag": "high",
+        "source_page": 1,
+        "source_bbox_or_line": null,
+        "source_location": null,
+        "confidence": 1.0,
+        "extraction_tier": 1,
+        "loinc_code": "13457-7",
+        "loinc_name": "Cholesterol in LDL [Mass/volume] in Serum or Plasma by calculation",
+        "category": "Lipid Panel"
+      },
+      {
+        "test_name": "VLDL Cholesterol",
+        "value": 37.0,
+        "raw_value": "37.0",
+        "unit": "mg/dL",
+        "ref_low": 10.0,
+        "ref_high": 30.0,
+        "ref_raw": "10.0 - 30.0",
+        "flag": "high",
+        "source_page": 1,
+        "source_bbox_or_line": null,
+        "source_location": null,
+        "confidence": 1.0,
+        "extraction_tier": 1,
+        "loinc_code": "13458-5",
+        "loinc_name": "Cholesterol in VLDL [Mass/volume] in Serum or Plasma by calculation",
+        "category": "Lipid Panel"
+      }
+    ],
+    "extraction_method": "pdfplumber"
+  },
+  "correlations": [
+    {
+      "panel_name": "Lipid & Cardiovascular Panel",
+      "title": "Total Cholesterol / HDL Ratio",
+      "value": 5.9,
+      "unit": "ratio",
+      "optimal_range": "< 3.5 (Optimal), 3.5 - 5.0 (Moderate)",
+      "severity": "elevated",
+      "finding_en": "Your Total Cholesterol to HDL ratio is elevated at 5.9 (benchmark > 5.0 indicates higher atherogenic cardiovascular risk).",
+      "finding_hi": "आपका कुल कोलेस्ट्रॉल / एचडीएल अनुपात 5.9 पर बढ़ा हुआ है (5.0 से अधिक अनुपात हृदय संबंधी जोखिम का संकेत देता है)।",
+      "doctor_questions": [
+        "How does my Total Cholesterol / HDL ratio of 5.9 influence my overall cardiovascular management plan?",
+        "Would dietary interventions or regular aerobic exercise be sufficient to optimize this ratio?"
+      ]
+    },
+    {
+      "panel_name": "Lipid & Metabolic Panel",
+      "title": "Triglyceride / HDL Ratio (Metabolic Indicator)",
+      "value": 4.4,
+      "unit": "ratio",
+      "optimal_range": "< 2.0 (Optimal), 2.0 - 3.8 (Borderline)",
+      "severity": "elevated",
+      "finding_en": "Your Triglyceride / HDL ratio is elevated at 4.4 (> 3.8), which strongly correlates with metabolic syndrome and insulin resistance.",
+      "finding_hi": "आपका ट्राइग्लिसराइड / एचडीएल अनुपात 4.4 पर बढ़ा हुआ है (> 3.8), जो इंसुलिन प्रतिरोध और मेटाबॉलिक सिंड्रोम से जुड़ा हो सकता है।",
+      "doctor_questions": [
+        "Does my Triglyceride / HDL ratio of 4.4 suggest insulin resistance or pre-metabolic changes?",
+        "What specific carbohydrate and refined sugar reduction steps should I take?"
+      ]
+    }
+  ],
+  "panic_alerts": [],
+  "interferences": [],
+  "lifestyle_guidance": [
+    {
+      "panel_name": "Cardiovascular & Lipid Health",
+      "target_analytes": [
+        "Total Cholesterol",
+        "Triglycerides",
+        "HDL Cholesterol",
+        "LDL Cholesterol",
+        "VLDL Cholesterol"
+      ],
+      "nutrition_title_en": "AHA / ESC Mediterranean-Style Heart-Healthy Nutrition",
+      "nutrition_title_hi": "हृदय-सुरक्षा एवं लिपिड नियंत्रण पोषण योजना",
+      "key_recommendations_en": [
+        "Increase soluble viscous fiber to 10-25g daily (binds bile acids in the intestine, actively lowering LDL).",
+        "Substitute saturated cooking fats (butter, palm oil) with monounsaturated extra-virgin olive oil or mustard oil.",
+        "For elevated triglycerides: strictly minimize refined sugar and alcohol, and consume fatty fish (or flaxseed/walnuts) 2x weekly.",
+        "Incorporate 150 minutes of moderate aerobic activity weekly (brisk walking, cycling) to elevate cardioprotective HDL."
+      ],
+      "key_recommendations_hi": [
+        "घुलनशील फाइबर (ओट्स, ईसबगोल, दालें) बढ़ाएं — यह आंतों में अतिरिक्त कोलेस्ट्रॉल को बांधकर बाहर निकालता है।",
+        "घी, मक्खन और पाम तेल की जगह कम मात्रा में सरसों या जैतून के तेल का उपयोग करें।",
+        "ट्राइग्लिसराइड्स कम करने के लिए मीठी चीजें और शराब पूरी तरह बंद करें।",
+        "सप्ताह में कम से कम 150 मिनट तेज चलना या व्यायाम करें, जिससे सुरक्षात्मक HDL कोलेस्ट्रॉल बढ़ता है।"
+      ],
+      "foods_to_favor_en": [
+        "Oats & Barley",
+        "Psyllium Husk",
+        "Almonds & Walnuts",
+        "Lentils & Chickpeas",
+        "Extra Virgin Olive Oil"
+      ],
+      "foods_to_favor_hi": [
+        "जई (ओट्स)",
+        "ईसबगोल",
+        "बादाम और अखरोट",
+        "दालें और छोले",
+        "जैतून व सरसों का तेल"
+      ],
+      "foods_to_limit_en": [
+        "Deep-fried savories (Samosa, Pakora)",
+        "Commercial baked goods",
+        "Processed meats",
+        "Sugary sodas"
+      ],
+      "foods_to_limit_hi": [
+        "तले हुए पकवान व समोसे",
+        "बेकरी बिस्कुट व पेस्ट्री",
+        "प्रोसेस्ड मीट",
+        "मीठे कोल्ड ड्रिंक्स"
+      ],
+      "clinical_evidence_source": "American Heart Association (AHA) & European Society of Cardiology (ESC) Dyslipidemia Guidelines"
+    }
+  ],
+  "is_multi_patient": false,
+  "patient_warning": null,
+  "patient_profiles": {},
+  "disclaimer": "⚠️ This explanation is for educational purposes only and is not a medical diagnosis. Please discuss all results with your doctor."
+}
